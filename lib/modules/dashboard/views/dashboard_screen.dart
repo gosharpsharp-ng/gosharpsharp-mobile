@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:upgrader/upgrader.dart';
 
+// TODO: Rebuild the dashboard screen
+
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 

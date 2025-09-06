@@ -13,6 +13,11 @@ class PngAssets {
   static const String onboardingThree = 'assets/imgs/onboarding_three.png';
   static const String lightWatermark = 'assets/imgs/light_watermark.png';
   static const String carIcon = 'assets/imgs/car.png';
+  static const String rider = 'assets/imgs/rider.png';
+  static const String food = 'assets/imgs/food.png';
+  static const String pharmacy = 'assets/imgs/pharmacy.png';
+  static const String grocery = 'assets/imgs/grocery.png';
+  static const String shopping = 'assets/imgs/shopping.png';
 }
 
 class SvgAssets {
