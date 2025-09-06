@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/modules/dashboard/views/landing_screen.dart';
 import 'package:intl_phone_field/phone_number.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -228,6 +229,7 @@ class SignInScreen extends StatelessWidget {
                         CustomButton(
                           onPressed: () {
                             signInController.signIn();
+                            // Get.to(AppNavigationScreen());
                           },
                           isBusy: signInController.isLoading,
                           title: "Log in",
