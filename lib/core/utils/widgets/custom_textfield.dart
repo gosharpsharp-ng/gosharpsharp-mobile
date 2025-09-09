@@ -616,6 +616,7 @@ class CustomOutlinedRoundedInputField extends StatefulWidget {
   final double fontSize;
   final double labelFontSize;
   final EdgeInsets edgeInsets;
+  final double borderRadius; // New parameter for customizable border radius
 
   const CustomOutlinedRoundedInputField({
     Key? key,
@@ -649,6 +650,7 @@ class CustomOutlinedRoundedInputField extends StatefulWidget {
     this.isCurrency = false,
     this.readOnly = false,
     this.edgeInsets = const EdgeInsets.all(0),
+    this.borderRadius = 8.0, // Default border radius
   }) : super(key: key);
 
   @override
@@ -659,6 +661,12 @@ class CustomOutlinedRoundedInputField extends StatefulWidget {
 class _CustomOutlinedRoundedInputFieldState
     extends State<CustomOutlinedRoundedInputField> {
   bool _hasFocus = false;
+
+  double get _effectiveBorderRadius {
+    // If isSearch is true, use 22.r, otherwise use the custom borderRadius
+    return  widget.borderRadius.r;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -668,10 +676,10 @@ class _CustomOutlinedRoundedInputFieldState
         children: [
           widget.hasTitle
               ? customText(widget.title,
-                  textAlign: TextAlign.left,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14.sp,
-                  color: widget.titleColor)
+              textAlign: TextAlign.left,
+              fontWeight: FontWeight.w700,
+              fontSize: 14.sp,
+              color: widget.titleColor)
               : const SizedBox.shrink(),
           SizedBox(height: widget.hasTitle ? 5.sp : 0.sp),
           Focus(
@@ -692,119 +700,119 @@ class _CustomOutlinedRoundedInputFieldState
               validator: !widget.isRequired
                   ? null
                   : widget.useCustomValidator
-                      ? widget.validator
-                      : (value) {
-                          if (widget.regex != null) {
-                            RegExp regExp = RegExp(
-                              widget.regex!,
-                              caseSensitive: false,
-                              multiLine: false,
-                            );
-                            if (!regExp.hasMatch(value!)) {
-                              return "Invalid ${widget.title}";
-                            }
-                          }
-                          if (value!.isEmpty) {
-                            return "${widget.title} field is required";
-                          }
-                          return null;
-                        },
+                  ? widget.validator
+                  : (value) {
+                if (widget.regex != null) {
+                  RegExp regExp = RegExp(
+                    widget.regex!,
+                    caseSensitive: false,
+                    multiLine: false,
+                  );
+                  if (!regExp.hasMatch(value!)) {
+                    return "Invalid ${widget.title}";
+                  }
+                }
+                if (value!.isEmpty) {
+                  return "${widget.title} field is required";
+                }
+                return null;
+              },
               focusNode: widget.focusNode,
               controller: widget.controller,
               autofocus: widget.autoFocus,
               style: widget.isCurrency
                   ? TextStyle(
-                      color: AppColors.primaryColor,
-                      fontFamily: GoogleFonts.montserrat().fontFamily,
-                      fontSize: widget.fontSize.sp,
-                      fontWeight: FontWeight.bold)
+                  color: AppColors.primaryColor,
+                  fontFamily: GoogleFonts.montserrat().fontFamily,
+                  fontSize: widget.fontSize.sp,
+                  fontWeight: FontWeight.bold)
                   : TextStyle(
-                      color: widget.color,
-                      fontFamily: GoogleFonts.poppins().fontFamily,
-                      fontSize: widget.fontSize.sp),
+                  color: widget.color,
+                  fontFamily: GoogleFonts.poppins().fontFamily,
+                  fontSize: widget.fontSize.sp),
               decoration: InputDecoration(
                   prefixIcon: widget.isPhone
                       ? IntrinsicHeight(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            // crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      // crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(
+                              left: 8.sp, bottom: 1.65.sp),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    left: 8.sp, bottom: 1.65.sp),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        SvgPicture.asset(
-                                          SvgAssets.nigerianFlag,
-                                          height: 15.sp,
-                                        ),
-                                        SizedBox(
-                                          width: 3.sp,
-                                        ),
-                                        customText(
-                                          '+234 ',
-                                          color: widget.color,
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // VerticalDivider(
-                              //     color: _hasFocus
-                              //         ? AppColors.primary
-                              //         : Colors.grey,
-                              //     thickness: 1)
-                            ],
-                          ),
-                        )
-                      : widget.authPrefix != null
-                          ? Container(
-                              width: 40.sp,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              Row(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                    widget.authPrefix!,
-                                    height: 20.sp,
-                                    width: 20.sp,
-                                    color: _hasFocus
-                                        ? AppColors.primaryColor
-                                        : Colors.grey,
-                                  )
+                                  SvgPicture.asset(
+                                    SvgAssets.nigerianFlag,
+                                    height: 15.sp,
+                                  ),
+                                  SizedBox(
+                                    width: 3.sp,
+                                  ),
+                                  customText(
+                                    '+234 ',
+                                    color: widget.color,
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ],
                               ),
-                            )
-                          : widget.prefixWidget,
-                  suffixIcon: widget.hasDropdown || widget.suffixWidget != null
-                      ? IntrinsicHeight(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(right: 12.sp),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [widget.suffixWidget!],
-                                ),
-                              ),
-                              // VerticalDivider(
-                              //     color: _hasFocus
-                              //         ? AppColors.primary
-                              //         : Colors.grey,
-                              //     thickness: 1)
                             ],
                           ),
+                        ),
+                        // VerticalDivider(
+                        //     color: _hasFocus
+                        //         ? AppColors.primary
+                        //         : Colors.grey,
+                        //     thickness: 1)
+                      ],
+                    ),
+                  )
+                      : widget.authPrefix != null
+                      ? Container(
+                    width: 40.sp,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          widget.authPrefix!,
+                          height: 20.sp,
+                          width: 20.sp,
+                          color: _hasFocus
+                              ? AppColors.primaryColor
+                              : Colors.grey,
                         )
+                      ],
+                    ),
+                  )
+                      : widget.prefixWidget,
+                  suffixIcon: widget.hasDropdown || widget.suffixWidget != null
+                      ? IntrinsicHeight(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(right: 12.sp),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [widget.suffixWidget!],
+                          ),
+                        ),
+                        // VerticalDivider(
+                        //     color: _hasFocus
+                        //         ? AppColors.primary
+                        //         : Colors.grey,
+                        //     thickness: 1)
+                      ],
+                    ),
+                  )
                       : widget.suffixWidget,
                   labelText: widget.label,
                   isDense: true,
@@ -823,25 +831,21 @@ class _CustomOutlinedRoundedInputFieldState
                     fontFamily: GoogleFonts.poppins().fontFamily,
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
+                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
                     borderSide: BorderSide(color: widget.color, width: 1.0),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
+                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
                     borderSide: BorderSide(color: widget.color, width: 0.5),
                   ),
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
+                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
                     borderSide: BorderSide(color: widget.color, width: 0.5),
                   ),
                   errorBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
+                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
                     borderSide:
-                        const BorderSide(color: AppColors.redColor, width: 0.5),
+                    const BorderSide(color: AppColors.redColor, width: 0.5),
                   )),
             ),
           ),

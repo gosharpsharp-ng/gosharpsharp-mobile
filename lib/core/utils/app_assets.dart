@@ -14,10 +14,17 @@ class PngAssets {
   static const String lightWatermark = 'assets/imgs/light_watermark.png';
   static const String carIcon = 'assets/imgs/car.png';
   static const String rider = 'assets/imgs/rider.png';
+  static const String chow1 = 'assets/imgs/chow1.png';
+  static const String chow2 = 'assets/imgs/chow2.png';
+  static const String chow3 = 'assets/imgs/chow3.png';
   static const String food = 'assets/imgs/food.png';
   static const String pharmacy = 'assets/imgs/pharmacy.png';
   static const String grocery = 'assets/imgs/grocery.png';
   static const String shopping = 'assets/imgs/shopping.png';
+  static const String wendyBrand = 'assets/imgs/wendy_brand.png';
+  static const String pizzaHutBrand = 'assets/imgs/pizza_hut_brand.png';
+  static const String inOutBrand = 'assets/imgs/in_out_brand.png';
+  static const String jonnyRocketsBrand = 'assets/imgs/jonny_rockets_brand.png';
 }
 
 class SvgAssets {
@@ -34,6 +41,7 @@ class SvgAssets {
   static const String timeIcon = 'assets/svgs/time.svg';
   static const String searchIcon = 'assets/svgs/search.svg';
   static const String bikeIcon = 'assets/svgs/bike.svg';
+  static const String walkIcon = 'assets/svgs/walk.svg';
   static const String deliveryIcon = 'assets/svgs/delivery.svg';
   static const String avatarIcon = 'assets/svgs/avatar.svg';
   static const String copyIcon = 'assets/svgs/copy.svg';
@@ -63,6 +71,7 @@ class SvgAssets {
   static const String unreadNotificationIcon =
       'assets/svgs/unread_notification.svg';
   static const String faqsIcon = 'assets/svgs/faqs.svg';
+  static const String filterIcon = 'assets/svgs/filter.svg';
   static const String languageIcon = 'assets/svgs/language.svg';
   static const String logoutIcon = 'assets/svgs/logout.svg';
   static const String deleteIcon = 'assets/svgs/delete.svg';

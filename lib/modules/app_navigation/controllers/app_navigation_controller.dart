@@ -18,8 +18,8 @@ class AppNavigationController extends GetxController {
   }
 
   List<Widget> screens = [
-    const LandingScreen(),
-    // const DashboardScreen(),
+    // const LandingScreen(),
+    const DashboardScreen(),
     const DeliveriesHomeScreen(),
     const WalletHomeScreen(),
     const SettingsHomeScreen(),

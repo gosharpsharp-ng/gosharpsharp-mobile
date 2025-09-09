@@ -546,14 +546,15 @@ class PartialViewHeader extends StatelessWidget {
               children: [
                 customText("View all",
                     fontWeight: FontWeight.w500,
-                    fontSize: 16.sp,
+                    fontSize: 14.sp,
                     color: AppColors.primaryColor),
                 SizedBox(
-                  width: 5.sp,
+                  width: 8.w,
                 ),
                 SvgPicture.asset(
                   SvgAssets.rightChevronIcon,
                   color: AppColors.primaryColor,
+                  height: 12.sp,
                 )
               ],
             ),
