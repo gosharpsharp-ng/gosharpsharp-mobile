@@ -6,12 +6,20 @@ class DashboardController extends GetxController {
   // Selected category filter
   RxString selectedCategory = 'All'.obs;
 
+  RestaurantModel? selectedRestaurant;
+
+  setSelectedRestaurant(RestaurantModel restaurant) {
+    selectedRestaurant = restaurant;
+    update();
+  }
+
   // Mock data for restaurants
   List<RestaurantModel> restaurants = [
     RestaurantModel(
       id: '1',
       name: 'Late Nite Eats',
-      description: 'Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
+      description:
+          'Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
       location: 'AYA, Abuja',
       openingHours: '7:00 AM - 10:30 PM',
       image: PngAssets.chow1,
@@ -55,7 +63,8 @@ class DashboardController extends GetxController {
       id: '1',
       name: 'Amala and Gbegiri',
       price: '₦3,000.00',
-      description: 'Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit inter.',
+      description:
+          'Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit inter.',
       image: PngAssets.chow1,
       category: 'Swallow',
       preparationTime: '10mins',
@@ -98,7 +107,7 @@ class DashboardController extends GetxController {
     'Snacks',
     'Bakery',
     'Ice cream',
-    'Amala'
+    'Amala',
   ];
 
   @override
@@ -109,26 +118,23 @@ class DashboardController extends GetxController {
 
   // Navigate to restaurant detail
   void navigateToRestaurant(RestaurantModel restaurant) {
-    Get.to(() => RestaurantDetailScreen(
-      restaurantName: restaurant.name,
-      restaurantImage: restaurant.image,
-      restaurantDescription: restaurant.description,
-      location: restaurant.location,
-      openingHours: restaurant.openingHours,
-    ));
+    setSelectedRestaurant(restaurant);
+    Get.to(() => RestaurantDetailScreen());
   }
 
   // Navigate to food detail
   void navigateToFoodDetail(FoodModel food) {
-    Get.to(() => FoodDetailScreen(
-      foodName: food.name,
-      price: food.price,
-      foodImage: food.image,
-      description: food.description,
-      preparationTime: food.preparationTime,
-      rating: food.rating,
-      reviewCount: food.reviewCount,
-    ));
+    Get.to(
+      () => FoodDetailScreen(
+        foodName: food.name,
+        price: food.price,
+        foodImage: food.image,
+        description: food.description,
+        preparationTime: food.preparationTime,
+        rating: food.rating,
+        reviewCount: food.reviewCount,
+      ),
+    );
   }
 
   // Filter restaurants by category
@@ -142,7 +148,9 @@ class DashboardController extends GetxController {
 
   // Get menu items for a specific restaurant
   List<FoodModel> getMenuItemsForRestaurant(String restaurantId) {
-    return menuItems.where((item) => item.restaurantId == restaurantId).toList();
+    return menuItems
+        .where((item) => item.restaurantId == restaurantId)
+        .toList();
   }
 
   // Update selected category

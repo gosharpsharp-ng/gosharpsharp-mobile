@@ -6,7 +6,6 @@ import 'package:gosharpsharp/core/utils/widgets/dot.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart' show RestaurantDetailScreen;
 import 'package:upgrader/upgrader.dart';
 
-// TODO: Rebuild the dashboard screen
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -368,26 +367,12 @@ class DashboardScreen extends StatelessWidget {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      FavRestaurantContainer(
-                                        name: "Wendy",
-                                        image: PngAssets.chow1,
-                                        isWalkable: true,
-                                      ),
-                                      FavRestaurantContainer(
-                                        name: "In-n-Out",
-                                        image: PngAssets.chow3,
-                                      ),
-                                      FavRestaurantContainer(
-                                        name: "Pizza-Hut",
-                                        image: PngAssets.chow3,
-                                      ),
-                                      FavRestaurantContainer(
-                                        name: "Jonny Rockets",
-                                        image: PngAssets.chow1,
-                                      ),
-                                      FavRestaurantContainer(
-                                        name: "Jonny Rockets",
-                                        image: PngAssets.chow2,
+                                      ...List.generate(
+                                        dashboardController.restaurants.length,
+                                            (i) => RestaurantContainer(
+                                          restaurant: dashboardController.restaurants[i],
+                                          onPressed: (){},
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -395,18 +380,12 @@ class DashboardScreen extends StatelessWidget {
                               ),
 
                               SizedBox(height: 15.h),
-                              RestaurantContainer(
-                                name: "Jonny Rockets",
-                                isFreeDelivery: true,
-                                image: PngAssets.chow2,
-                              ),
-                              RestaurantContainer(
-                                name: "Jonny Rockets",
-                                image: PngAssets.chow1,
-                              ),
-                              RestaurantContainer(
-                                name: "Jonny Rockets",
-                                image: PngAssets.chow3,
+                              ...List.generate(
+                                dashboardController.restaurants.length,
+                                    (i) => RestaurantContainer(
+                                  restaurant: dashboardController.restaurants[i],
+                                  onPressed: (){},
+                                ),
                               ),
                             ],
                           ),
@@ -491,22 +470,12 @@ class BrandsContainer extends StatelessWidget {
 }
 
 class RestaurantContainer extends StatelessWidget {
-  final String image;
-  final String name;
-  final String distance;
-  final String duration;
-  final bool isWalkable;
-  final bool isFreeDelivery;
+  final RestaurantModel restaurant;
   final VoidCallback? onPressed;
 
-  const RestaurantContainer({
+   RestaurantContainer({
     super.key,
-    this.name = "Rice",
-    this.distance = "500m",
-    this.duration = "0-5 min",
-    this.image = PngAssets.food,
-    this.isWalkable = false,
-    this.isFreeDelivery = false,
+    required this.restaurant,
     this.onPressed,
   });
 
@@ -517,9 +486,8 @@ class RestaurantContainer extends StatelessWidget {
         return InkWell(
           onTap: onPressed ?? () {
             // Navigate to restaurant detail screen
+            controller.setSelectedRestaurant(restaurant);
             Get.to(() => RestaurantDetailScreen(
-              restaurantName: name,
-              restaurantImage: image,
             ));
           },
           child: Container(
@@ -535,14 +503,14 @@ class RestaurantContainer extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
                     image: DecorationImage(
-                      image: AssetImage(image),
+                      image: AssetImage(restaurant.image),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 SizedBox(height: 8.h),
                 customText(
-                  name,
+                  restaurant.name,
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.blackColor,
@@ -554,7 +522,7 @@ class RestaurantContainer extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        isWalkable
+                        restaurant.isWalkable
                             ? SvgPicture.asset(
                           SvgAssets.walkIcon,
                           colorFilter: ColorFilter.mode(
@@ -564,144 +532,7 @@ class RestaurantContainer extends StatelessWidget {
                           height: 14.sp,
                         )
                             : SizedBox.shrink(),
-                        isFreeDelivery
-                            ? Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 5.w,
-                                vertical: 3.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryColor,
-                                borderRadius: BorderRadius.circular(5.r),
-                              ),
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(
-                                    SvgAssets.bikeIcon,
-                                    height: 15.sp,
-                                    width: 15.sp,
-                                  ),
-                                  SizedBox(width: 5.w),
-                                  customText(
-                                    "Free",
-                                    fontSize: 11.sp,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.blackColor,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                            : SizedBox.shrink(),
-                        SizedBox(width: 5.w),
-                        customText(
-                          distance,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.blackColor,
-                        ),
-                        SizedBox(width: 5.w),
-                        Dot(),
-                        SizedBox(width: 5.w),
-                        customText(
-                          duration,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.blackColor,
-                        ),
-                      ],
-                    ),
-                    InkWell(child: Icon(Icons.favorite_border, size: 18.sp)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-// Updated FavRestaurantContainer with navigation
-class FavRestaurantContainer extends StatelessWidget {
-  final String image;
-  final String name;
-  final String distance;
-  final String duration;
-  final bool isWalkable;
-  final bool isFreeDelivery;
-  final VoidCallback? onPressed;
-
-  const FavRestaurantContainer({
-    super.key,
-    this.name = "Rice",
-    this.distance = "500m",
-    this.duration = "0-5 min",
-    this.image = PngAssets.food,
-    this.isWalkable = false,
-    this.isFreeDelivery = false,
-    this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GetBuilder<DashboardController>(
-      builder: (controller) {
-        return InkWell(
-          onTap: onPressed ?? () {
-            // Navigate to restaurant detail screen
-            Get.to(() => RestaurantDetailScreen(
-              restaurantName: name,
-              restaurantImage: image,
-            ));
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
-            margin: EdgeInsets.only(right: 10.w, bottom: 10.h),
-            width: 1.sw * 0.87,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 180.sp,
-                  width: 1.sw,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.r),
-                    image: DecorationImage(
-                      image: AssetImage(image),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                customText(
-                  name,
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.blackColor,
-                ),
-                SizedBox(height: 5.h),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        isWalkable
-                            ? SvgPicture.asset(
-                          SvgAssets.walkIcon,
-                          colorFilter: ColorFilter.mode(
-                            AppColors.blackColor,
-                            BlendMode.srcIn,
-                          ),
-                          height: 14.sp,
-                        )
-                            : SizedBox.shrink(),
-                        isFreeDelivery
+                        restaurant.isFreeDelivery
                             ? Row(
                           children: [
                             Container(
@@ -725,7 +556,7 @@ class FavRestaurantContainer extends StatelessWidget {
                             : SizedBox.shrink(),
                         SizedBox(width: 5.w),
                         customText(
-                          distance,
+                          restaurant.distance,
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w400,
                           color: AppColors.blackColor,
@@ -734,7 +565,124 @@ class FavRestaurantContainer extends StatelessWidget {
                         Dot(),
                         SizedBox(width: 5.w),
                         customText(
-                          duration,
+                          restaurant.deliveryTime,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.blackColor,
+                        ),
+                      ],
+                    ),
+                    InkWell(child: Icon(Icons.favorite_border, size: 18.sp)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Updated FavRestaurantContainer with navigation
+class FavRestaurantContainer extends StatelessWidget {
+  final RestaurantModel restaurant;
+  final VoidCallback? onPressed;
+
+  const FavRestaurantContainer({
+    super.key,
+    required this.restaurant,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<DashboardController>(
+      builder: (controller) {
+        return InkWell(
+          onTap: onPressed ?? () {
+            // Navigate to restaurant detail screen
+            controller.setSelectedRestaurant(restaurant);
+            Get.to(() => RestaurantDetailScreen(
+
+            ));
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
+            margin: EdgeInsets.only(right: 10.w, bottom: 10.h),
+            width: 1.sw * 0.87,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 180.sp,
+                  width: 1.sw,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.r),
+                    image: DecorationImage(
+                      image: AssetImage(restaurant.image),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                customText(
+                  restaurant.name,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.blackColor,
+                ),
+                SizedBox(height: 5.h),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        restaurant.isWalkable
+                            ? SvgPicture.asset(
+                          SvgAssets.walkIcon,
+                          colorFilter: ColorFilter.mode(
+                            AppColors.blackColor,
+                            BlendMode.srcIn,
+                          ),
+                          height: 14.sp,
+                        )
+                            : SizedBox.shrink(),
+                        restaurant.isFreeDelivery
+                            ? Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 5.w,
+                                vertical: 2.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.secondaryColor,
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: customText(
+                                "Free",
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.blackColor,
+                              ),
+                            ),
+                          ],
+                        )
+                            : SizedBox.shrink(),
+                        SizedBox(width: 5.w),
+                        customText(
+                          restaurant.distance,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.blackColor,
+                        ),
+                        SizedBox(width: 5.w),
+                        Dot(),
+                        SizedBox(width: 5.w),
+                        customText(
+                          restaurant.deliveryTime,
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w400,
                           color: AppColors.blackColor,
