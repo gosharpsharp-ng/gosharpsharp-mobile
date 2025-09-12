@@ -3,25 +3,16 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
 
 class RestaurantDetailScreen extends StatelessWidget {
-  final String restaurantName;
-  final String restaurantImage;
-  final String restaurantDescription;
-  final String location;
-  final String openingHours;
+
 
   const RestaurantDetailScreen({
     super.key,
-    this.restaurantName = "Late Nite Eats",
-    this.restaurantImage = PngAssets.chow1,
-    this.restaurantDescription = "Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.",
-    this.location = "AYA, Abuja",
-    this.openingHours = "7:00 AM - 10:30 PM",
   });
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<DashboardController>(
-      builder: (controller) {
+      builder: (dashboardController) {
         return Scaffold(
           backgroundColor: AppColors.backgroundColor,
           body: Column(
@@ -32,7 +23,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                 width: 1.sw,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(restaurantImage),
+                    image: AssetImage(dashboardController.selectedRestaurant?.name??""),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -158,14 +149,14 @@ class RestaurantDetailScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     customText(
-                                      restaurantName,
+                                      dashboardController.selectedRestaurant?.name??"",
                                       fontSize: 24.sp,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.blackColor,
                                     ),
                                     SizedBox(height: 8.h),
                                     customText(
-                                      restaurantDescription,
+                                      dashboardController.selectedRestaurant?.description??"",
                                       fontSize: 14.sp,
                                       color: AppColors.obscureTextColor,
                                     ),
@@ -193,7 +184,8 @@ class RestaurantDetailScreen extends StatelessWidget {
                                     color: AppColors.obscureTextColor,
                                   ),
                                   customText(
-                                    location,
+                                    dashboardController.selectedRestaurant?.location
+                                        ??"",
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.blackColor,
@@ -209,7 +201,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                                     color: AppColors.obscureTextColor,
                                   ),
                                   customText(
-                                    openingHours,
+                                    dashboardController.selectedRestaurant?.openingHours??"",
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.blackColor,

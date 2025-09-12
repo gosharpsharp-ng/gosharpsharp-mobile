@@ -31,7 +31,7 @@ class SplashScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Image.asset(PngAssets.goSharpSharpTextLogo),
+                        Image.asset(PngAssets.goSharpSharpTextLogo, height: 80.sp,width: 80.sp,),
                       ],
                     ),
                   ),

@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/modules/cart/views/cart_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/landing_screen.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 
@@ -20,7 +21,7 @@ class AppNavigationController extends GetxController {
   List<Widget> screens = [
     // const LandingScreen(),
     const DashboardScreen(),
-    const DeliveriesHomeScreen(),
+    const CartScreen(),
     const WalletHomeScreen(),
     const SettingsHomeScreen(),
   ];
