@@ -35,10 +35,8 @@ class EmptyCartScreen extends StatelessWidget {
                 color: AppColors.secondaryColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.shopping_basket_outlined,
-                size: 80.sp,
-                color: AppColors.secondaryColor,
+              child: SvgPicture.asset(
+               SvgAssets.cartIcon
               ),
             ),
             SizedBox(height: 30.h),

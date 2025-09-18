@@ -77,6 +77,7 @@ class SvgAssets {
   static const String logoutIcon = 'assets/svgs/logout.svg';
   static const String deleteIcon = 'assets/svgs/delete.svg';
   static const String cartIcon = 'assets/svgs/cart.svg';
+  static const String emptyCartIcon = 'assets/svgs/empty_cart.svg';
   static const String passwordChangeIcon = 'assets/svgs/password_change.svg';
   static const String profileIcon = 'assets/svgs/profile.svg';
   static const String securityIcon = 'assets/svgs/security.svg';

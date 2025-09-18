@@ -1,6 +1,8 @@
 // import 'package:go_logistics_client/middlewares/guard_middleware.dart';
 
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/modules/cart/bindings/cart_bindings.dart';
+import 'package:gosharpsharp/modules/cart/views/cart_screen.dart';
 import 'package:gosharpsharp/modules/orders/bindings/orders_bindings.dart';
 import 'package:gosharpsharp/modules/orders/views/order_details_screen.dart';
 import 'package:gosharpsharp/modules/orders/views/orders_home_screen.dart';
@@ -209,6 +211,11 @@ class AppPages {
       page: () => const OrderDetailsScreen(),
      //middlewares: [AuthMiddleware()],
       binding: OrdersBindings(),
+    ),GetPage(
+      name: Routes.CART_SCREEN,
+      page: () => const CartScreen(),
+     //middlewares: [AuthMiddleware()],
+      binding: CartBindings(),
     ),
     GetPage(
       name: Routes.SELECT_LOCATION_SCREEN,

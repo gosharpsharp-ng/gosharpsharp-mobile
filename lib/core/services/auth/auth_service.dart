@@ -4,7 +4,7 @@ class AuthenticationService extends CoreService {
   Future<AuthenticationService> init() async => this;
 
   Future<APIResponse> login(dynamic data) async {
-    return await send("/auth/login", data);
+    return await send("/auth/customer/login", data);
   }
 
   Future<APIResponse> requestForgotPasswordOtp(dynamic data) async {

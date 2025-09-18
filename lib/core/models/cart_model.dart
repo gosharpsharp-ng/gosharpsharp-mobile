@@ -1,3 +1,6 @@
+import 'package:gosharpsharp/core/models/categories_model.dart';
+import 'package:gosharpsharp/core/models/restaurant_model.dart';
+
 class Cart {
   int id;
   int userId;
@@ -29,7 +32,7 @@ class Cart {
     sessionId: json["session_id"],
     totalAmount: json["total_amount"],
     totalItems: json["total_items"],
-    isActive: json["is_active"],
+    isActive: json["is_active"] == 1,
     deletedAt: json["deleted_at"],
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
@@ -42,7 +45,7 @@ class Cart {
     "session_id": sessionId,
     "total_amount": totalAmount,
     "total_items": totalItems,
-    "is_active": isActive,
+    "is_active": isActive ? 1 : 0,
     "deleted_at": deletedAt,
     "created_at": createdAt.toIso8601String(),
     "updated_at": updatedAt.toIso8601String(),
@@ -129,8 +132,8 @@ class Purchasable {
   String? deletedAt;
   DateTime createdAt;
   DateTime updatedAt;
-  Restaurant restaurant;
-  Category category;
+  RestaurantModel restaurant;
+  CategoryModel category;
 
   Purchasable({
     required this.id,
@@ -166,8 +169,8 @@ class Purchasable {
     deletedAt: json["deleted_at"],
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
-    restaurant: Restaurant.fromJson(json["restaurant"]),
-    category: Category.fromJson(json["category"]),
+    restaurant: RestaurantModel.fromJson(json["restaurant"]),
+    category: CategoryModel.fromJson(json["category"]),
   );
 
   Map<String, dynamic> toJson() => {
@@ -190,126 +193,4 @@ class Purchasable {
   };
 }
 
-class Restaurant {
-  int id;
-  String? banner;
-  String? logo;
-  String name;
-  String description;
-  String email;
-  String phone;
-  String cuisineType;
-  int isActive;
-  int isFeatured;
-  String commissionRate;
-  String businessRegistrationNumber;
-  String taxIdentificationNumber;
-  String status;
-  int userId;
-  String? deletedAt;
-  DateTime createdAt;
-  DateTime updatedAt;
 
-  Restaurant({
-    required this.id,
-    this.banner,
-    this.logo,
-    required this.name,
-    required this.description,
-    required this.email,
-    required this.phone,
-    required this.cuisineType,
-    required this.isActive,
-    required this.isFeatured,
-    required this.commissionRate,
-    required this.businessRegistrationNumber,
-    required this.taxIdentificationNumber,
-    required this.status,
-    required this.userId,
-    this.deletedAt,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Restaurant.fromJson(Map<String, dynamic> json) => Restaurant(
-    id: json["id"],
-    banner: json["banner"],
-    logo: json["logo"],
-    name: json["name"],
-    description: json["description"],
-    email: json["email"],
-    phone: json["phone"],
-    cuisineType: json["cuisine_type"],
-    isActive: json["is_active"],
-    isFeatured: json["is_featured"],
-    commissionRate: json["commission_rate"],
-    businessRegistrationNumber: json["business_registration_number"],
-    taxIdentificationNumber: json["tax_identification_number"],
-    status: json["status"],
-    userId: json["user_id"],
-    deletedAt: json["deleted_at"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "banner": banner,
-    "logo": logo,
-    "name": name,
-    "description": description,
-    "email": email,
-    "phone": phone,
-    "cuisine_type": cuisineType,
-    "is_active": isActive,
-    "is_featured": isFeatured,
-    "commission_rate": commissionRate,
-    "business_registration_number": businessRegistrationNumber,
-    "tax_identification_number": taxIdentificationNumber,
-    "status": status,
-    "user_id": userId,
-    "deleted_at": deletedAt,
-    "created_at": createdAt.toIso8601String(),
-    "updated_at": updatedAt.toIso8601String(),
-  };
-}
-
-class Category {
-  int id;
-  String name;
-  String description;
-  int order;
-  String? deletedAt;
-  DateTime createdAt;
-  DateTime updatedAt;
-
-  Category({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.order,
-    this.deletedAt,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Category.fromJson(Map<String, dynamic> json) => Category(
-    id: json["id"],
-    name: json["name"],
-    description: json["description"],
-    order: json["order"],
-    deletedAt: json["deleted_at"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-    "description": description,
-    "order": order,
-    "deleted_at": deletedAt,
-    "created_at": createdAt.toIso8601String(),
-    "updated_at": updatedAt.toIso8601String(),
-  };
-}
