@@ -49,7 +49,6 @@ class SignInController extends GetxController {
             ? loginController.text
             : filledPhoneNumber?.completeNumber ?? "",
         'password': passwordController.text,
-        "as_rider":false
       };
       APIResponse response = await authService.login(data);
       showToast(
@@ -62,7 +61,7 @@ class SignInController extends GetxController {
         filledPhoneNumber=null;
         update();
         final getStorage = GetStorage();
-        getStorage.write("token", response.data['access_token']);
+        getStorage.write("token", response.data['auth_token']);
         Get.put(WalletController());
         Get.put(SettingsController());
         Get.put(DeliveriesController());

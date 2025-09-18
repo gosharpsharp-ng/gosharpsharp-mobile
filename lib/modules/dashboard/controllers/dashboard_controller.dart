@@ -1,3 +1,4 @@
+import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart';
@@ -13,47 +14,98 @@ class DashboardController extends GetxController {
     update();
   }
 
+  // Track favorites (by restaurant id)
+  final Set<int> _favoriteRestaurantIds = {};
+
+  void toggleFavorite(RestaurantModel restaurant) {
+    if (_favoriteRestaurantIds.contains(restaurant.id)) {
+      _favoriteRestaurantIds.remove(restaurant.id);
+    } else {
+      _favoriteRestaurantIds.add(restaurant.id);
+    }
+    update(); // refresh UI
+  }
+
+  bool isFavorite(int restaurantId) {
+    return _favoriteRestaurantIds.contains(restaurantId);
+  }
+
   // Mock data for restaurants
   List<RestaurantModel> restaurants = [
     RestaurantModel(
-      id: '1',
+      id: 1,
+      banner: null,
+      logo: null,
       name: 'Late Nite Eats',
       description:
           'Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
-      location: 'AYA, Abuja',
-      openingHours: '7:00 AM - 10:30 PM',
-      image: PngAssets.chow1,
-      rating: 4.5,
-      distance: '1.2 km',
-      deliveryTime: '20-30 min',
-      isWalkable: true,
-      isFreeDelivery: true,
+      email: 'latenite@example.com',
+      phone: '08000000001',
+      cuisineType: null,
+      isActive: 1,
+      isFeatured: 0,
+      commissionRate: '15.00',
+      businessRegistrationNumber: null,
+      taxIdentificationNumber: null,
+      status: 'pending',
+      userId: 1,
+      deletedAt: null,
+      createdAt: '2025-08-17T09:07:12.000000Z',
+      updatedAt: '2025-08-17T09:07:12.000000Z',
+      schedules: [
+        Schedule(
+          id: 1,
+          restaurantId: 1,
+          dayOfWeek: 'monday',
+          openTime: '2025-08-17T09:00:00.000000Z',
+          closeTime: '2025-08-17T21:00:00.000000Z',
+          deletedAt: null,
+          createdAt: '2025-08-17T09:07:12.000000Z',
+          updatedAt: '2025-08-17T09:07:12.000000Z',
+        ),
+      ],
     ),
     RestaurantModel(
-      id: '2',
+      id: 2,
+      banner: null,
+      logo: null,
       name: 'Jonny Rockets',
       description: 'Fast food restaurant with great burgers and fries.',
-      location: 'Wuse 2, Abuja',
-      openingHours: '8:00 AM - 11:00 PM',
-      image: PngAssets.chow2,
-      rating: 4.2,
-      distance: '2.1 km',
-      deliveryTime: '25-35 min',
-      isWalkable: false,
-      isFreeDelivery: false,
+      email: 'jonnyrockets@example.com',
+      phone: '08000000002',
+      cuisineType: null,
+      isActive: 1,
+      isFeatured: 0,
+      commissionRate: '15.00',
+      businessRegistrationNumber: null,
+      taxIdentificationNumber: null,
+      status: 'pending',
+      userId: 1,
+      deletedAt: null,
+      createdAt: '2025-08-17T09:07:12.000000Z',
+      updatedAt: '2025-08-17T09:07:12.000000Z',
+      schedules: [],
     ),
     RestaurantModel(
-      id: '3',
+      id: 3,
+      banner: null,
+      logo: null,
       name: 'Pizza Hut',
       description: 'Delicious pizzas and Italian cuisine.',
-      location: 'Garki, Abuja',
-      openingHours: '10:00 AM - 10:00 PM',
-      image: PngAssets.chow3,
-      rating: 4.7,
-      distance: '1.8 km',
-      deliveryTime: '30-40 min',
-      isWalkable: false,
-      isFreeDelivery: true,
+      email: 'pizzahut@example.com',
+      phone: '08000000003',
+      cuisineType: null,
+      isActive: 1,
+      isFeatured: 1,
+      commissionRate: '15.00',
+      businessRegistrationNumber: null,
+      taxIdentificationNumber: null,
+      status: 'pending',
+      userId: 1,
+      deletedAt: null,
+      createdAt: '2025-08-17T09:07:12.000000Z',
+      updatedAt: '2025-08-17T09:07:12.000000Z',
+      schedules: [],
     ),
   ];
 
@@ -158,35 +210,6 @@ class DashboardController extends GetxController {
     selectedCategory.value = category;
     update();
   }
-}
-
-// Model classes
-class RestaurantModel {
-  final String id;
-  final String name;
-  final String description;
-  final String location;
-  final String openingHours;
-  final String image;
-  final double rating;
-  final String distance;
-  final String deliveryTime;
-  final bool isWalkable;
-  final bool isFreeDelivery;
-
-  RestaurantModel({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.location,
-    required this.openingHours,
-    required this.image,
-    required this.rating,
-    required this.distance,
-    required this.deliveryTime,
-    required this.isWalkable,
-    required this.isFreeDelivery,
-  });
 }
 
 class FoodModel {
