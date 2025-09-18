@@ -3,8 +3,6 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
 
 class RestaurantDetailScreen extends StatelessWidget {
-
-
   const RestaurantDetailScreen({
     super.key,
   });
@@ -13,6 +11,29 @@ class RestaurantDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<DashboardController>(
       builder: (dashboardController) {
+        final restaurant = dashboardController.selectedRestaurant;
+
+        // Get formatted opening hours
+        String getOpeningHours() {
+          if (restaurant?.schedules == null || restaurant!.schedules!.isEmpty) {
+            return "No schedule available";
+          }
+
+          final today = DateTime.now().weekday;
+          final dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+          final currentDay = dayNames[today - 1];
+
+          final todaySchedule = restaurant.schedules!.firstWhere(
+                (schedule) => schedule.dayOfWeek.toLowerCase() == currentDay,
+            orElse: () => restaurant.schedules!.first,
+          );
+
+          final openTime = DateTime.parse(todaySchedule.openTime);
+          final closeTime = DateTime.parse(todaySchedule.closeTime);
+
+          return "${_formatTime(openTime)} - ${_formatTime(closeTime)}";
+        }
+
         return Scaffold(
           backgroundColor: AppColors.backgroundColor,
           body: Column(
@@ -23,7 +44,9 @@ class RestaurantDetailScreen extends StatelessWidget {
                 width: 1.sw,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(dashboardController.selectedRestaurant?.name??""),
+                    image: restaurant?.banner != null
+                        ? NetworkImage(restaurant!.banner!)
+                        : AssetImage('assets/images/default_restaurant_banner.png') as ImageProvider,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -104,6 +127,18 @@ class RestaurantDetailScreen extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              customText(
+                                restaurant?.name ?? "Restaurant Name",
+                                fontSize: 28.sp,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.whiteColor,
+                              ),
+                              SizedBox(height: 8.h),
+                              customText(
+                                restaurant?.cuisineType ?? "Restaurant Cuisine",
+                                fontSize: 16.sp,
+                                color: AppColors.whiteColor.withOpacity(0.9),
+                              ),
                             ],
                           ),
                         ),
@@ -138,10 +173,21 @@ class RestaurantDetailScreen extends StatelessWidget {
                               CircleAvatar(
                                 radius: 25.r,
                                 backgroundColor: AppColors.primaryColor,
-                                child: Text(
-                                  "😊",
-                                  style: TextStyle(fontSize: 20.sp),
-                                ),
+                                backgroundImage: restaurant?.logo != null
+                                    ? NetworkImage(restaurant!.logo!)
+                                    : null,
+                                child: restaurant?.logo == null
+                                    ? Text(
+                                  restaurant?.name.isNotEmpty == true
+                                      ? restaurant!.name[0].toUpperCase()
+                                      : "R",
+                                  style: TextStyle(
+                                    fontSize: 20.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.whiteColor,
+                                  ),
+                                )
+                                    : null,
                               ),
                               SizedBox(width: 15.w),
                               Expanded(
@@ -149,14 +195,14 @@ class RestaurantDetailScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     customText(
-                                      dashboardController.selectedRestaurant?.name??"",
+                                      restaurant?.name ?? "Restaurant Name",
                                       fontSize: 24.sp,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.blackColor,
                                     ),
                                     SizedBox(height: 8.h),
                                     customText(
-                                      dashboardController.selectedRestaurant?.description??"",
+                                      restaurant?.description ?? "No description available",
                                       fontSize: 14.sp,
                                       color: AppColors.obscureTextColor,
                                     ),
@@ -169,42 +215,90 @@ class RestaurantDetailScreen extends StatelessWidget {
 
                         SizedBox(height: 20.h),
 
-                        // Location and Opening Hours
+                        // Contact Info and Status
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20.w),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Column(
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  customText(
-                                    "Location",
-                                    fontSize: 14.sp,
-                                    color: AppColors.obscureTextColor,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      customText(
+                                        "Phone",
+                                        fontSize: 14.sp,
+                                        color: AppColors.obscureTextColor,
+                                      ),
+                                      customText(
+                                        restaurant?.phone ?? "No phone available",
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.blackColor,
+                                      ),
+                                    ],
                                   ),
-                                  customText(
-                                    dashboardController.selectedRestaurant?.location
-                                        ??"",
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.blackColor,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      customText(
+                                        "Status",
+                                        fontSize: 14.sp,
+                                        color: AppColors.obscureTextColor,
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                        decoration: BoxDecoration(
+                                          color: _getStatusColor(restaurant?.status ?? "pending"),
+                                          borderRadius: BorderRadius.circular(4.r),
+                                        ),
+                                        child: customText(
+                                          restaurant?.status.toUpperCase() ?? "PENDING",
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.whiteColor,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
+                              SizedBox(height: 15.h),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  customText(
-                                    "Opening hours:",
-                                    fontSize: 14.sp,
-                                    color: AppColors.obscureTextColor,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      customText(
+                                        "Email",
+                                        fontSize: 14.sp,
+                                        color: AppColors.obscureTextColor,
+                                      ),
+                                      customText(
+                                        restaurant?.email ?? "No email available",
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.blackColor,
+                                      ),
+                                    ],
                                   ),
-                                  customText(
-                                    dashboardController.selectedRestaurant?.openingHours??"",
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.blackColor,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      customText(
+                                        "Opening hours:",
+                                        fontSize: 14.sp,
+                                        color: AppColors.obscureTextColor,
+                                      ),
+                                      customText(
+                                        getOpeningHours(),
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.blackColor,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -227,7 +321,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                                 _buildCategoryTab("Burger", false),
                                 _buildCategoryTab("Sandwich", false),
                                 _buildCategoryTab("Pizza", false),
-                                _buildCategoryTab("Drinks", false),
+                                _buildCategoryTab("Desserts", false),
                               ],
                             ),
                           ),
@@ -239,7 +333,7 @@ class RestaurantDetailScreen extends StatelessWidget {
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20.w),
                           child: customText(
-                            "Drinks (10)",
+                            "Menu Items",
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
                             color: AppColors.obscureTextColor,
@@ -248,22 +342,14 @@ class RestaurantDetailScreen extends StatelessWidget {
 
                         SizedBox(height: 15.h),
 
-                        // Menu Items
-                        _buildMenuItem(
-                          "Drinkupucho",
-                          "₦3,000.00",
-                          PngAssets.chow1,
-                        ),
-                        _buildMenuItem(
-                          "Menu title",
-                          "₦2,500.00",
-                          PngAssets.chow2,
-                        ),
-                        _buildMenuItem(
-                          "Menu title",
-                          "₦2,500.00",
-                          PngAssets.chow3,
-                        ),
+                        // Menu Items - Get from controller based on restaurant ID
+                        ...dashboardController.getMenuItemsForRestaurant(restaurant?.id.toString() ?? '1')
+                            .map((foodItem) => _buildMenuItem(
+                          foodItem.name,
+                          foodItem.price,
+                          foodItem.image,
+                        ))
+                            .toList(),
 
                         SizedBox(height: 30.h),
                       ],
@@ -276,6 +362,29 @@ class RestaurantDetailScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  // Helper method to format time
+  String _formatTime(DateTime time) {
+    final hour = time.hour;
+    final minute = time.minute;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    return '${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+  }
+
+  // Helper method to get status color
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'inactive':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildCategoryTab(String title, bool isSelected) {

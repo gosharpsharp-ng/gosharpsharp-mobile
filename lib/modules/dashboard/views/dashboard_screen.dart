@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/utils/widgets/dot.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart' show RestaurantDetailScreen;
@@ -473,7 +474,7 @@ class RestaurantContainer extends StatelessWidget {
   final RestaurantModel restaurant;
   final VoidCallback? onPressed;
 
-   RestaurantContainer({
+  const RestaurantContainer({
     super.key,
     required this.restaurant,
     this.onPressed,
@@ -484,12 +485,12 @@ class RestaurantContainer extends StatelessWidget {
     return GetBuilder<DashboardController>(
       builder: (controller) {
         return InkWell(
-          onTap: onPressed ?? () {
-            // Navigate to restaurant detail screen
-            controller.setSelectedRestaurant(restaurant);
-            Get.to(() => RestaurantDetailScreen(
-            ));
-          },
+          onTap: onPressed ??
+                  () {
+                // Navigate to restaurant detail screen
+                controller.setSelectedRestaurant(restaurant);
+                Get.to(() => RestaurantDetailScreen());
+              },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
             margin: EdgeInsets.only(right: 5.w, bottom: 10.h),
@@ -497,83 +498,98 @@ class RestaurantContainer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ✅ Use logo or banner (if provided by API)
                 Container(
                   height: 180.sp,
                   width: 1.sw,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
                     image: DecorationImage(
-                      image: AssetImage(restaurant.image),
+                      image: restaurant.logo != null
+                          ? NetworkImage(restaurant.logo!)
+                          : const AssetImage("assets/images/placeholder.png")
+                      as ImageProvider,
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 SizedBox(height: 8.h),
+
+                // ✅ Restaurant name
                 customText(
                   restaurant.name,
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.blackColor,
                 ),
+
                 SizedBox(height: 5.h),
+
+                // ✅ Status & commission (just as example badges)
                 Row(
-                  mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        restaurant.isWalkable
-                            ? SvgPicture.asset(
-                          SvgAssets.walkIcon,
-                          colorFilter: ColorFilter.mode(
-                            AppColors.blackColor,
-                            BlendMode.srcIn,
-                          ),
-                          height: 14.sp,
-                        )
-                            : SizedBox.shrink(),
-                        restaurant.isFreeDelivery
-                            ? Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 5.w,
-                                vertical: 2.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryColor,
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: customText(
-                                "Free",
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.blackColor,
-                              ),
+                        // Show "Active" if isActive == 1
+                        if (restaurant.isActive == 1)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
                             ),
-                          ],
-                        )
-                            : SizedBox.shrink(),
-                        SizedBox(width: 5.w),
-                        customText(
-                          restaurant.distance,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.blackColor,
-                        ),
-                        SizedBox(width: 5.w),
-                        Dot(),
-                        SizedBox(width: 5.w),
-                        customText(
-                          restaurant.deliveryTime,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.blackColor,
-                        ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6.r),
+                            ),
+                            child: customText(
+                              "Active",
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.green,
+                            ),
+                          ),
+                        SizedBox(width: 6.w),
+
+                        // Show "Featured" if isFeatured == 1
+                        if (restaurant.isFeatured == 1)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6.r),
+                            ),
+                            child: customText(
+                              "Featured",
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.orange,
+                            ),
+                          ),
                       ],
                     ),
-                    InkWell(child: Icon(Icons.favorite_border, size: 18.sp)),
+
+                    // ✅ Favorite button
+                    InkWell(
+                      child: Icon(Icons.favorite_border, size: 18.sp),
+                      onTap: () {
+                        // add to favorites logic
+                      },
+                    ),
                   ],
+                ),
+
+                SizedBox(height: 5.h),
+
+                // ✅ Show email / phone (since distance, deliveryTime not in API)
+                customText(
+                  "${restaurant.email} • ${restaurant.phone}",
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.blackColor,
                 ),
               ],
             ),
@@ -584,7 +600,7 @@ class RestaurantContainer extends StatelessWidget {
   }
 }
 
-// Updated FavRestaurantContainer with navigation
+
 class FavRestaurantContainer extends StatelessWidget {
   final RestaurantModel restaurant;
   final VoidCallback? onPressed;
@@ -600,13 +616,11 @@ class FavRestaurantContainer extends StatelessWidget {
     return GetBuilder<DashboardController>(
       builder: (controller) {
         return InkWell(
-          onTap: onPressed ?? () {
-            // Navigate to restaurant detail screen
-            controller.setSelectedRestaurant(restaurant);
-            Get.to(() => RestaurantDetailScreen(
-
-            ));
-          },
+          onTap: onPressed ??
+                  () {
+                controller.setSelectedRestaurant(restaurant);
+                Get.to(() => RestaurantDetailScreen());
+              },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
             margin: EdgeInsets.only(right: 10.w, bottom: 10.h),
@@ -614,18 +628,28 @@ class FavRestaurantContainer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Restaurant banner/logo
                 Container(
                   height: 180.sp,
                   width: 1.sw,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
                     image: DecorationImage(
-                      image: AssetImage(restaurant.image),
+                      image: (restaurant.banner != null &&
+                          restaurant.banner!.startsWith("http"))
+                          ? NetworkImage(restaurant.banner!)
+                          : (restaurant.logo != null &&
+                          restaurant.logo!.startsWith("http"))
+                          ? NetworkImage(restaurant.logo!)
+                          : const AssetImage("assets/images/placeholder.png")
+                      as ImageProvider,
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 SizedBox(height: 8.h),
+
+                // Name
                 customText(
                   restaurant.name,
                   fontSize: 14.sp,
@@ -633,63 +657,48 @@ class FavRestaurantContainer extends StatelessWidget {
                   color: AppColors.blackColor,
                 ),
                 SizedBox(height: 5.h),
+
+                // Details row (only showing active/featured for now)
                 Row(
-                  mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        restaurant.isWalkable
-                            ? SvgPicture.asset(
-                          SvgAssets.walkIcon,
-                          colorFilter: ColorFilter.mode(
-                            AppColors.blackColor,
-                            BlendMode.srcIn,
-                          ),
-                          height: 14.sp,
-                        )
-                            : SizedBox.shrink(),
-                        restaurant.isFreeDelivery
-                            ? Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 5.w,
-                                vertical: 2.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryColor,
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: customText(
-                                "Free",
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.blackColor,
-                              ),
+                        if (restaurant.isFeatured == 1)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 5.w,
+                              vertical: 2.h,
                             ),
-                          ],
-                        )
-                            : SizedBox.shrink(),
-                        SizedBox(width: 5.w),
-                        customText(
-                          restaurant.distance,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.blackColor,
-                        ),
-                        SizedBox(width: 5.w),
-                        Dot(),
-                        SizedBox(width: 5.w),
-                        customText(
-                          restaurant.deliveryTime,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.blackColor,
-                        ),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondaryColor,
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: customText(
+                              "Featured",
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.blackColor,
+                            ),
+                          ),
                       ],
                     ),
-                    InkWell(child: Icon(Icons.favorite_border, size: 18.sp)),
+
+                    // Favorite button (local state handled in controller)
+                    InkWell(
+                      onTap: () {
+                        controller.toggleFavorite(restaurant);
+                      },
+                      child: Icon(
+                        controller.isFavorite(restaurant.id)
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        size: 18.sp,
+                        color: controller.isFavorite(restaurant.id)
+                            ? Colors.red
+                            : AppColors.blackColor,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -700,3 +709,5 @@ class FavRestaurantContainer extends StatelessWidget {
     );
   }
 }
+
+
