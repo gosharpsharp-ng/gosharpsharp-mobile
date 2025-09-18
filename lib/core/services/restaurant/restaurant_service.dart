@@ -9,7 +9,7 @@ class RestaurantService extends CoreService {
 
   Future<APIResponse> getRestaurantMenu(dynamic data) async {
     return await fetch(
-      "/customer/menus?per_page=${data['per_page']}&restaurant_id=${data['restaurant_id']}&category_id=${data['cat_id']}&search=${data['query']}",
+      "/customers/menus?per_page=${data['per_page']}&restaurant_id=${data['restaurant_id']}&category_id=${data['cat_id']}&search=${data['query']}",
     );
   }
 

@@ -13,7 +13,7 @@ class MenuService extends CoreService {
 
   Future<APIResponse> getMenuCategories(dynamic data) async {
     return await fetch(
-      "/customer/menu-categories?page=${data['page']}&page_size=${data['per_page']}",
+      "/customers/menu-categories?page=${data['page']}&page_size=${data['per_page']}",
     );
   }
 

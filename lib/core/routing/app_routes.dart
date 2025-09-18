@@ -15,6 +15,7 @@ abstract class Routes {
   static const RESET_PASSWORD_NEW_PASSWORD_SCREEN =
       '/reset_password_new_password_screen';
   static const RESET_PASSWORD_OTP_SCREEN = '/reset_password_otp_screen';
+
   static const RESET_PASSWORD_SUCCESS_SCREEN = '/reset_password_success_screen';
   static const DASHBOARD = '/dashboard';
   static const ONBOARDING_BUSINESS_OPERATIONS =
@@ -60,6 +61,10 @@ abstract class Routes {
   static const ORDERS_HOME_SCREEN = '/orders_home_screen';
   static const ORDER_DETAILS_SCREEN = '/order_details_screen';
   static const CART_SCREEN = '/cart_screen';
+
+//   Restaurant
+
+  static const RESTAURANT_DETAILS_SCREEN = '/restaurant_details_screen';
 }
 
 

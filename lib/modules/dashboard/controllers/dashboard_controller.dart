@@ -1,3 +1,5 @@
+import 'package:gosharpsharp/core/models/categories_model.dart';
+import 'package:gosharpsharp/core/models/menu_item_model.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/services/restaurant/restaurant_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
@@ -34,14 +36,16 @@ class DashboardController extends GetxController {
   // Selected category filter
   RxString selectedCategory = 'All'.obs;
 
+  // Selected items
   RestaurantModel? selectedRestaurant;
+  MenuItemModel? selectedMenuItem;
 
   // Data lists
   List<RestaurantModel> restaurants = [];
   List<RestaurantModel> favoriteRestaurants = [];
-  List<FoodModel> menuItems = [];
+  List<MenuItemModel> menuItems = [];
   List<String> categories = [];
-  List<MenuCategory> menuCategories = [];
+  List<CategoryModel> menuCategories = [];
 
   // Track favorites (by restaurant id)
   final Set<int> _favoriteRestaurantIds = {};
@@ -51,7 +55,7 @@ class DashboardController extends GetxController {
     super.onInit();
     fetchRestaurants();
     fetchFavoriteRestaurants();
-    // fetchMenuCategories();
+    fetchMenuCategories();
   }
 
   // Set selected restaurant
@@ -59,6 +63,12 @@ class DashboardController extends GetxController {
     selectedRestaurant = restaurant;
     // Fetch menu items for this restaurant
     fetchRestaurantMenus(restaurant.id.toString());
+    update();
+  }
+
+  // Set selected menu item
+  setSelectedMenuItem(MenuItemModel menuItem) {
+    selectedMenuItem = menuItem;
     update();
   }
 
@@ -93,8 +103,9 @@ class DashboardController extends GetxController {
   Future<void> fetchFavoriteRestaurants() async {
     try {
       setFavoritesLoadingState(true);
-      APIResponse response = await restaurantService.getMyFavourites({'type': 'restaurant'});
-
+      APIResponse response = await restaurantService.getMyFavourites({
+        'type': 'restaurant',
+      });
 
       if (response.status.toLowerCase() == "success") {
         favoriteRestaurants = (response.data['data'] as List)
@@ -110,14 +121,21 @@ class DashboardController extends GetxController {
         showToast(message: response.message, isError: true);
       }
     } catch (e) {
-      showToast(message: "Failed to fetch favorite restaurants: $e", isError: true);
+      showToast(
+        message: "Failed to fetch favorite restaurants: $e",
+        isError: true,
+      );
     } finally {
       setFavoritesLoadingState(false);
     }
   }
 
   // Fetch restaurant menus
-  Future<void> fetchRestaurantMenus(String restaurantId, {String categoryId = '', String query = ''}) async {
+  Future<void> fetchRestaurantMenus(
+    String restaurantId, {
+    String categoryId = '',
+    String query = '',
+  }) async {
     try {
       setMenusLoadingState(true);
       APIResponse response = await restaurantService.getRestaurantMenu({
@@ -129,7 +147,7 @@ class DashboardController extends GetxController {
 
       if (response.status.toLowerCase() == "success") {
         menuItems = (response.data['data'] as List)
-            .map((json) => FoodModel.fromJson(json))
+            .map((json) => MenuItemModel.fromJson(json))
             .toList();
       } else {
         showToast(message: response.message, isError: true);
@@ -151,7 +169,7 @@ class DashboardController extends GetxController {
 
       if (response.status.toLowerCase() == "success") {
         menuCategories = (response.data['data'] as List)
-            .map((json) => MenuCategory.fromJson(json))
+            .map((json) => CategoryModel.fromJson(json))
             .toList();
 
         // Update categories list for UI
@@ -166,7 +184,9 @@ class DashboardController extends GetxController {
   // Toggle favorite restaurant
   Future<void> toggleFavorite(RestaurantModel restaurant) async {
     try {
-      APIResponse response = await restaurantService.toggleFavouriteRestaurant({'id': restaurant.id});
+      APIResponse response = await restaurantService.toggleFavouriteRestaurant({
+        'id': restaurant.id,
+      });
 
       if (response.status.toLowerCase() == "success") {
         if (_favoriteRestaurantIds.contains(restaurant.id)) {
@@ -195,22 +215,13 @@ class DashboardController extends GetxController {
   // Navigate to restaurant detail
   void navigateToRestaurant(RestaurantModel restaurant) {
     setSelectedRestaurant(restaurant);
-    Get.to(() => RestaurantDetailScreen());
+    Get.toNamed(Routes.RESTAURANT_DETAILS_SCREEN);
   }
 
-  // Navigate to food detail
-  void navigateToFoodDetail(FoodModel food) {
-    Get.to(
-          () => FoodDetailScreen(
-        foodName: food.name,
-        price: food.price,
-        foodImage: food.image ?? '',
-        description: food.description ?? '',
-        preparationTime: food.preparationTime ?? '15mins',
-        rating: food.rating ?? 0.0,
-        reviewCount: food.reviewCount ?? 0,
-      ),
-    );
+  // Navigate to food detail - Updated to use MenuItemModel
+  void navigateToFoodDetail(MenuItemModel food) {
+    setSelectedMenuItem(food);
+    Get.to(() => FoodDetailScreen());
   }
 
   // Filter restaurants by category
@@ -219,15 +230,49 @@ class DashboardController extends GetxController {
       return restaurants;
     }
     // Filter by cuisine type or add restaurant categories logic
-    return restaurants.where((restaurant) =>
-    restaurant.cuisineType?.toLowerCase() == selectedCategory.value.toLowerCase()
-    ).toList();
+    return restaurants
+        .where(
+          (restaurant) =>
+              restaurant.cuisineType?.toLowerCase() ==
+              selectedCategory.value.toLowerCase(),
+        )
+        .toList();
   }
 
   // Get menu items for a specific restaurant
-  List<FoodModel> getMenuItemsForRestaurant(String restaurantId) {
+  List<MenuItemModel> getMenuItemsForRestaurant(String restaurantId) {
     return menuItems
-        .where((item) => item.restaurantId == restaurantId)
+        .where((item) => item.restaurant.id.toString() == restaurantId)
+        .toList();
+  }
+
+  // Get menu items filtered by category
+  List<MenuItemModel> getFilteredMenuItems(String categoryName) {
+    if (categoryName == 'All') {
+      return menuItems;
+    }
+    return menuItems
+        .where(
+          (item) =>
+              item.category.name.toLowerCase() == categoryName.toLowerCase(),
+        )
+        .toList();
+  }
+
+  // Get menu items for restaurant filtered by category
+  List<MenuItemModel> getFilteredMenuItemsForRestaurant(
+    String restaurantId,
+    String categoryName,
+  ) {
+    var restaurantMenus = getMenuItemsForRestaurant(restaurantId);
+    if (categoryName == 'All') {
+      return restaurantMenus;
+    }
+    return restaurantMenus
+        .where(
+          (item) =>
+              item.category.name.toLowerCase() == categoryName.toLowerCase(),
+        )
         .toList();
   }
 
@@ -239,7 +284,7 @@ class DashboardController extends GetxController {
 
   // Refresh all data
   Future<void> refreshData() async {
-    await Future.wait([
+    await Future.wait<void>([
       fetchRestaurants(),
       fetchFavoriteRestaurants(),
       fetchMenuCategories(),
@@ -249,124 +294,55 @@ class DashboardController extends GetxController {
   // Get restaurant by ID
   Future<RestaurantModel?> getRestaurantById(int id) async {
     try {
-      APIResponse response = await restaurantService.getRestaurantById({'id': id});
+      APIResponse response = await restaurantService.getRestaurantById({
+        'id': id,
+      });
 
       if (response.status.toLowerCase() == "success") {
         return RestaurantModel.fromJson(response.data);
       }
     } catch (e) {
-      showToast(message: "Failed to fetch restaurant details: $e", isError: true);
+      showToast(
+        message: "Failed to fetch restaurant details: $e",
+        isError: true,
+      );
     }
     return null;
   }
-}
 
-// Updated FoodModel to work with API
-class FoodModel {
-  final int id;
-  final String name;
-  final String price;
-  final String? description;
-  final String? image;
-  final String? category;
-  final String? preparationTime;
-  final double? rating;
-  final int? reviewCount;
-  final String restaurantId;
-  final bool? isAvailable;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
+  // Get menu item by ID
+  Future<MenuItemModel?> getMenuItemById(int id) async {
+    try {
+      APIResponse response = await restaurantService.getMenuById({'id': id});
 
-  FoodModel({
-    required this.id,
-    required this.name,
-    required this.price,
-    this.description,
-    this.image,
-    this.category,
-    this.preparationTime,
-    this.rating,
-    this.reviewCount,
-    required this.restaurantId,
-    this.isAvailable,
-    this.createdAt,
-    this.updatedAt,
-  });
-
-  factory FoodModel.fromJson(Map<String, dynamic> json) {
-    return FoodModel(
-      id: json['id'],
-      name: json['name'] ?? '',
-      price: json['price']?.toString() ?? '0',
-      description: json['description'],
-      image: json['image'],
-      category: json['category']?['name'],
-      preparationTime: json['preparation_time'],
-      rating: json['rating']?.toDouble(),
-      reviewCount: json['review_count'],
-      restaurantId: json['restaurant_id']?.toString() ?? '',
-      isAvailable: json['is_available'] == 1,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
-    );
+      if (response.status.toLowerCase() == "success") {
+        return MenuItemModel.fromJson(response.data);
+      }
+    } catch (e) {
+      showToast(
+        message: "Failed to fetch menu item details: $e",
+        isError: true,
+      );
+    }
+    return null;
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'price': price,
-      'description': description,
-      'image': image,
-      'category': category,
-      'preparation_time': preparationTime,
-      'rating': rating,
-      'review_count': reviewCount,
-      'restaurant_id': restaurantId,
-      'is_available': isAvailable,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-    };
-  }
-}
-
-// Menu Category Model
-class MenuCategory {
-  final int id;
-  final String name;
-  final String? description;
-  final String? image;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  MenuCategory({
-    required this.id,
-    required this.name,
-    this.description,
-    this.image,
-    this.createdAt,
-    this.updatedAt,
-  });
-
-  factory MenuCategory.fromJson(Map<String, dynamic> json) {
-    return MenuCategory(
-      id: json['id'],
-      name: json['name'] ?? '',
-      description: json['description'],
-      image: json['image'],
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
-    );
+  // Helper method to check if menu item is available
+  bool isMenuItemAvailable(MenuItemModel item) {
+    return item.isAvailable == 1 && item.availableQuantity > 0;
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'image': image,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-    };
+  // Helper method to get menu item availability status
+  String getMenuItemAvailabilityStatus(MenuItemModel item) {
+    if (item.isAvailable != 1) {
+      return "Unavailable";
+    }
+    if (item.availableQuantity <= 0) {
+      return "Out of Stock";
+    }
+    if (item.availableQuantity < 5) {
+      return "Limited Stock";
+    }
+    return "Available";
   }
 }
