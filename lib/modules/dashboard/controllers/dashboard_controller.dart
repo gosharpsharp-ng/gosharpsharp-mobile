@@ -1,171 +1,195 @@
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
+import 'package:gosharpsharp/core/services/restaurant/restaurant_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart';
 
 class DashboardController extends GetxController {
+  final restaurantService = serviceLocator<RestaurantService>();
+
+  // Loading states
+  bool _isLoadingRestaurants = false;
+  bool _isLoadingFavorites = false;
+  bool _isLoadingMenus = false;
+
+  get isLoadingRestaurants => _isLoadingRestaurants;
+  get isLoadingFavorites => _isLoadingFavorites;
+  get isLoadingMenus => _isLoadingMenus;
+
+  void setRestaurantsLoadingState(bool val) {
+    _isLoadingRestaurants = val;
+    update();
+  }
+
+  void setFavoritesLoadingState(bool val) {
+    _isLoadingFavorites = val;
+    update();
+  }
+
+  void setMenusLoadingState(bool val) {
+    _isLoadingMenus = val;
+    update();
+  }
+
   // Selected category filter
   RxString selectedCategory = 'All'.obs;
 
   RestaurantModel? selectedRestaurant;
 
-  setSelectedRestaurant(RestaurantModel restaurant) {
-    selectedRestaurant = restaurant;
-    update();
-  }
+  // Data lists
+  List<RestaurantModel> restaurants = [];
+  List<RestaurantModel> favoriteRestaurants = [];
+  List<FoodModel> menuItems = [];
+  List<String> categories = [];
+  List<MenuCategory> menuCategories = [];
 
   // Track favorites (by restaurant id)
   final Set<int> _favoriteRestaurantIds = {};
 
-  void toggleFavorite(RestaurantModel restaurant) {
-    if (_favoriteRestaurantIds.contains(restaurant.id)) {
-      _favoriteRestaurantIds.remove(restaurant.id);
-    } else {
-      _favoriteRestaurantIds.add(restaurant.id);
-    }
-    update(); // refresh UI
-  }
-
-  bool isFavorite(int restaurantId) {
-    return _favoriteRestaurantIds.contains(restaurantId);
-  }
-
-  // Mock data for restaurants
-  List<RestaurantModel> restaurants = [
-    RestaurantModel(
-      id: 1,
-      banner: null,
-      logo: null,
-      name: 'Late Nite Eats',
-      description:
-          'Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
-      email: 'latenite@example.com',
-      phone: '08000000001',
-      cuisineType: null,
-      isActive: 1,
-      isFeatured: 0,
-      commissionRate: '15.00',
-      businessRegistrationNumber: null,
-      taxIdentificationNumber: null,
-      status: 'pending',
-      userId: 1,
-      deletedAt: null,
-      createdAt: '2025-08-17T09:07:12.000000Z',
-      updatedAt: '2025-08-17T09:07:12.000000Z',
-      schedules: [
-        Schedule(
-          id: 1,
-          restaurantId: 1,
-          dayOfWeek: 'monday',
-          openTime: '2025-08-17T09:00:00.000000Z',
-          closeTime: '2025-08-17T21:00:00.000000Z',
-          deletedAt: null,
-          createdAt: '2025-08-17T09:07:12.000000Z',
-          updatedAt: '2025-08-17T09:07:12.000000Z',
-        ),
-      ],
-    ),
-    RestaurantModel(
-      id: 2,
-      banner: null,
-      logo: null,
-      name: 'Jonny Rockets',
-      description: 'Fast food restaurant with great burgers and fries.',
-      email: 'jonnyrockets@example.com',
-      phone: '08000000002',
-      cuisineType: null,
-      isActive: 1,
-      isFeatured: 0,
-      commissionRate: '15.00',
-      businessRegistrationNumber: null,
-      taxIdentificationNumber: null,
-      status: 'pending',
-      userId: 1,
-      deletedAt: null,
-      createdAt: '2025-08-17T09:07:12.000000Z',
-      updatedAt: '2025-08-17T09:07:12.000000Z',
-      schedules: [],
-    ),
-    RestaurantModel(
-      id: 3,
-      banner: null,
-      logo: null,
-      name: 'Pizza Hut',
-      description: 'Delicious pizzas and Italian cuisine.',
-      email: 'pizzahut@example.com',
-      phone: '08000000003',
-      cuisineType: null,
-      isActive: 1,
-      isFeatured: 1,
-      commissionRate: '15.00',
-      businessRegistrationNumber: null,
-      taxIdentificationNumber: null,
-      status: 'pending',
-      userId: 1,
-      deletedAt: null,
-      createdAt: '2025-08-17T09:07:12.000000Z',
-      updatedAt: '2025-08-17T09:07:12.000000Z',
-      schedules: [],
-    ),
-  ];
-
-  // Mock data for menu items
-  List<FoodModel> menuItems = [
-    FoodModel(
-      id: '1',
-      name: 'Amala and Gbegiri',
-      price: '₦3,000.00',
-      description:
-          'Forem ipsum dolor sit amet, consectetur adip iscing elit. Nunc vulputate libero et velit inter.',
-      image: PngAssets.chow1,
-      category: 'Swallow',
-      preparationTime: '10mins',
-      rating: 5.0,
-      reviewCount: 500,
-      restaurantId: '1',
-    ),
-    FoodModel(
-      id: '2',
-      name: 'Drinkupucho',
-      price: '₦3,000.00',
-      description: 'Refreshing drink with natural ingredients.',
-      image: PngAssets.chow2,
-      category: 'Drinks',
-      preparationTime: '5mins',
-      rating: 4.8,
-      reviewCount: 324,
-      restaurantId: '1',
-    ),
-    FoodModel(
-      id: '3',
-      name: 'Jollof Rice',
-      price: '₦2,500.00',
-      description: 'Traditional Nigerian jollof rice with chicken.',
-      image: PngAssets.chow3,
-      category: 'Rice',
-      preparationTime: '15mins',
-      rating: 4.6,
-      reviewCount: 432,
-      restaurantId: '1',
-    ),
-  ];
-
-  // Categories
-  List<String> categories = [
-    'All',
-    'Lunch',
-    'Breakfast',
-    'Grills',
-    'Snacks',
-    'Bakery',
-    'Ice cream',
-    'Amala',
-  ];
-
   @override
   void onInit() {
     super.onInit();
-    // Initialize any required data
+    fetchRestaurants();
+    fetchFavoriteRestaurants();
+    // fetchMenuCategories();
+  }
+
+  // Set selected restaurant
+  setSelectedRestaurant(RestaurantModel restaurant) {
+    selectedRestaurant = restaurant;
+    // Fetch menu items for this restaurant
+    fetchRestaurantMenus(restaurant.id.toString());
+    update();
+  }
+
+  // Fetch all restaurants
+  Future<void> fetchRestaurants() async {
+    try {
+      setRestaurantsLoadingState(true);
+      APIResponse response = await restaurantService.getRestaurants({});
+
+      if (response.status.toLowerCase() == "success") {
+        restaurants = (response.data['data'] as List)
+            .map((json) => RestaurantModel.fromJson(json))
+            .toList();
+
+        // Update favorite IDs set
+        _favoriteRestaurantIds.clear();
+        for (var restaurant in restaurants) {
+          // You can check if restaurant is favorited here based on API response
+          // This might come from a separate field in the restaurant data
+        }
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to fetch restaurants: $e", isError: true);
+    } finally {
+      setRestaurantsLoadingState(false);
+    }
+  }
+
+  // Fetch favorite restaurants
+  Future<void> fetchFavoriteRestaurants() async {
+    try {
+      setFavoritesLoadingState(true);
+      APIResponse response = await restaurantService.getMyFavourites({'type': 'restaurant'});
+
+
+      if (response.status.toLowerCase() == "success") {
+        favoriteRestaurants = (response.data['data'] as List)
+            .map((json) => RestaurantModel.fromJson(json['favoritable']))
+            .toList();
+
+        // Update favorite IDs set
+        _favoriteRestaurantIds.clear();
+        for (var restaurant in favoriteRestaurants) {
+          _favoriteRestaurantIds.add(restaurant.id);
+        }
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to fetch favorite restaurants: $e", isError: true);
+    } finally {
+      setFavoritesLoadingState(false);
+    }
+  }
+
+  // Fetch restaurant menus
+  Future<void> fetchRestaurantMenus(String restaurantId, {String categoryId = '', String query = ''}) async {
+    try {
+      setMenusLoadingState(true);
+      APIResponse response = await restaurantService.getRestaurantMenu({
+        'per_page': 50,
+        'restaurant_id': restaurantId,
+        'cat_id': categoryId,
+        'query': query,
+      });
+
+      if (response.status.toLowerCase() == "success") {
+        menuItems = (response.data['data'] as List)
+            .map((json) => FoodModel.fromJson(json))
+            .toList();
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to fetch menu items: $e", isError: true);
+    } finally {
+      setMenusLoadingState(false);
+    }
+  }
+
+  // Fetch menu categories
+  Future<void> fetchMenuCategories() async {
+    try {
+      APIResponse response = await restaurantService.getMenuCategories({
+        'page': 1,
+        'per_page': 50,
+      });
+
+      if (response.status.toLowerCase() == "success") {
+        menuCategories = (response.data['data'] as List)
+            .map((json) => MenuCategory.fromJson(json))
+            .toList();
+
+        // Update categories list for UI
+        categories = ['All'];
+        categories.addAll(menuCategories.map((cat) => cat.name));
+      }
+    } catch (e) {
+      showToast(message: "Failed to fetch menu categories: $e", isError: true);
+    }
+  }
+
+  // Toggle favorite restaurant
+  Future<void> toggleFavorite(RestaurantModel restaurant) async {
+    try {
+      APIResponse response = await restaurantService.toggleFavouriteRestaurant({'id': restaurant.id});
+
+      if (response.status.toLowerCase() == "success") {
+        if (_favoriteRestaurantIds.contains(restaurant.id)) {
+          _favoriteRestaurantIds.remove(restaurant.id);
+          favoriteRestaurants.removeWhere((r) => r.id == restaurant.id);
+          showToast(message: "Removed from favorites", isError: false);
+        } else {
+          _favoriteRestaurantIds.add(restaurant.id);
+          favoriteRestaurants.add(restaurant);
+          showToast(message: "Added to favorites", isError: false);
+        }
+        update();
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to update favorites: $e", isError: true);
+    }
+  }
+
+  // Check if restaurant is favorite
+  bool isFavorite(int restaurantId) {
+    return _favoriteRestaurantIds.contains(restaurantId);
   }
 
   // Navigate to restaurant detail
@@ -177,14 +201,14 @@ class DashboardController extends GetxController {
   // Navigate to food detail
   void navigateToFoodDetail(FoodModel food) {
     Get.to(
-      () => FoodDetailScreen(
+          () => FoodDetailScreen(
         foodName: food.name,
         price: food.price,
-        foodImage: food.image,
-        description: food.description,
-        preparationTime: food.preparationTime,
-        rating: food.rating,
-        reviewCount: food.reviewCount,
+        foodImage: food.image ?? '',
+        description: food.description ?? '',
+        preparationTime: food.preparationTime ?? '15mins',
+        rating: food.rating ?? 0.0,
+        reviewCount: food.reviewCount ?? 0,
       ),
     );
   }
@@ -194,8 +218,10 @@ class DashboardController extends GetxController {
     if (selectedCategory.value == 'All') {
       return restaurants;
     }
-    // Add filtering logic here based on restaurant categories
-    return restaurants;
+    // Filter by cuisine type or add restaurant categories logic
+    return restaurants.where((restaurant) =>
+    restaurant.cuisineType?.toLowerCase() == selectedCategory.value.toLowerCase()
+    ).toList();
   }
 
   // Get menu items for a specific restaurant
@@ -210,30 +236,137 @@ class DashboardController extends GetxController {
     selectedCategory.value = category;
     update();
   }
+
+  // Refresh all data
+  Future<void> refreshData() async {
+    await Future.wait([
+      fetchRestaurants(),
+      fetchFavoriteRestaurants(),
+      fetchMenuCategories(),
+    ]);
+  }
+
+  // Get restaurant by ID
+  Future<RestaurantModel?> getRestaurantById(int id) async {
+    try {
+      APIResponse response = await restaurantService.getRestaurantById({'id': id});
+
+      if (response.status.toLowerCase() == "success") {
+        return RestaurantModel.fromJson(response.data);
+      }
+    } catch (e) {
+      showToast(message: "Failed to fetch restaurant details: $e", isError: true);
+    }
+    return null;
+  }
 }
 
+// Updated FoodModel to work with API
 class FoodModel {
-  final String id;
+  final int id;
   final String name;
   final String price;
-  final String description;
-  final String image;
-  final String category;
-  final String preparationTime;
-  final double rating;
-  final int reviewCount;
+  final String? description;
+  final String? image;
+  final String? category;
+  final String? preparationTime;
+  final double? rating;
+  final int? reviewCount;
   final String restaurantId;
+  final bool? isAvailable;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   FoodModel({
     required this.id,
     required this.name,
     required this.price,
-    required this.description,
-    required this.image,
-    required this.category,
-    required this.preparationTime,
-    required this.rating,
-    required this.reviewCount,
+    this.description,
+    this.image,
+    this.category,
+    this.preparationTime,
+    this.rating,
+    this.reviewCount,
     required this.restaurantId,
+    this.isAvailable,
+    this.createdAt,
+    this.updatedAt,
   });
+
+  factory FoodModel.fromJson(Map<String, dynamic> json) {
+    return FoodModel(
+      id: json['id'],
+      name: json['name'] ?? '',
+      price: json['price']?.toString() ?? '0',
+      description: json['description'],
+      image: json['image'],
+      category: json['category']?['name'],
+      preparationTime: json['preparation_time'],
+      rating: json['rating']?.toDouble(),
+      reviewCount: json['review_count'],
+      restaurantId: json['restaurant_id']?.toString() ?? '',
+      isAvailable: json['is_available'] == 1,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'price': price,
+      'description': description,
+      'image': image,
+      'category': category,
+      'preparation_time': preparationTime,
+      'rating': rating,
+      'review_count': reviewCount,
+      'restaurant_id': restaurantId,
+      'is_available': isAvailable,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
+}
+
+// Menu Category Model
+class MenuCategory {
+  final int id;
+  final String name;
+  final String? description;
+  final String? image;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  MenuCategory({
+    required this.id,
+    required this.name,
+    this.description,
+    this.image,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory MenuCategory.fromJson(Map<String, dynamic> json) {
+    return MenuCategory(
+      id: json['id'],
+      name: json['name'] ?? '',
+      description: json['description'],
+      image: json['image'],
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'image': image,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
 }

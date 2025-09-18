@@ -11,7 +11,7 @@ class CoreService extends GetConnect {
 
   CoreService() {
     // _dio.options.baseUrl = dotenv.env['BASE_URL']!;
-    _dio.options.baseUrl = "https://logistics.gosharpsharp.com/api/v1";
+    _dio.options.baseUrl = "https://staging.gosharpsharp.com/api/v1";
     setConfig();
   }
   final getStorage = GetStorage();

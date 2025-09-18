@@ -46,6 +46,7 @@ abstract class Routes {
   static const CHANGE_PASSWORD_SCREEN = '/change_password_screen';
   static const NEW_PASSWORD_ENTRY_SCREEN = '/new_password_entry_screen';
   static const FAQS_SCREEN = '/faqs_screen';
+  static const FAVOURITES_SCREEN = '/favourites_screen';
 
   static const WALLETS_HOME_SCREEN = '/wallets_home_screen';
   static const FUND_WALLET_SCREEN = '/fund_wallet_screen';
@@ -58,6 +59,7 @@ abstract class Routes {
   // Orders
   static const ORDERS_HOME_SCREEN = '/orders_home_screen';
   static const ORDER_DETAILS_SCREEN = '/order_details_screen';
+  static const CART_SCREEN = '/cart_screen';
 }
 
 

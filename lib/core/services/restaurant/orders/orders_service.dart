@@ -4,7 +4,7 @@ class OrdersService extends CoreService {
   Future<OrdersService> init() async => this;
 
   Future<APIResponse> getAllOrders(dynamic data) async {
-    return await fetch("/customer/menus");
+    return await fetch("/customer/orders");
   }
 
   Future<APIResponse> getOrderById(dynamic data) async {
