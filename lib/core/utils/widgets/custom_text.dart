@@ -11,6 +11,7 @@ Widget customText(String text,
       TextOverflow overflow = TextOverflow.ellipsis,
       TextDecoration? decoration,
       FontWeight? fontWeight,
+      FontStyle? fontStyle,
       String fontFamily='Satoshi',
       bool blur = false}) {
   return Text(
@@ -26,6 +27,7 @@ Widget customText(String text,
       fontSize: fontSize,
       height: height,
       fontWeight: fontWeight,
+      fontStyle: fontStyle,
       decoration: decoration,
     ),
   );

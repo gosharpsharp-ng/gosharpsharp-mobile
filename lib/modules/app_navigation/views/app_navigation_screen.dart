@@ -53,8 +53,8 @@ class AppNavigationScreen extends StatelessWidget {
                   Expanded(
                     child: BottomNavItem(
                       index: 2,
-                      title: "Go Wallet",
-                      activeIcon: SvgAssets.walletIcon,
+                      title: "Orders",
+                      activeIcon: SvgAssets.ordersIcon,
                     ),
                   ),
                   Expanded(

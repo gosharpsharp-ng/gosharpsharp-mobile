@@ -1,10 +1,11 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/modules/orders/controllers/orders_controller.dart';
 
-class DashboardBindings extends Bindings {
+class OrdersBindings extends Bindings {
   @override
   void dependencies() {
     Get.put(
-      DashboardController(),
+      OrdersController(),
     );
   }
 }
