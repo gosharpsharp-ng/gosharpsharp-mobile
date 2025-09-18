@@ -1,5 +1,6 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
+import 'package:gosharpsharp/modules/orders/controllers/orders_controller.dart';
 
 class AppNavigationBinding extends Bindings {
   @override
@@ -11,5 +12,6 @@ class AppNavigationBinding extends Bindings {
     Get.put(SettingsController());
     Get.put(NotificationsController());
     Get.put(CartController());
+    Get.put(OrdersController());
   }
 }
