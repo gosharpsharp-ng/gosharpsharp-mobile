@@ -190,8 +190,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                     width: 1.sw,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: menuItem.image.isNotEmpty
-                            ? NetworkImage(menuItem.image)
+                        image: menuItem.files.isNotEmpty
+                            ? NetworkImage(menuItem.files[0].url)
                             : AssetImage(PngAssets.chow1) as ImageProvider,
                         fit: BoxFit.cover,
                         onError: (exception, stackTrace) {

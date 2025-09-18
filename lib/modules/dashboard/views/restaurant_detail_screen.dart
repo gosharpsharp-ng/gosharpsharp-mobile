@@ -652,9 +652,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8.r),
                 color: AppColors.backgroundColor,
-                image: menuItem.image.isNotEmpty
+                image: menuItem.files.isNotEmpty
                     ? DecorationImage(
-                        image: NetworkImage(menuItem.image),
+                        image: NetworkImage(menuItem.files[0].url),
                         fit: BoxFit.cover,
                         onError: (exception, stackTrace) {
                           // Handle image loading error
