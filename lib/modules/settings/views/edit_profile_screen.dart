@@ -64,7 +64,7 @@ class EditProfileScreen extends StatelessWidget {
                             ),
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(
-                                  settingsController.userProfile!.avatar ?? ''),
+                                  settingsController.userProfile?.avatar ?? ''),
                               radius: 55.r,
                             ),
                           ),

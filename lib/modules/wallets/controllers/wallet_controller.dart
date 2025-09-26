@@ -139,7 +139,7 @@ class WalletController extends GetxController {
       update();
       if (response.status == "success") {
         payStackAuthorizationData =
-            PayStackAuthorizationModel.fromJson(response.data['data']);
+            PayStackAuthorizationModel.fromJson(response.data);
         // amountEntryController.clear();
         update();
       } else {
@@ -211,7 +211,7 @@ class WalletController extends GetxController {
     //   walletBalanceVisibility = getStorage.read("walletBalanceVisibility");
     // }
     // update();
-    // getWalletBalance();
-    // getTransactions();
+    getWalletBalance();
+    getTransactions();
   }
 }

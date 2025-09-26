@@ -1,60 +1,76 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'user_profile_model.g.dart';
-
-@JsonSerializable()
 class UserProfile {
   final int id;
   final String? avatar;
   final String fname;
   final String lname;
   final String phone;
-  @JsonKey(name: "leaf", defaultValue: 0)
-  final int leaf;
+  final String? dob;
   final String email;
-  final String role;
   final String status;
-  @JsonKey(name: 'referral_code')
-  final String? referralCode;
-  @JsonKey(name: 'referred_by')
+  final String referralCode;
   final String? referredBy;
-  @JsonKey(name: 'last_login_at')
   final String? lastLoginAt;
-  @JsonKey(name: 'failed_login_attempts')
   final int failedLoginAttempts;
-  @JsonKey(name: 'created_at')
-  final String createdAt;
-  @JsonKey(name: 'updated_at')
-  final String updatedAt;
-  @JsonKey(name: 'is_email_verified')
-  final bool isEmailVerified;
-  @JsonKey(name: 'is_phone_verified')
-  final bool isPhoneVerified;
+  final String? deletedAt;
 
   UserProfile({
     required this.id,
     this.avatar,
     required this.fname,
-    required this.leaf,
     required this.lname,
     required this.phone,
+    this.dob,
     required this.email,
-    required this.role,
     required this.status,
-    this.referralCode,
+    required this.referralCode,
     this.referredBy,
     this.lastLoginAt,
     required this.failedLoginAttempts,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.isEmailVerified,
-    required this.isPhoneVerified,
+    this.deletedAt,
   });
 
-  // Factory method to create an instance from JSON
-  factory UserProfile.fromJson(Map<String, dynamic> json) =>
-      _$UserProfileFromJson(json);
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      id: json['id'],
+      avatar: json['avatar'],
+      fname: json['fname'],
+      lname: json['lname'],
+      phone: json['phone'],
+      dob: json['dob'],
+      email: json['email'],
+      status: json['status'],
+      referralCode: json['referral_code'],
+      referredBy: json['referred_by'],
+      lastLoginAt: json['last_login_at'],
+      failedLoginAttempts: json['failed_login_attempts'] ?? 0,
+      deletedAt: json['deleted_at'],
+    );
+  }
 
-  // Method to convert an instance to JSON
-  Map<String, dynamic> toJson() => _$UserProfileToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'avatar': avatar,
+      'fname': fname,
+      'lname': lname,
+      'phone': phone,
+      'dob': dob,
+      'email': email,
+      'status': status,
+      'referral_code': referralCode,
+      'referred_by': referredBy,
+      'last_login_at': lastLoginAt,
+      'failed_login_attempts': failedLoginAttempts,
+      'deleted_at': deletedAt,
+    };
+  }
+
+  // Convenience getter for full name
+  String get fullName => '$fname $lname';
+
+  // Convenience getter to check if user is verified
+  bool get isVerified => status == 'verified';
+
+  // Convenience getter to check if user is active (not deleted)
+  bool get isActive => deletedAt == null;
 }

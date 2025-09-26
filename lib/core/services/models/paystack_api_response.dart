@@ -1,11 +1,11 @@
 class PaystackResponse {
   final bool success;
   final String? authorizationUrl;
-  final String? reference;
+  final String? accessCode;
 
   PaystackResponse({
     required this.success,
     this.authorizationUrl,
-    this.reference,
+    this.accessCode,
   });
 }

@@ -4,11 +4,11 @@ class OrdersService extends CoreService {
   Future<OrdersService> init() async => this;
 
   Future<APIResponse> getAllOrders(dynamic data) async {
-    return await fetch("/customer/orders");
+    return await fetch("/customers/orders/menu");
   }
 
   Future<APIResponse> getOrderById(dynamic data) async {
-    return await fetch("/customer/menus/${data['id']}");
+    return await fetch("/customers/menus/${data['id']}");
   }
 
   Future<APIResponse> updateOrder(dynamic data, int orderId) async {
@@ -16,6 +16,6 @@ class OrdersService extends CoreService {
   }
 
   Future<APIResponse> createOrder(dynamic data) async {
-    return await generalPatch("/customer/orders/menu/create-and-pay", data);
+    return await generalPatch("/customers/orders/menu/create-and-pay", data);
   }
 }

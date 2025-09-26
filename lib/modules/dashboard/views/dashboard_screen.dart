@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/utils/widgets/dot.dart';
-import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart' show RestaurantDetailScreen;
+import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
+import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart'
+    show RestaurantDetailScreen;
 import 'package:upgrader/upgrader.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -55,14 +57,14 @@ class DashboardScreen extends StatelessWidget {
                                   children: [
                                     Visibility(
                                       visible:
-                                      settingsController
-                                          .userProfile
-                                          ?.avatar !=
+                                          settingsController
+                                              .userProfile
+                                              ?.avatar !=
                                           null,
                                       replacement: CircleAvatar(
                                         radius: 22.r,
                                         backgroundColor:
-                                        AppColors.backgroundColor,
+                                            AppColors.backgroundColor,
                                         child: customText(
                                           "${settingsController.userProfile?.fname.substring(0, 1) ?? ""}${settingsController.userProfile?.lname.substring(0, 1) ?? ""}",
                                           fontSize: 14.sp,
@@ -70,12 +72,12 @@ class DashboardScreen extends StatelessWidget {
                                       ),
                                       child: CircleAvatar(
                                         backgroundImage:
-                                        CachedNetworkImageProvider(
-                                          settingsController
-                                              .userProfile
-                                              ?.avatar ??
-                                              '',
-                                        ),
+                                            CachedNetworkImageProvider(
+                                              settingsController
+                                                      .userProfile
+                                                      ?.avatar ??
+                                                  '',
+                                            ),
                                         radius: 22.r,
                                       ),
                                     ),
@@ -110,17 +112,17 @@ class DashboardScreen extends StatelessWidget {
                                         isLabelVisible: true,
                                         label: customText(
                                           settingsController
-                                              .isLoadingNotification
+                                                  .isLoadingNotification
                                               ? ''
                                               : settingsController
-                                              .notifications
-                                              .length >
-                                              10
+                                                        .notifications
+                                                        .length >
+                                                    10
                                               ? '10+'
                                               : settingsController
-                                              .notifications
-                                              .length
-                                              .toString(),
+                                                    .notifications
+                                                    .length
+                                                    .toString(),
                                           fontSize: 12.sp,
                                         ),
                                         child: SvgPicture.asset(
@@ -137,7 +139,8 @@ class DashboardScreen extends StatelessWidget {
                                     splashColor: AppColors.transparent,
                                     highlightColor: AppColors.transparent,
                                     onTap: () {
-                                      // Get.toNamed(Routes.NOTIFICATIONS_HOME);
+                                      dashboardController
+                                          .toggleWalkingDistanceFilter();
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
@@ -154,7 +157,12 @@ class DashboardScreen extends StatelessWidget {
                                         children: [
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: AppColors.secondaryColor,
+                                              color:
+                                                  dashboardController
+                                                      .isWalkingDistanceFilter
+                                                      .value
+                                                  ? AppColors.primaryColor
+                                                  : AppColors.secondaryColor,
                                               shape: BoxShape.circle,
                                             ),
                                             padding: EdgeInsets.all(5.sp),
@@ -165,11 +173,24 @@ class DashboardScreen extends StatelessWidget {
                                               SvgAssets.bikeIcon,
                                               height: 20.sp,
                                               width: 20.sp,
+                                              colorFilter: ColorFilter.mode(
+                                                dashboardController
+                                                        .isWalkingDistanceFilter
+                                                        .value
+                                                    ? AppColors.whiteColor
+                                                    : AppColors.blackColor,
+                                                BlendMode.srcIn,
+                                              ),
                                             ),
                                           ),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: AppColors.primaryColor,
+                                              color:
+                                                  dashboardController
+                                                      .isWalkingDistanceFilter
+                                                      .value
+                                                  ? AppColors.secondaryColor
+                                                  : AppColors.primaryColor,
                                               shape: BoxShape.circle,
                                             ),
                                             padding: EdgeInsets.all(5.sp),
@@ -181,7 +202,11 @@ class DashboardScreen extends StatelessWidget {
                                               height: 20.sp,
                                               width: 20.sp,
                                               colorFilter: ColorFilter.mode(
-                                                AppColors.whiteColor,
+                                                dashboardController
+                                                        .isWalkingDistanceFilter
+                                                        .value
+                                                    ? AppColors.blackColor
+                                                    : AppColors.whiteColor,
                                                 BlendMode.srcIn,
                                               ),
                                             ),
@@ -221,37 +246,53 @@ class DashboardScreen extends StatelessWidget {
                         child: Column(
                           children: [
                             SizedBox(height: 15.h),
-                            Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 10.w,
-                                    vertical: 5.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondaryColor.withAlpha(
-                                      120,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8.r),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      customText(
-                                        "Jos central palace",
-                                        color: AppColors.blackColor,
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      Icon(
-                                        CupertinoIcons.chevron_down,
-                                        size: 15.sp,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                            // Row(
+                            //   mainAxisSize: MainAxisSize.max,
+                            //   mainAxisAlignment: MainAxisAlignment.center,
+                            //   children: [
+                            //     GestureDetector(
+                            //       onTap: () {
+                            //         dashboardController.openLocationPicker();
+                            //       },
+                            //       child: Container(
+                            //         padding: EdgeInsets.symmetric(
+                            //           horizontal: 10.w,
+                            //           vertical: 5.h,
+                            //         ),
+                            //         decoration: BoxDecoration(
+                            //           color: AppColors.secondaryColor.withAlpha(
+                            //             120,
+                            //           ),
+                            //           borderRadius: BorderRadius.circular(8.r),
+                            //         ),
+                            //         child: Row(
+                            //           children: [
+                            //             Icon(
+                            //               Icons.location_on,
+                            //               size: 16.sp,
+                            //               color: AppColors.primaryColor,
+                            //             ),
+                            //             SizedBox(width: 6.w),
+                            //             Flexible(
+                            //               child: customText(
+                            //                 dashboardController
+                            //                     .getCurrentLocationAddress(),
+                            //                 color: AppColors.blackColor,
+                            //                 maxLines: 1,
+                            //                 overflow: TextOverflow.ellipsis,
+                            //               ),
+                            //             ),
+                            //             SizedBox(width: 8.w),
+                            //             Icon(
+                            //               CupertinoIcons.chevron_down,
+                            //               size: 15.sp,
+                            //             ),
+                            //           ],
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ],
+                            // ),
                             SizedBox(height: 15.h),
                             CustomOutlinedRoundedInputField(
                               borderRadius: 12.r,
@@ -263,9 +304,7 @@ class DashboardScreen extends StatelessWidget {
                                   horizontal: 5.h,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryColor.withAlpha(
-                                    180,
-                                  ),
+                                  color: AppColors.primaryColor.withAlpha(180),
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
                                 child: SvgPicture.asset(
@@ -279,21 +318,26 @@ class DashboardScreen extends StatelessWidget {
                             ),
                             SizedBox(height: 15.h),
 
-                            // Categories Section
+                            // // Categories Section
                             Container(
                               width: 1.sw,
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
-                                  children: dashboardController.categories.map((category) =>
-                                      CategoryContainer(
-                                        name: category,
-                                        onPressed: () {
-                                          dashboardController.updateSelectedCategory(category);
-                                        },
-                                      ),
-                                  ).toList(),
+                                  children: dashboardController.categories
+                                      .map(
+                                        (category) => CategoryContainer(
+                                          name: category,
+                                          onPressed: () {
+                                            dashboardController
+                                                .updateSelectedCategory(
+                                                  category,
+                                                );
+                                          },
+                                        ),
+                                      )
+                                      .toList(),
                                 ),
                               ),
                             ),
@@ -303,11 +347,11 @@ class DashboardScreen extends StatelessWidget {
                             ordersController.allDeliveries.isEmpty
                                 ? const SectionHeader(title: "Popular Brands")
                                 : PartialViewHeader(
-                              title: "Popular Brands",
-                              onPressed: () {
-                                Get.toNamed(Routes.DELIVERIES_HOME);
-                              },
-                            ),
+                                    title: "Popular Brands",
+                                    onPressed: () {
+                                      Get.toNamed(Routes.DELIVERIES_HOME);
+                                    },
+                                  ),
                             SizedBox(height: 10.h),
                             Container(
                               width: 1.sw,
@@ -339,133 +383,191 @@ class DashboardScreen extends StatelessWidget {
                             SizedBox(height: 25.h),
 
                             // Top Restaurants Section
-                            PartialViewHeader(
+                            SectionHeader(
                               title: "Top Restaurants",
-                              onPressed: () {
-                                Get.toNamed(Routes.DELIVERIES_HOME);
-                              },
                             ),
                             SizedBox(height: 10.h),
-
                             // Loading state for top restaurants
                             dashboardController.isLoadingRestaurants
                                 ? Container(
-                              height: 200.h,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                                ),
-                              ),
-                            )
+                                    height: 280.h,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 5.w,
+                                      ),
+                                      child: Row(
+                                        children: List.generate(
+                                          3,
+                                          (index) => Container(
+                                            width: 1.sw * 0.85,
+                                            margin: EdgeInsets.only(
+                                              right: 10.w,
+                                            ),
+                                            child:
+                                                SkeletonLoaders.restaurantCard(
+                                                  count: 1,
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
                                 : dashboardController.restaurants.isEmpty
-                                ? _buildEmptyRestaurantsState(dashboardController)
+                                ? _buildEmptyRestaurantsState(
+                                    dashboardController,
+                                  )
                                 : Container(
-                              width: 1.sw,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    ...List.generate(
-                                      dashboardController.restaurants.take(5).length,
-                                          (i) => RestaurantContainer(
-                                        restaurant: dashboardController.restaurants[i],
-                                        onPressed: () {
-                                          dashboardController.navigateToRestaurant(
-                                              dashboardController.restaurants[i]
-                                          );
-                                        },
+                                    width: 1.sw,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          ...List.generate(
+                                            dashboardController.restaurants
+                                                .take(5)
+                                                .length,
+                                            (i) => RestaurantContainer(
+                                              key: ValueKey(
+                                                'top_restaurant_${dashboardController.restaurants[i].id}',
+                                              ),
+                                              restaurant: dashboardController
+                                                  .restaurants[i],
+                                              onPressed: () {
+                                                dashboardController
+                                                    .navigateToRestaurant(
+                                                      dashboardController
+                                                          .restaurants[i],
+                                                    );
+                                              },
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(height: 25.h), SizedBox(height: 25.h),
-
-                            // Top Restaurants Section
-                            PartialViewHeader(
-                              title: "Favourites",
-                              onPressed: () {
-                                Get.toNamed(Routes.FAQS_SCREEN);
-                              },
-                            ),
-                            SizedBox(height: 10.h),
-
-                            // Loading state for top restaurants
-                            dashboardController.isLoadingFavorites
-                                ? Container(
-                              height: 200.h,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                                ),
-                              ),
-                            )
-                                : dashboardController.favoriteRestaurants.isEmpty
-                                ? _buildEmptyRestaurantsState(dashboardController)
-                                : Container(
-                              width: 1.sw,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    ...List.generate(
-                                      dashboardController.favoriteRestaurants.take(5).length,
-                                          (i) => FavRestaurantContainer(
-                                        restaurant: dashboardController.favoriteRestaurants[i],
-                                        onPressed: () {
-                                          dashboardController.navigateToRestaurant(
-                                              dashboardController.restaurants[i]
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                                  ),
 
                             SizedBox(height: 25.h),
 
+                            // Favourites Section - Only show if loading or has favourites
+                            if (dashboardController.isLoadingFavorites ||
+                                dashboardController
+                                    .favoriteRestaurants
+                                    .isNotEmpty) ...[
+                              SizedBox(height: 25.h),
+
+                              // Favourites Header
+                              SectionHeader(
+                                title: "Favourites",
+                              ),
+                              SizedBox(height: 10.h),
+
+                              // Loading state or favourite restaurants list
+                              dashboardController.isLoadingFavorites
+                                  ? Container(
+                                      height: 280.h,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 5.w,
+                                        ),
+                                        child: Row(
+                                          children: List.generate(
+                                            3,
+                                            (index) => Container(
+                                              width: 1.sw * 0.85,
+                                              margin: EdgeInsets.only(
+                                                right: 10.w,
+                                              ),
+                                              child:
+                                                  SkeletonLoaders.restaurantCard(
+                                                    count: 1,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 1.sw,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            ...List.generate(
+                                              dashboardController
+                                                  .favoriteRestaurants
+                                                  .take(5)
+                                                  .length,
+                                              (i) => FavRestaurantContainer(
+                                                favourite: dashboardController
+                                                    .favoriteRestaurants[i],
+                                                onPressed: () {
+                                                  dashboardController
+                                                      .navigateToRestaurant(
+                                                        dashboardController
+                                                            .favoriteRestaurants[i]
+                                                            .favoritable!,
+                                                      );
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                            ],
+                            SizedBox(height: 25.h),
                             // All Restaurants Section
-                            PartialViewHeader(
-                              title: "All Restaurants",
-                              onPressed: () {
-                                // Navigate to all restaurants screen
-                              },
-                            ),
-                            SizedBox(height: 15.h),
+                            // SectionHeader(title: "All Restaurants"),
+                            // SizedBox(height: 15.h),
 
                             // Loading state for all restaurants
-                            dashboardController.isLoadingRestaurants
-                                ? Column(
-                              children: List.generate(3, (index) =>
-                                  _buildRestaurantSkeleton(),
-                              ),
-                            )
-                                : dashboardController.getFilteredRestaurants().isEmpty
-                                ? _buildEmptyRestaurantsState(dashboardController)
-                                : Column(
-                              children: List.generate(
-                                dashboardController.getFilteredRestaurants().length,
+                            Builder(
+                              builder: (context) {
+                                if (dashboardController.isLoadingRestaurants) {
+                                  return SkeletonLoaders.restaurantCard(
+                                    count: 3,
+                                  );
+                                }
+
+                                final filteredRestaurants = dashboardController
+                                    .getFilteredRestaurants();
+                                if (filteredRestaurants.isEmpty) {
+                                  return _buildEmptyRestaurantsState(
+                                    dashboardController,
+                                  );
+                                }
+
+                                return Column(
+                                  children: List.generate(
+                                    filteredRestaurants.length,
                                     (i) => RestaurantContainer(
-                                  restaurant: dashboardController.getFilteredRestaurants()[i],
-                                  onPressed: () {
-                                    dashboardController.navigateToRestaurant(
-                                        dashboardController.getFilteredRestaurants()[i]
-                                    );
-                                  },
-                                ),
-                              ),
+                                      key: ValueKey(
+                                        'restaurant_${filteredRestaurants[i].id}',
+                                      ),
+                                      restaurant: filteredRestaurants[i],
+                                      onPressed: () {
+                                        dashboardController
+                                            .navigateToRestaurant(
+                                              filteredRestaurants[i],
+                                            );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                             SizedBox(height: 30.h),
                           ],
                         ),
                       ),
                     ),
+                    // child:Container(),
                   ),
                 ),
               ),
@@ -477,50 +579,102 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildEmptyRestaurantsState(DashboardController controller) {
+    String message = controller.getLocationStatusMessage();
+    bool showLocationPicker =
+        !controller.hasValidLocation() || !controller.shouldShowRestaurants();
+
     return Container(
       width: 1.sw,
-      padding: EdgeInsets.symmetric(vertical: 50.h),
+      padding: EdgeInsets.symmetric(vertical: 50.h, horizontal: 20.w),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.restaurant,
+            !controller.hasValidLocation()
+                ? Icons.location_off
+                : Icons.restaurant,
             size: 60.sp,
-            color: AppColors.obscureTextColor.withOpacity(0.5),
+            color: AppColors.obscureTextColor.withAlpha(127),
           ),
           SizedBox(height: 15.h),
           customText(
-            "No Restaurants Available",
+            !controller.hasValidLocation()
+                ? "Location Required"
+                : !controller.shouldShowRestaurants()
+                ? "Service Not Available"
+                : "No Restaurants Available",
             fontSize: 18.sp,
             fontWeight: FontWeight.w600,
             color: AppColors.blackColor,
+            textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           customText(
-            "We're working on adding more restaurants to your area",
+            message.isNotEmpty
+                ? message
+                : "We're working on adding more restaurants to your area",
             fontSize: 14.sp,
             color: AppColors.obscureTextColor,
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 20.h),
-          ElevatedButton(
-            onPressed: () {
-              controller.fetchRestaurants();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.r),
+          if (showLocationPicker && !controller.hasValidLocation())
+            ElevatedButton(
+              onPressed: () {
+                controller.refreshCurrentLocation();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              child: customText(
+                "Enable Location",
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.whiteColor,
+              ),
+            )
+          else if (!controller.shouldShowRestaurants())
+            ElevatedButton(
+              onPressed: () {
+                controller.openLocationPicker();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              child: customText(
+                "Select Delivery Address",
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.whiteColor,
+              ),
+            )
+          else
+            ElevatedButton(
+              onPressed: () {
+                controller.fetchRestaurants();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              child: customText(
+                "Refresh",
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.whiteColor,
               ),
             ),
-            child: customText(
-              "Refresh",
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.whiteColor,
-            ),
-          ),
         ],
       ),
     );
@@ -640,7 +794,6 @@ class BrandsContainer extends StatelessWidget {
   }
 }
 
-// Update RestaurantContainer and FavRestaurantContainer to use API data
 class RestaurantContainer extends StatelessWidget {
   final RestaurantModel restaurant;
   final VoidCallback? onPressed;
@@ -666,17 +819,21 @@ class RestaurantContainer extends StatelessWidget {
               children: [
                 // Restaurant image
                 Container(
-                  height: 180.sp,
+                  height: 200.sp,
                   width: 1.sw,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
                     color: AppColors.backgroundColor,
                     image: DecorationImage(
-                      image: restaurant.banner != null && restaurant.banner!.isNotEmpty
+                      image:
+                          restaurant.banner != null &&
+                              restaurant.banner!.isNotEmpty
                           ? NetworkImage(restaurant.banner!)
-                          : restaurant.logo != null && restaurant.logo!.isNotEmpty
+                          : restaurant.logo != null &&
+                                restaurant.logo!.isNotEmpty
                           ? NetworkImage(restaurant.logo!)
-                          : AssetImage("assets/images/placeholder.png") as ImageProvider,
+                          : AssetImage("assets/images/placeholder.png")
+                                as ImageProvider,
                       fit: BoxFit.cover,
                       onError: (exception, stackTrace) {
                         // Handle image loading error
@@ -765,9 +922,9 @@ class RestaurantContainer extends StatelessWidget {
                           controller.isFavorite(restaurant.id)
                               ? Icons.favorite
                               : Icons.favorite_border,
-                          size: 20.sp,
+                          size: 22.sp,
                           color: controller.isFavorite(restaurant.id)
-                              ? Colors.red
+                              ? AppColors.redColor
                               : AppColors.obscureTextColor,
                         ),
                       ),
@@ -783,52 +940,79 @@ class RestaurantContainer extends StatelessWidget {
                   children: [
                     Row(
                       children: [
+                        Container(
+                          margin: EdgeInsets.only(right: 5.w),
+                          child: controller.isRestaurantWalkable(restaurant)
+                              ? SvgPicture.asset(
+                                  SvgAssets.walkIcon,
+                                  height: 15.sp,
+                                  width: 15.sp,
+                                  colorFilter: ColorFilter.mode(
+                                    AppColors.blackColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                )
+                              : SvgPicture.asset(
+                                  SvgAssets.bikeIcon,
+                                  height: 15.sp,
+                                  width: 15.sp,
+                                  colorFilter: ColorFilter.mode(
+                                    AppColors.blackColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                        ),
+
                         // Active status
-                        if (restaurant.isActive == 1)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 6.w,
-                              vertical: 2.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4.r),
-                            ),
-                            child: customText(
-                              "Open",
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.green,
-                            ),
-                          ),
-                        SizedBox(width: 6.w),
-                        // Commission rate (you can show delivery fee instead)
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 6.w,
                             vertical: 2.h,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.backgroundColor,
+                            color: restaurant.isActive == 1
+                                ? AppColors.primaryColor.withAlpha(80)
+                                : AppColors.redColor.withAlpha(80),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: customText(
-                            "₦${(double.parse(restaurant.commissionRate) * 10).toInt()} delivery",
-                            fontSize: 10.sp,
+                            restaurant.isActive == 1 ? "Open" : "Closed",
+                            fontSize: 11.sp,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.obscureTextColor,
+                            color: restaurant.isActive == 1
+                                ? AppColors.primaryColor
+                                : AppColors.redColor,
                           ),
                         ),
+                        SizedBox(width: 6.w),
+                        customText(
+                          getOpeningHours(restaurant),
+                          fontSize: 10.sp,
+                        ),
+                        // SizedBox(width: 6.w),
+                        // // Commission rate (you can show delivery fee instead)
+                        // Container(
+                        //   padding: EdgeInsets.symmetric(
+                        //     horizontal: 6.w,
+                        //     vertical: 2.h,
+                        //   ),
+                        //   decoration: BoxDecoration(
+                        //     color: AppColors.backgroundColor,
+                        //     borderRadius: BorderRadius.circular(4.r),
+                        //   ),
+                        //   child: customText(
+                        //     "₦${(double.parse(restaurant.commissionRate) * 10).toInt()} delivery",
+                        //     fontSize: 10.sp,
+                        //     fontWeight: FontWeight.w500,
+                        //     color: AppColors.obscureTextColor,
+                        //   ),
+                        // ),
                       ],
                     ),
                     // Rating placeholder (since not in API yet)
                     Row(
                       children: [
-                        Icon(
-                          Icons.star,
-                          color: Colors.orange,
-                          size: 12.sp,
-                        ),
+                        Icon(Icons.star, color: Colors.orange, size: 12.sp),
                         SizedBox(width: 2.w),
                         customText(
                           "4.5",
@@ -850,12 +1034,12 @@ class RestaurantContainer extends StatelessWidget {
 }
 
 class FavRestaurantContainer extends StatelessWidget {
-  final RestaurantModel restaurant;
+  final FavouriteRestaurantModel favourite;
   final VoidCallback? onPressed;
 
   const FavRestaurantContainer({
     super.key,
-    required this.restaurant,
+    required this.favourite,
     this.onPressed,
   });
 
@@ -867,35 +1051,28 @@ class FavRestaurantContainer extends StatelessWidget {
           onTap: onPressed,
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
-            margin: EdgeInsets.only(right: 10.w, bottom: 10.h),
-            width: 1.sw * 0.87,
-            decoration: BoxDecoration(
-              color: AppColors.whiteColor,
-              borderRadius: BorderRadius.circular(12.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
+            margin: EdgeInsets.only(right: 5.w, bottom: 10.h),
+            width: 1.sw * 0.95,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Restaurant banner/logo
+                // Restaurant image
                 Container(
-                  height: 180.sp,
+                  height: 200.sp,
                   width: 1.sw,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
                     color: AppColors.backgroundColor,
                     image: DecorationImage(
-                      image: restaurant.banner != null && restaurant.banner!.isNotEmpty
-                          ? NetworkImage(restaurant.banner!)
-                          : restaurant.logo != null && restaurant.logo!.isNotEmpty
-                          ? NetworkImage(restaurant.logo!)
-                          : AssetImage("assets/images/placeholder.png") as ImageProvider,
+                      image:
+                          favourite.favoritable?.banner != null &&
+                              favourite.favoritable!.banner!.isNotEmpty
+                          ? NetworkImage(favourite.favoritable!.banner!)
+                          : favourite.favoritable!.logo != null &&
+                                favourite.favoritable!.logo!.isNotEmpty
+                          ? NetworkImage(favourite.favoritable!.logo!)
+                          : AssetImage("assets/images/placeholder.png")
+                                as ImageProvider,
                       fit: BoxFit.cover,
                       onError: (exception, stackTrace) {
                         // Handle image loading error
@@ -904,7 +1081,7 @@ class FavRestaurantContainer extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      // Gradient overlay
+                      // Gradient overlay for better text readability
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
@@ -921,7 +1098,7 @@ class FavRestaurantContainer extends StatelessWidget {
                         ),
                       ),
                       // Featured badge
-                      if (restaurant.isFeatured == 1)
+                      if (favourite.favoritable?.isFeatured == 1)
                         Positioned(
                           top: 10.h,
                           right: 10.w,
@@ -931,102 +1108,167 @@ class FavRestaurantContainer extends StatelessWidget {
                               vertical: 4.h,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.secondaryColor,
+                              color: AppColors.primaryColor,
                               borderRadius: BorderRadius.circular(8.r),
                             ),
                             child: customText(
                               "Featured",
                               fontSize: 10.sp,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.blackColor,
+                              color: AppColors.whiteColor,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 12.h),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name and favorite button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: customText(
-                              restaurant.name,
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.blackColor,
-                              maxLines: 1,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              controller.toggleFavorite(restaurant);
-                            },
-                            child: Icon(
-                              Icons.favorite,
-                              size: 18.sp,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 5.h),
-
-                      // Description
-                      if (restaurant.description != null)
-                        customText(
-                          restaurant.description!,
-                          fontSize: 12.sp,
-                          color: AppColors.obscureTextColor,
-                          maxLines: 2,
-                        ),
-
-                      SizedBox(height: 8.h),
-
-                      // Status and contact info
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              if (restaurant.isActive == 1)
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 6.w,
-                                    vertical: 2.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(4.r),
-                                  ),
-                                  child: customText(
-                                    "Open",
-                                    fontSize: 10.sp,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          customText(
-                            restaurant.phone,
-                            fontSize: 10.sp,
-                            color: AppColors.obscureTextColor,
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
                 SizedBox(height: 8.h),
+
+                // Restaurant name and info
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          customText(
+                            favourite.favoritable!.name,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.blackColor,
+                            maxLines: 1,
+                          ),
+                          SizedBox(height: 3.h),
+                          if (favourite.favoritable!.cuisineType != null)
+                            customText(
+                              favourite.favoritable!.cuisineType!,
+                              fontSize: 12.sp,
+                              color: AppColors.obscureTextColor,
+                              maxLines: 1,
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Favorite button
+                    InkWell(
+                      onTap: () async {
+                        await controller.toggleFavorite(favourite.favoritable!);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8.sp),
+                        child: Icon(
+                          controller.isFavorite(favourite.favoritable!.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          size: 22.sp,
+                          color:
+                              controller.isFavorite(favourite.favoritable!.id)
+                              ? AppColors.redColor
+                              : AppColors.obscureTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 5.h),
+
+                // Status badges and contact info
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(right: 5.w),
+                          child:
+                              controller.isFavouriteRestaurantWalkable(
+                                favourite,
+                              )
+                              ? SvgPicture.asset(
+                                  SvgAssets.walkIcon,
+                                  height: 15.sp,
+                                  width: 15.sp,
+                                  colorFilter: ColorFilter.mode(
+                                    AppColors.blackColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                )
+                              : SvgPicture.asset(
+                                  SvgAssets.bikeIcon,
+                                  height: 15.sp,
+                                  width: 15.sp,
+                                  colorFilter: ColorFilter.mode(
+                                    AppColors.blackColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                        ),
+
+                        // Active status
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 2.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: favourite.favoritable!.isActive == 1
+                                ? AppColors.primaryColor.withAlpha(80)
+                                : AppColors.redColor.withAlpha(80),
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: customText(
+                            favourite.favoritable!.isActive == 1
+                                ? "Open"
+                                : "Closed",
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w500,
+                            color: favourite.favoritable!.isActive == 1
+                                ? AppColors.primaryColor
+                                : AppColors.redColor,
+                          ),
+                        ),
+                        SizedBox(width: 6.w),
+                        customText(
+                          getOpeningHours(favourite.favoritable!),
+                          fontSize: 10.sp,
+                        ),
+                        // SizedBox(width: 6.w),
+                        // // Commission rate (you can show delivery fee instead)
+                        // Container(
+                        //   padding: EdgeInsets.symmetric(
+                        //     horizontal: 6.w,
+                        //     vertical: 2.h,
+                        //   ),
+                        //   decoration: BoxDecoration(
+                        //     color: AppColors.backgroundColor,
+                        //     borderRadius: BorderRadius.circular(4.r),
+                        //   ),
+                        //   child: customText(
+                        //     "₦${(double.parse(restaurant.commissionRate) * 10).toInt()} delivery",
+                        //     fontSize: 10.sp,
+                        //     fontWeight: FontWeight.w500,
+                        //     color: AppColors.obscureTextColor,
+                        //   ),
+                        // ),
+                      ],
+                    ),
+                    // Rating placeholder (since not in API yet)
+                    Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.orange, size: 12.sp),
+                        SizedBox(width: 2.w),
+                        customText(
+                          "4.5",
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.blackColor,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

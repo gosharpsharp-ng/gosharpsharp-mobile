@@ -1,6 +1,7 @@
 import 'package:gosharpsharp/core/models/order_model.dart';
 import 'package:gosharpsharp/modules/orders/controllers/orders_controller.dart';
 import '../../../core/utils/exports.dart';
+import '../../../core/widgets/skeleton_loaders.dart';
 
 class OrdersHomeScreen extends GetView<OrdersController> {
   const OrdersHomeScreen({super.key});
@@ -15,17 +16,6 @@ class OrdersHomeScreen extends GetView<OrdersController> {
             implyLeading: false,
             centerTitle: true,
             title: "Orders",
-            actionItem: IconButton(
-              onPressed: () {
-                // Refresh orders
-                ordersController.refreshOrders();
-              },
-              icon: Icon(
-                Icons.refresh,
-                color: AppColors.blackColor,
-                size: 24.sp,
-              ),
-            ),
           ),
           backgroundColor: AppColors.backgroundColor,
           body: Container(
@@ -117,30 +107,45 @@ class OrdersHomeScreen extends GetView<OrdersController> {
                 // Orders List
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () => ordersController.refreshOrders(),
+                    onRefresh: () async {
+                      await ordersController.refreshOrders();
+                    },
                     color: AppColors.primaryColor,
+                    backgroundColor: AppColors.whiteColor,
+                    strokeWidth: 2.5,
+                    displacement: 40.0,
                     child: ordersController.isLoadingOrders
-                        ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primaryColor,
-                      ),
-                    )
+                        ? ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: 5,
+                            itemBuilder: (context, index) => Container(
+                              margin: EdgeInsets.only(bottom: 16.h),
+                              child: SkeletonLoaders.orderItem(count: 1),
+                            ),
+                          )
                         : ordersController.filteredOrders.isEmpty
-                        ? _buildEmptyState(ordersController.selectedOrderStatus)
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(height: 100.h),
+                              _buildEmptyState(ordersController.selectedOrderStatus),
+                            ],
+                          )
                         : ListView.separated(
-                      itemCount: ordersController.filteredOrders.length,
-                      separatorBuilder: (context, index) => SizedBox(height: 16.h),
-                      itemBuilder: (context, index) {
-                        final order = ordersController.filteredOrders[index];
-                        return OrderCard(
-                          order: order,
-                          onTap: () {
-                            ordersController.setSelectedOrder(order);
-                            Get.toNamed(Routes.ORDER_DETAILS_SCREEN);
-                          },
-                        );
-                      },
-                    ),
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: ordersController.filteredOrders.length,
+                            separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                            itemBuilder: (context, index) {
+                              final order = ordersController.filteredOrders[index];
+                              return OrderCard(
+                                order: order,
+                                onTap: () {
+                                  ordersController.setSelectedOrder(order);
+                                  Get.toNamed(Routes.ORDER_DETAILS_SCREEN);
+                                },
+                              );
+                            },
+                          ),
                   ),
                 ),
               ],
@@ -192,6 +197,8 @@ class OrdersHomeScreen extends GetView<OrdersController> {
 
   String _getStatusDisplayName(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Paid';
       case 'pending':
         return 'Pending';
       case 'preparing':
@@ -209,6 +216,8 @@ class OrdersHomeScreen extends GetView<OrdersController> {
 
   IconData _getStatusIcon(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return Icons.payment;
       case 'pending':
         return Icons.access_time;
       case 'preparing':
@@ -226,6 +235,8 @@ class OrdersHomeScreen extends GetView<OrdersController> {
 
   String _getEmptyStateMessage(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Paid orders will appear here when payment is confirmed';
       case 'pending':
         return 'New orders will appear here when customers place them';
       case 'preparing':
@@ -242,7 +253,7 @@ class OrdersHomeScreen extends GetView<OrdersController> {
   }
 }
 
-// Updated OrderCard Widget
+// Beautiful Flat OrderCard Widget
 class OrderCard extends StatelessWidget {
   final OrderModel order;
   final VoidCallback onTap;
@@ -257,58 +268,154 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<OrdersController>();
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(16.sp),
-        decoration: BoxDecoration(
-          color: AppColors.whiteColor,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: _getStatusColor(order.status).withOpacity(0.2),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Container(
+          padding: EdgeInsets.all(20.sp),
+          decoration: BoxDecoration(
+            color: AppColors.whiteColor,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: _getStatusColor(order.status).withOpacity(0.15),
+              width: 0.8,
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top section: Status badge and amount
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(order.status),
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getStatusIcon(order.status),
+                          color: AppColors.whiteColor,
+                          size: 14.sp,
+                        ),
+                        SizedBox(width: 6.w),
+                        customText(
+                          _getStatusDisplayText(order.status),
+                          color: AppColors.whiteColor,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                  ),
+                  customText(
+                    controller.formatCurrency(order.total),
+                    color: AppColors.blackColor,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 16.h),
+
+              // Order reference and time
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  customText(
+                    "Order #${order.ref}",
+                    color: AppColors.blackColor,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  customText(
+                    controller.formatOrderTime(order.createdAt),
+                    color: AppColors.greyColor,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Customer info section
+              Row(
+                children: [
+                  Container(
+                    width: 40.w,
+                    height: 40.h,
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(order.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Center(
+                      child: customText(
+                        _getCustomerInitial(),
+                        color: _getStatusColor(order.status),
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        customText(
+                          _getCustomerName(),
+                          color: AppColors.blackColor,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 2.h),
+                        if (order.items.isNotEmpty)
+                          customText(
+                            "${order.items.length} item${order.items.length > 1 ? 's' : ''} • ${order.items.map((e) => e.quantity).reduce((a, b) => a + b)} qty",
+                            color: AppColors.greyColor,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              // Items preview
+              if (order.items.isNotEmpty) ...[
+                SizedBox(height: 12.h),
+                Container(
+                  padding: EdgeInsets.all(12.sp),
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundColor,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 32.w,
-                        height: 32.h,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: customText(
-                            (order.user.fname.isNotEmpty ? order.user.fname[0] : 'U').toUpperCase(),
-                            color: AppColors.primaryColor,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      Icon(
+                        Icons.restaurant_menu,
+                        color: AppColors.greyColor,
+                        size: 16.sp,
                       ),
                       SizedBox(width: 8.w),
                       Expanded(
                         child: customText(
-                          order.user.fname.isNotEmpty ? order.user.fname : 'Customer',
+                          order.items.first.orderable.name +
+                          (order.items.length > 1 ? " + ${order.items.length - 1} more" : ""),
                           color: AppColors.blackColor,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w500,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -316,148 +423,88 @@ class OrderCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    customText(
-                      controller.formatCurrency(order.total),
-                      color: AppColors.blackColor,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    customText(
-                      controller.formatOrderTime(order.createdAt),
-                      color: AppColors.greyColor,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ],
-                ),
               ],
-            ),
 
-            SizedBox(height: 8.h),
-
-            // Order ID and status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                customText(
-                  "Order #${order.ref}",
-                  color: AppColors.greyColor,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.normal,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 3.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(order.status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: customText(
-                    _getStatusDisplayText(order.status),
-                    color: _getStatusColor(order.status),
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 12.h),
-
-            // Order items preview
-            if (order.items.isNotEmpty) ...[
-              Row(
-                children: [
-                  // Items description
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        customText(
-                          order.items.first.orderable.name,
-                          color: AppColors.blackColor,
-                          fontSize: 13.sp,
+              // Delivery address or notes
+              if (order.deliveryLocation != null || order.notes.isNotEmpty) ...[
+                SizedBox(height: 8.h),
+                if (order.deliveryLocation != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: AppColors.greyColor,
+                        size: 14.sp,
+                      ),
+                      SizedBox(width: 6.w),
+                      Expanded(
+                        child: customText(
+                          order.deliveryLocation!.name,
+                          color: AppColors.greyColor,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 2.h),
-                        customText(
-                          "${order.items.length} item${order.items.length > 1 ? 's' : ''} • ${order.items.map((e) => e.quantity).reduce((a, b) => a + b)} qty",
+                      ),
+                    ],
+                  ),
+                if (order.notes.isNotEmpty) ...[
+                  SizedBox(height: 4.h),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.sticky_note_2,
+                        color: AppColors.greyColor,
+                        size: 14.sp,
+                      ),
+                      SizedBox(width: 6.w),
+                      Expanded(
+                        child: customText(
+                          order.notes,
                           color: AppColors.greyColor,
                           fontSize: 12.sp,
-                          fontWeight: FontWeight.normal,
+                          fontWeight: FontWeight.w500,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-
-              SizedBox(height: 12.h),
+              ],
             ],
-
-            // Delivery address (if available)
-            if (order.deliveryLocation != null) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    color: AppColors.greyColor,
-                    size: 14.sp,
-                  ),
-                  SizedBox(width: 4.w),
-                  Expanded(
-                    child: customText(
-                      order.deliveryLocation!.name,
-                      color: AppColors.greyColor,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.normal,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            // Optional: Show order notes if available
-            if (order.notes.isNotEmpty) ...[
-              SizedBox(height: 8.h),
-              Row(
-                children: [
-                  Icon(
-                    Icons.note_outlined,
-                    color: AppColors.greyColor,
-                    size: 14.sp,
-                  ),
-                  SizedBox(width: 4.w),
-                  Expanded(
-                    child: customText(
-                      "Note: ${order.notes}",
-                      color: AppColors.greyColor,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.normal,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
   }
 
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return Icons.payment;
+      case 'pending':
+        return Icons.schedule;
+      case 'preparing':
+        return Icons.restaurant;
+      case 'ready':
+        return Icons.check_circle;
+      case 'in_transit':
+        return Icons.local_shipping;
+      case 'completed':
+        return Icons.done_all;
+      case 'cancelled':
+        return Icons.cancel;
+      default:
+        return Icons.receipt;
+    }
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return Colors.green;
       case 'pending':
         return Colors.orange;
       case 'preparing':
@@ -477,6 +524,8 @@ class OrderCard extends StatelessWidget {
 
   String _getStatusDisplayText(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Paid';
       case 'pending':
         return 'Pending';
       case 'preparing':
@@ -492,5 +541,18 @@ class OrderCard extends StatelessWidget {
       default:
         return status.toUpperCase();
     }
+  }
+
+  // Helper methods to get customer info from current user profile
+  String _getCustomerName() {
+    final settingsController = Get.find<SettingsController>();
+    final profile = settingsController.userProfile;
+    return profile != null ? "${profile.fname} ${profile.lname}".trim() : "Customer";
+  }
+
+  String _getCustomerInitial() {
+    final settingsController = Get.find<SettingsController>();
+    final profile = settingsController.userProfile;
+    return (profile?.fname.isNotEmpty == true ? profile!.fname[0] : 'U').toUpperCase();
   }
 }

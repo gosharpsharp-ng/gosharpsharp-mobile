@@ -19,13 +19,13 @@ class ItemFileModel {
 
   factory ItemFileModel.fromJson(Map<String, dynamic> json) {
     return ItemFileModel(
-      id: json['id'],
-      url: json['url'],
-      disk: json['disk'],
-      mimeType: json['mime_type'],
-      fileableType: json['fileable_type'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: json['id'] ?? 0,
+      url: json['url']?.toString() ?? '',
+      disk: json['disk']?.toString() ?? '',
+      mimeType: json['mime_type']?.toString() ?? '',
+      fileableType: json['fileable_type']?.toString() ?? '',
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 

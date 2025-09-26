@@ -2,12 +2,22 @@ import 'package:gosharpsharp/core/models/categories_model.dart';
 import 'package:gosharpsharp/core/models/menu_item_model.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/services/restaurant/restaurant_service.dart';
+import 'package:gosharpsharp/core/services/location/location_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart';
 
 class DashboardController extends GetxController {
   final restaurantService = serviceLocator<RestaurantService>();
+
+  LocationService get locationService {
+    try {
+      return Get.find<LocationService>();
+    } catch (e) {
+      // Fallback if service not found - this should not happen in normal flow
+      return Get.put(LocationService());
+    }
+  }
 
   // Loading states
   bool _isLoadingRestaurants = false;
@@ -20,21 +30,30 @@ class DashboardController extends GetxController {
 
   void setRestaurantsLoadingState(bool val) {
     _isLoadingRestaurants = val;
-    update();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
   }
 
   void setFavoritesLoadingState(bool val) {
     _isLoadingFavorites = val;
-    update();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
   }
 
   void setMenusLoadingState(bool val) {
     _isLoadingMenus = val;
-    update();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
   }
 
   // Selected category filter
   RxString selectedCategory = 'All'.obs;
+
+  // Walking distance filter (true = walking distance only, false = all restaurants)
+  RxBool isWalkingDistanceFilter = false.obs;
 
   // Selected items
   RestaurantModel? selectedRestaurant;
@@ -42,7 +61,7 @@ class DashboardController extends GetxController {
 
   // Data lists
   List<RestaurantModel> restaurants = [];
-  List<RestaurantModel> favoriteRestaurants = [];
+  List<FavouriteRestaurantModel> favoriteRestaurants = [];
   List<MenuItemModel> menuItems = [];
   List<String> categories = [];
   List<CategoryModel> menuCategories = [];
@@ -53,9 +72,18 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchRestaurants();
-    fetchFavoriteRestaurants();
-    fetchMenuCategories();
+    // Defer all network calls to avoid blocking initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeDashboard();
+    });
+  }
+
+  Future<void> _initializeDashboard() async {
+    await Future.wait([
+      fetchRestaurants(),
+      fetchFavoriteRestaurants(),
+      fetchMenuCategories(),
+    ]);
   }
 
   // Set selected restaurant
@@ -63,20 +91,58 @@ class DashboardController extends GetxController {
     selectedRestaurant = restaurant;
     // Fetch menu items for this restaurant
     fetchRestaurantMenus(restaurant.id.toString());
-    update();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
   }
 
   // Set selected menu item
   setSelectedMenuItem(MenuItemModel menuItem) {
     selectedMenuItem = menuItem;
-    update();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
   }
 
-  // Fetch all restaurants
+  // Fetch all restaurants using current location (with geofencing)
   Future<void> fetchRestaurants() async {
     try {
       setRestaurantsLoadingState(true);
-      APIResponse response = await restaurantService.getRestaurants({});
+
+      // Defer location service calls to avoid render pipeline interference
+      await Future.delayed(Duration.zero);
+
+      // Check if we should show restaurants (location permission + service area)
+      bool shouldShow = false;
+      try {
+        shouldShow = locationService.shouldShowRestaurants();
+      } catch (e) {
+        print('Error checking location service: $e');
+        shouldShow = false;
+      }
+
+      if (!shouldShow) {
+        restaurants = [];
+        setRestaurantsLoadingState(false);
+        return;
+      }
+
+      // Get coordinates from location service (respects delivery location)
+      late Map<String, double> coordinates;
+      try {
+        coordinates = locationService.getCoordinatesForRestaurants();
+      } catch (e) {
+        print('Error getting coordinates: $e');
+        restaurants = [];
+        setRestaurantsLoadingState(false);
+        return;
+      }
+      dynamic filter = {
+        "longitude": coordinates['longitude'],
+        "latitude": coordinates['latitude']
+      };
+
+      APIResponse response = await restaurantService.getRestaurants(filter);
 
       if (response.status.toLowerCase() == "success") {
         restaurants = (response.data['data'] as List)
@@ -109,7 +175,7 @@ class DashboardController extends GetxController {
 
       if (response.status.toLowerCase() == "success") {
         favoriteRestaurants = (response.data['data'] as List)
-            .map((json) => RestaurantModel.fromJson(json['favoritable']))
+            .map((json) => FavouriteRestaurantModel.fromJson(json))
             .toList();
 
         // Update favorite IDs set
@@ -146,6 +212,7 @@ class DashboardController extends GetxController {
       });
 
       if (response.status.toLowerCase() == "success") {
+        customDebugPrint(response.data);
         menuItems = (response.data['data'] as List)
             .map((json) => MenuItemModel.fromJson(json))
             .toList();
@@ -195,10 +262,12 @@ class DashboardController extends GetxController {
           showToast(message: "Removed from favorites", isError: false);
         } else {
           _favoriteRestaurantIds.add(restaurant.id);
-          favoriteRestaurants.add(restaurant);
+          fetchFavoriteRestaurants();
           showToast(message: "Added to favorites", isError: false);
         }
-        update();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          update();
+        });
       } else {
         showToast(message: response.message, isError: true);
       }
@@ -224,19 +293,36 @@ class DashboardController extends GetxController {
     Get.to(() => FoodDetailScreen());
   }
 
-  // Filter restaurants by category
+  // Filter restaurants by category and walking distance
   List<RestaurantModel> getFilteredRestaurants() {
-    if (selectedCategory.value == 'All') {
-      return restaurants;
+    List<RestaurantModel> filteredRestaurants = restaurants;
+
+    // Filter by walking distance first (if enabled)
+    if (isWalkingDistanceFilter.value) {
+      filteredRestaurants = filteredRestaurants.where((restaurant) {
+        try {
+          // Parse distance string and check if it's walkable (e.g., <= 3 km)
+          double distance = double.parse(restaurant.distance);
+          return distance <= 3.0; // Walking distance threshold in km
+        } catch (e) {
+          // If distance parsing fails, assume it's not walkable
+          return false;
+        }
+      }).toList();
     }
-    // Filter by cuisine type or add restaurant categories logic
-    return restaurants
-        .where(
-          (restaurant) =>
-              restaurant.cuisineType?.toLowerCase() ==
-              selectedCategory.value.toLowerCase(),
-        )
-        .toList();
+
+    // Then filter by category
+    if (selectedCategory.value != 'All') {
+      filteredRestaurants = filteredRestaurants
+          .where(
+            (restaurant) =>
+                restaurant.cuisineType?.toLowerCase() ==
+                selectedCategory.value.toLowerCase(),
+          )
+          .toList();
+    }
+
+    return filteredRestaurants;
   }
 
   // Get menu items for a specific restaurant
@@ -279,7 +365,17 @@ class DashboardController extends GetxController {
   // Update selected category
   void updateSelectedCategory(String category) {
     selectedCategory.value = category;
-    update();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
+  }
+
+  // Toggle walking distance filter
+  void toggleWalkingDistanceFilter() {
+    isWalkingDistanceFilter.value = !isWalkingDistanceFilter.value;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
   }
 
   // Refresh all data
@@ -329,7 +425,7 @@ class DashboardController extends GetxController {
 
   // Helper method to check if menu item is available
   bool isMenuItemAvailable(MenuItemModel item) {
-    return item.isAvailable == 1 && item.availableQuantity > 0;
+    return item.isAvailable == 1 && item.isPublished == 1;
   }
 
   // Helper method to get menu item availability status
@@ -337,12 +433,87 @@ class DashboardController extends GetxController {
     if (item.isAvailable != 1) {
       return "Unavailable";
     }
-    if (item.availableQuantity <= 0) {
-      return "Out of Stock";
-    }
-    if (item.availableQuantity < 5) {
-      return "Limited Stock";
+    if (item.isPublished != 1) {
+      return "Not Published";
     }
     return "Available";
+  }
+
+  // Helper method to check if restaurant is within walking distance
+  bool isRestaurantWalkable(RestaurantModel restaurant) {
+    try {
+      double distance = double.parse(restaurant.distance);
+      return distance <= 3.0; // Walking distance threshold in km
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Helper method to check if favourite restaurant is within walking distance
+  bool isFavouriteRestaurantWalkable(FavouriteRestaurantModel restaurant) {
+    try {
+      double distance = double.parse(restaurant.favoritable?.distance ?? "999");
+      return distance <= 3.0; // Walking distance threshold in km
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Location management methods - with render-safe wrappers
+  String getCurrentLocationAddress() {
+    try {
+      return locationService.getDisplayAddressForRestaurants();
+    } catch (e) {
+      return "Jos, Nigeria"; // Default fallback
+    }
+  }
+
+  Future<void> refreshCurrentLocation() async {
+    await locationService.refreshLocation();
+    // Refetch restaurants with new location
+    await fetchRestaurants();
+  }
+
+  Future<void> openLocationPicker() async {
+    final selectedLocation = await locationService.selectDeliveryAddress();
+    if (selectedLocation != null) {
+      // Refetch restaurants with new delivery location
+      await fetchRestaurants();
+    }
+  }
+
+  bool hasValidLocation() {
+    // Always return true - we use default location (Jos, Nigeria)
+    return true;
+  }
+
+  bool shouldShowRestaurants() {
+    try {
+      return locationService.shouldShowRestaurants();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  bool isInServiceArea() {
+    try {
+      return locationService.shouldShowRestaurants();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  String getLocationStatusMessage() {
+    try {
+      if (!locationService.hasLocationPermission) {
+        return "Location permission required to see restaurants";
+      }
+      if (!locationService.shouldShowRestaurants()) {
+        return "We're not operating in your area yet. Select a delivery address in our service area.";
+      }
+      return "";
+    } catch (e) {
+      return "Location service unavailable";
+    }
   }
 }

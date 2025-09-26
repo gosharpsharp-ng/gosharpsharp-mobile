@@ -29,6 +29,15 @@ class AppNavigationController extends GetxController {
   ];
   @override
   void onInit() {
+    // Check if we have an initialIndex argument from navigation
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map && arguments['initialIndex'] != null) {
+      final int initialIndex = arguments['initialIndex'];
+      currentScreenIndex = initialIndex;
+      selectedIndex.value = initialIndex;
+      log('AppNavigationController initialized with index: $initialIndex');
+    }
+
     // _handleLocationPermission();
     super.onInit();
   }

@@ -29,8 +29,8 @@ class OrdersController extends GetxController {
   OrderModel? selectedOrder;
 
   // Order status filter - Updated to match API statuses
-  String selectedOrderStatus = 'pending';
-  List<String> orderStatuses = ['pending', 'preparing', 'ready', 'in_transit', 'completed'];
+  String selectedOrderStatus = 'paid';
+  List<String> orderStatuses = ['paid', 'pending', 'preparing', 'ready', 'in_transit', 'completed'];
 
   setSelectedOrderStatus(String status) {
     selectedOrderStatus = status;
@@ -62,8 +62,9 @@ class OrdersController extends GetxController {
       });
 
       if (response.status=="success" && response.data != null) {
-        final Map<String, dynamic> responseData = response.data;
-        final List<dynamic> ordersData = responseData['data'] ?? [];
+
+        // customDebugPrint(response.data);
+        final List<dynamic> ordersData = response.data['data'] ?? [];
 
         allOrders = ordersData.map((json) => OrderModel.fromJson(json)).toList();
         filterOrdersByStatus();
@@ -171,6 +172,8 @@ class OrdersController extends GetxController {
   // Helper method for status display text
   String _getStatusDisplayText(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Paid';
       case 'pending':
         return 'Pending';
       case 'preparing':
@@ -222,6 +225,7 @@ class OrdersController extends GetxController {
   bool _isValidStatusTransition(String currentStatus, String newStatus) {
     // Define valid transitions based on your business logic
     Map<String, List<String>> validTransitions = {
+      'paid': ['pending', 'preparing', 'cancelled'],
       'pending': ['preparing', 'cancelled'],
       'preparing': ['ready', 'cancelled'],
       'ready': ['in_transit', 'completed', 'cancelled'],
@@ -372,7 +376,7 @@ class OrdersController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // getOrders();
+    getOrders();
   }
 
   @override

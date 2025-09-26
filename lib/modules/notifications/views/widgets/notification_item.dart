@@ -45,7 +45,7 @@ final NotificationModel notification;
                 child: Stack(
                   children: [
                     Visibility(
-                      visible:notification.status=="unread",
+                      visible:notification.readAt==null,
                       child: Positioned(
                           top: 0,
                           right: 0,

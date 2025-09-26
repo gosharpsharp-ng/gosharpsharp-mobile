@@ -1,10 +1,65 @@
-// order_model.dart
+import 'package:gosharpsharp/core/models/restaurant_model.dart';
+import 'package:gosharpsharp/core/models/categories_model.dart';
+import 'package:gosharpsharp/core/models/item_file_model.dart';
+
+// Payment Method Model
+class PaymentMethodModel {
+  final int id;
+  final String name;
+  final String code;
+  final String description;
+  final bool isActive;
+  final DateTime? deletedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  PaymentMethodModel({
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.description,
+    required this.isActive,
+    this.deletedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory PaymentMethodModel.fromJson(Map<String, dynamic> json) {
+    return PaymentMethodModel(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      code: json['code'] ?? '',
+      description: json['description'] ?? '',
+      isActive: json['is_active'] == 1,
+      deletedAt: json['deleted_at'] != null
+          ? DateTime.tryParse(json['deleted_at'])
+          : null,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'code': code,
+      'description': description,
+      'is_active': isActive ? 1 : 0,
+      'deleted_at': deletedAt?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
+}
+
+// Order Model
 class OrderModel {
   final int id;
   final String orderableType;
   final int orderableId;
   final int userId;
-  final String ref;
+  final String orderNumber;
   final String status;
   final double subtotal;
   final double tax;
@@ -13,6 +68,7 @@ class OrderModel {
   final int? discountId;
   final double discountAmount;
   final int? paymentMethodId;
+  final PaymentMethodModel? paymentMethod;
   final String paymentReference;
   final double total;
   final DateTime? confirmedAt;
@@ -23,15 +79,16 @@ class OrderModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<OrderItemModel> items;
-  final OrderUserModel user;
+  final RestaurantModel? orderable;
   final DeliveryLocationModel deliveryLocation;
+  final dynamic discount;
 
   OrderModel({
     required this.id,
     required this.orderableType,
     required this.orderableId,
     required this.userId,
-    required this.ref,
+    required this.orderNumber,
     required this.status,
     required this.subtotal,
     required this.tax,
@@ -40,6 +97,7 @@ class OrderModel {
     this.discountId,
     required this.discountAmount,
     this.paymentMethodId,
+    this.paymentMethod,
     required this.paymentReference,
     required this.total,
     this.confirmedAt,
@@ -50,8 +108,9 @@ class OrderModel {
     required this.createdAt,
     required this.updatedAt,
     required this.items,
-    required this.user,
+    this.orderable,
     required this.deliveryLocation,
+    this.discount,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -60,7 +119,7 @@ class OrderModel {
       orderableType: json['orderable_type'] ?? '',
       orderableId: json['orderable_id'] ?? 0,
       userId: json['user_id'] ?? 0,
-      ref: json['ref'] ?? '',
+      orderNumber: json['order_number'] ?? '',
       status: json['status'] ?? 'pending',
       subtotal: double.tryParse(json['subtotal']?.toString() ?? '0') ?? 0.0,
       tax: double.tryParse(json['tax']?.toString() ?? '0') ?? 0.0,
@@ -69,6 +128,9 @@ class OrderModel {
       discountId: json['discount_id'],
       discountAmount: double.tryParse(json['discount_amount']?.toString() ?? '0') ?? 0.0,
       paymentMethodId: json['payment_method_id'],
+      paymentMethod: json['payment_method'] != null
+          ? PaymentMethodModel.fromJson(json['payment_method'])
+          : null,
       paymentReference: json['payment_reference'] ?? '',
       total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
       confirmedAt: json['confirmed_at'] != null
@@ -91,8 +153,11 @@ class OrderModel {
       items: (json['items'] as List<dynamic>?)
           ?.map((item) => OrderItemModel.fromJson(item))
           .toList() ?? [],
-      user: OrderUserModel.fromJson(json['user'] ?? {}),
+      orderable: json['orderable'] != null
+          ? RestaurantModel.fromJson(json['orderable'])
+          : null,
       deliveryLocation: DeliveryLocationModel.fromJson(json['delivery_location'] ?? {}),
+      discount: json['discount'],
     );
   }
 
@@ -102,7 +167,7 @@ class OrderModel {
       'orderable_type': orderableType,
       'orderable_id': orderableId,
       'user_id': userId,
-      'ref': ref,
+      'order_number': orderNumber,
       'status': status,
       'subtotal': subtotal.toString(),
       'tax': tax.toString(),
@@ -111,6 +176,7 @@ class OrderModel {
       'discount_id': discountId,
       'discount_amount': discountAmount.toString(),
       'payment_method_id': paymentMethodId,
+      'payment_method': paymentMethod?.toJson(),
       'payment_reference': paymentReference,
       'total': total.toString(),
       'confirmed_at': confirmedAt?.toIso8601String(),
@@ -121,8 +187,9 @@ class OrderModel {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
-      'user': user.toJson(),
+      'orderable': orderable?.toJson(),
       'delivery_location': deliveryLocation.toJson(),
+      'discount': discount,
     };
   }
 
@@ -131,7 +198,7 @@ class OrderModel {
     String? orderableType,
     int? orderableId,
     int? userId,
-    String? ref,
+    String? orderNumber,
     String? status,
     double? subtotal,
     double? tax,
@@ -140,6 +207,7 @@ class OrderModel {
     int? discountId,
     double? discountAmount,
     int? paymentMethodId,
+    PaymentMethodModel? paymentMethod,
     String? paymentReference,
     double? total,
     DateTime? confirmedAt,
@@ -150,15 +218,16 @@ class OrderModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<OrderItemModel>? items,
-    OrderUserModel? user,
+    RestaurantModel? orderable,
     DeliveryLocationModel? deliveryLocation,
+    dynamic discount,
   }) {
     return OrderModel(
       id: id ?? this.id,
       orderableType: orderableType ?? this.orderableType,
       orderableId: orderableId ?? this.orderableId,
       userId: userId ?? this.userId,
-      ref: ref ?? this.ref,
+      orderNumber: orderNumber ?? this.orderNumber,
       status: status ?? this.status,
       subtotal: subtotal ?? this.subtotal,
       tax: tax ?? this.tax,
@@ -167,6 +236,7 @@ class OrderModel {
       discountId: discountId ?? this.discountId,
       discountAmount: discountAmount ?? this.discountAmount,
       paymentMethodId: paymentMethodId ?? this.paymentMethodId,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       paymentReference: paymentReference ?? this.paymentReference,
       total: total ?? this.total,
       confirmedAt: confirmedAt ?? this.confirmedAt,
@@ -177,22 +247,28 @@ class OrderModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       items: items ?? this.items,
-      user: user ?? this.user,
+      orderable: orderable ?? this.orderable,
       deliveryLocation: deliveryLocation ?? this.deliveryLocation,
+      discount: discount ?? this.discount,
     );
   }
 
   // Helper getters for backward compatibility
   String get customerId => userId.toString();
-  String get customerName => "${user.fname} ${user.lname}".trim();
-  String get customerPhone => user.phone;
+  String get restaurantName => orderable?.name ?? 'Unknown Restaurant';
   String get deliveryAddress => deliveryLocation.name;
   DateTime get orderDate => createdAt;
   String get estimatedDeliveryTime => "25-30 mins"; // You can calculate this based on your logic
   int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);
+  String get ref => orderNumber; // For backward compatibility
+
+  // Customer info should be retrieved from current user profile, not from order
+  // These getters are kept for backward compatibility but should use ProfileController
+  String get customerName => ""; // Use ProfileController.getFullName() instead
+  String get customerPhone => ""; // Use ProfileController.getPhone() instead
 }
 
-// order_item_model.dart
+// Order Item Model - Updated to match cart item structure
 class OrderItemModel {
   final int id;
   final int orderId;
@@ -282,12 +358,12 @@ class OrderItemModel {
 
   // Helper getters for backward compatibility
   String get name => orderable.name;
-  String get image => "assets/imgs/${orderable.name.toLowerCase().replaceAll(' ', '_')}.png";
+  String get image => orderable.files.isNotEmpty ? orderable.files.first.url : "";
   String get specialInstructions => options?.toString() ?? "";
   double get totalPrice => total;
 }
 
-// orderable_item_model.dart
+// Orderable Item Model - Updated to include files and category like CartItem's Purchasable
 class OrderableItemModel {
   final int id;
   final int restaurantId;
@@ -303,6 +379,8 @@ class OrderableItemModel {
   final DateTime? deletedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<ItemFileModel> files;
+  final CategoryModel? category;
 
   OrderableItemModel({
     required this.id,
@@ -319,9 +397,12 @@ class OrderableItemModel {
     this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
+    required this.files,
+    this.category,
   });
 
   factory OrderableItemModel.fromJson(Map<String, dynamic> json) {
+    final filesJson = json['files'] as List<dynamic>? ?? [];
     return OrderableItemModel(
       id: json['id'] ?? 0,
       restaurantId: json['restaurant_id'] ?? 0,
@@ -339,6 +420,10 @@ class OrderableItemModel {
           : null,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
+      files: filesJson.map((e) => ItemFileModel.fromJson(e)).toList(),
+      category: json['category'] != null
+          ? CategoryModel.fromJson(json['category'])
+          : null,
     );
   }
 
@@ -358,92 +443,13 @@ class OrderableItemModel {
       'deleted_at': deletedAt?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'files': files.map((e) => e.toJson()).toList(),
+      'category': category?.toJson(),
     };
   }
 }
 
-// user_model.dart
-class OrderUserModel {
-  final int id;
-  final String? avatar;
-  final String fname;
-  final String lname;
-  final String phone;
-  final String? dob;
-  final String email;
-  final String status;
-  final String referralCode;
-  final int? referredBy;
-  final DateTime? lastLoginAt;
-  final int failedLoginAttempts;
-  final DateTime? deletedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  OrderUserModel({
-    required this.id,
-    this.avatar,
-    required this.fname,
-    required this.lname,
-    required this.phone,
-    this.dob,
-    required this.email,
-    required this.status,
-    required this.referralCode,
-    this.referredBy,
-    this.lastLoginAt,
-    required this.failedLoginAttempts,
-    this.deletedAt,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory OrderUserModel.fromJson(Map<String, dynamic> json) {
-    return OrderUserModel(
-      id: json['id'] ?? 0,
-      avatar: json['avatar'],
-      fname: json['fname'] ?? '',
-      lname: json['lname'] ?? '',
-      phone: json['phone'] ?? '',
-      dob: json['dob'],
-      email: json['email'] ?? '',
-      status: json['status'] ?? '',
-      referralCode: json['referral_code'] ?? '',
-      referredBy: json['referred_by'],
-      lastLoginAt: json['last_login_at'] != null
-          ? DateTime.tryParse(json['last_login_at'])
-          : null,
-      failedLoginAttempts: json['failed_login_attempts'] ?? 0,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'avatar': avatar,
-      'fname': fname,
-      'lname': lname,
-      'phone': phone,
-      'dob': dob,
-      'email': email,
-      'status': status,
-      'referral_code': referralCode,
-      'referred_by': referredBy,
-      'last_login_at': lastLoginAt?.toIso8601String(),
-      'failed_login_attempts': failedLoginAttempts,
-      'deleted_at': deletedAt?.toIso8601String(),
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-    };
-  }
-}
-
-// delivery_location_model.dart
+// Delivery Location Model - keeping existing structure
 class DeliveryLocationModel {
   final int id;
   final String name;
