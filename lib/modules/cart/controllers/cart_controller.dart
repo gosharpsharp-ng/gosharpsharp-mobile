@@ -49,7 +49,8 @@ class CartController extends GetxController {
 
   // Order tracking states
   RxBool orderPlaced = false.obs;
-  RxString orderStatus = 'preparing'.obs; // preparing, out_for_delivery, delivered
+  RxString orderStatus =
+      'preparing'.obs; // preparing, out_for_delivery, delivered
 
   // UI states
   bool _isOrderSummaryExpanded = false;
@@ -69,7 +70,11 @@ class CartController extends GetxController {
   double get selectedLongitude => _selectedLongitude;
 
   // Update delivery location
-  void updateDeliveryLocation(String address, double latitude, double longitude) {
+  void updateDeliveryLocation(
+    String address,
+    double latitude,
+    double longitude,
+  ) {
     currentLocation.value = address;
     _selectedLatitude = latitude;
     _selectedLongitude = longitude;
@@ -87,7 +92,6 @@ class CartController extends GetxController {
     try {
       setLoadingState(true);
       APIResponse response = await cartService.getMenuCart();
-      customDebugPrint(response.data);
 
       if (response.status.toLowerCase() == "success") {
         if (response.data != null) {
@@ -318,15 +322,19 @@ class CartController extends GetxController {
         'delivery_address': currentLocation.value,
         'latitude': _selectedLatitude,
         'longitude': _selectedLongitude,
-        'note': instructions?.isNotEmpty == true ? instructions : 'Order placed via mobile app',
-        'payment_method': 'wallet'
+        'note': instructions?.isNotEmpty == true
+            ? instructions
+            : 'Order placed via mobile app',
+        'payment_method': 'wallet',
       };
-      customDebugPrint(orderData);
       APIResponse response = await cartService.createOrder(orderData);
 
       if (response.status.toLowerCase() == "success") {
         orderPlaced.value = true;
-        showToast(message: "Order placed successfully with Go Wallet", isError: false);
+        showToast(
+          message: "Order placed successfully with Go Wallet",
+          isError: false,
+        );
 
         // Refresh the cart after successful order
         await refreshCart();
@@ -337,12 +345,16 @@ class CartController extends GetxController {
         showToast(message: response.message, isError: true);
       }
     } catch (e) {
-      showToast(message: "Failed to place order with wallet: $e", isError: true);
+      showToast(
+        message: "Failed to place order with wallet: $e",
+        isError: true,
+      );
     } finally {
       setLoadingState(false);
     }
   }
 
+  PayStackAuthorizationModel? payStackAuthorizationData;
   // Place order with Paystack
   Future<void> placeOrderWithPaystack([String? instructions]) async {
     if (isCartEmpty) {
@@ -358,17 +370,23 @@ class CartController extends GetxController {
         'delivery_address': currentLocation.value,
         'latitude': _selectedLatitude,
         'longitude': _selectedLongitude,
-        'note': instructions?.isNotEmpty == true ? instructions : 'Order placed via mobile app',
-        'payment_method': 'paystack'
+        'note': instructions?.isNotEmpty == true
+            ? instructions
+            : 'Order placed via mobile app',
+        'payment_method': 'paystack',
       };
-
-      customDebugPrint(orderData);
 
       APIResponse response = await cartService.createOrder(orderData);
 
       if (response.status.toLowerCase() == "success") {
         orderPlaced.value = true;
-        showToast(message: "Order placed successfully with Paystack", isError: false);
+        payStackAuthorizationData = PayStackAuthorizationModel.fromJson(
+          response.data['payment']['data'],
+        );
+        showToast(
+          message: "Order placed successfully with Paystack",
+          isError: false,
+        );
 
         // Refresh the cart after successful order
         await refreshCart();
@@ -379,7 +397,10 @@ class CartController extends GetxController {
         showToast(message: response.message, isError: true);
       }
     } catch (e) {
-      showToast(message: "Failed to place order with Paystack: $e", isError: true);
+      showToast(
+        message: "Failed to place order with Paystack: $e",
+        isError: true,
+      );
     } finally {
       setLoadingState(false);
     }
@@ -398,7 +419,7 @@ class CartController extends GetxController {
   CartItem? getCartItemByPurchasableId(int purchasableId) {
     try {
       return _cartItems.firstWhere(
-            (item) => item.purchasableId == purchasableId,
+        (item) => item.purchasableId == purchasableId,
       );
     } catch (e) {
       return null;

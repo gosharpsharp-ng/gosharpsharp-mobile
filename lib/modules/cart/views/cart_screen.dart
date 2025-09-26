@@ -1,6 +1,7 @@
 import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 import 'package:gosharpsharp/modules/cart/views/widgets/cart_item_widget.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../core/utils/exports.dart';
 
@@ -19,7 +20,7 @@ class CartScreen extends StatelessWidget {
             implyLeading: false,
             centerTitle: true,
             actionItem: Row(
-              children:[
+              children: [
                 if (!cartController.isCartEmpty)
                   TextButton(
                     onPressed: cartController.isLoading
@@ -41,169 +42,185 @@ class CartScreen extends StatelessWidget {
             onRefresh: () => cartController.refreshCart(),
             child: cartController.isLoading
                 ? SingleChildScrollView(
-              child: Column(
-                children: [
-                  SizedBox(height: 16.h),
-                  // Skeleton for delivery location
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Row(
+                    child: Column(
                       children: [
+                        SizedBox(height: 16.h),
+                        // Skeleton for delivery location
                         Container(
-                          width: 32.w,
-                          height: 32.w,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[400],
-                            shape: BoxShape.circle,
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
                           ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          padding: EdgeInsets.all(16.w),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Row(
                             children: [
                               Container(
-                                height: 12.h,
-                                width: 80.w,
+                                width: 32.w,
+                                height: 32.w,
                                 decoration: BoxDecoration(
                                   color: Colors.grey[400],
-                                  borderRadius: BorderRadius.circular(4.r),
+                                  shape: BoxShape.circle,
                                 ),
                               ),
-                              SizedBox(height: 4.h),
-                              Container(
-                                height: 16.h,
-                                width: 150.w,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[400],
-                                  borderRadius: BorderRadius.circular(4.r),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 12.h,
+                                      width: 80.w,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[400],
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Container(
+                                      height: 16.h,
+                                      width: 150.w,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[400],
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        // Cart items skeleton
+                        SkeletonLoaders.cartItem(count: 3),
                       ],
                     ),
-                  ),
-                  // Cart items skeleton
-                  SkeletonLoaders.cartItem(count: 3),
-                ],
-              ),
-            )
+                  )
                 : cartController.isCartEmpty
                 ? _buildEmptyCart()
                 : Column(
-              children: [
-                // Delivery Location
-                InkWell(
-                  onTap: () => _selectDeliveryLocation(cartController),
-                  child: Container(
-                    padding: EdgeInsets.all(16.sp),
-                    margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.whiteColor,
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8.sp),
+                    children: [
+                      // Delivery Location
+                      InkWell(
+                        onTap: () => _selectDeliveryLocation(cartController),
+                        child: Container(
+                          padding: EdgeInsets.all(16.sp),
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.location_on,
                             color: AppColors.whiteColor,
-                            size: 16.sp,
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              customText(
-                                'Deliver to',
-                                fontSize: 12.sp,
-                                color: AppColors.greyColor,
+                              Container(
+                                padding: EdgeInsets.all(8.sp),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.location_on,
+                                  color: AppColors.whiteColor,
+                                  size: 16.sp,
+                                ),
                               ),
-                              SizedBox(height: 2.h),
-                              customText(
-                                'Tap to change location',
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.blackColor,
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    customText(
+                                      'Deliver to',
+                                      fontSize: 12.sp,
+                                      color: AppColors.greyColor,
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    customText(
+                                      'Tap to change location',
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.blackColor,
+                                    ),
+                                    customText(
+                                      cartController.currentLocation.value,
+                                      fontSize: 12.sp,
+                                      color: AppColors.greyColor,
+                                      maxLines: 2,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              customText(
-                                cartController.currentLocation.value,
-                                fontSize: 12.sp,
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16.sp,
                                 color: AppColors.greyColor,
-                                maxLines: 2,
                               ),
                             ],
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16.sp,
-                          color: AppColors.greyColor,
+                      ),
+
+                      // Cart Items Header
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 8.h,
                         ),
-                      ],
-                    ),
-                  ),
-                ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: customText(
+                            'Cart Items',
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.blackColor,
+                          ),
+                        ),
+                      ),
 
-                // Cart Items Header
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: customText(
-                      'Cart Items',
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.blackColor,
-                    ),
-                  ),
-                ),
+                      // Cart Items List with more space
+                      Expanded(
+                        flex: 3, // Give more space to cart items
+                        child: ListView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          itemCount: cartController.cartItems.length,
+                          itemBuilder: (context, index) {
+                            final item = cartController.cartItems[index];
+                            return CartItemWidget(
+                              item: item,
+                              onQuantityChanged: (quantity) {
+                                cartController.updateCartItemQuantity(
+                                  item.id,
+                                  quantity,
+                                );
+                              },
+                              onRemove: () {
+                                cartController.removeFromCart(item.id);
+                              },
+                              isUpdating: cartController.isUpdatingCart,
+                              isRemoving: cartController.isRemovingFromCart,
+                            );
+                          },
+                        ),
+                      ),
 
-                // Cart Items List with more space
-                Expanded(
-                  flex: 3, // Give more space to cart items
-                  child: ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    itemCount: cartController.cartItems.length,
-                    itemBuilder: (context, index) {
-                      final item = cartController.cartItems[index];
-                      return CartItemWidget(
-                        item: item,
-                        onQuantityChanged: (quantity) {
-                          cartController.updateCartItemQuantity(item.id, quantity);
-                        },
-                        onRemove: () {
-                          cartController.removeFromCart(item.id);
-                        },
-                        isUpdating: cartController.isUpdatingCart,
-                        isRemoving: cartController.isRemovingFromCart,
-                      );
-                    },
+                      // Expandable Order Summary
+                      _buildExpandableOrderSummary(cartController),
+                    ],
                   ),
-                ),
-
-                // Expandable Order Summary
-                _buildExpandableOrderSummary(cartController),
-              ],
-            ),
           ),
           bottomNavigationBar: cartController.isCartEmpty
               ? null
-              : _buildPaymentOptions(cartController),
+              : _buildPaymentOptions(cartController, context),
         );
       },
     );
@@ -218,10 +235,13 @@ class CartScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-           SvgPicture.asset(
-                SvgAssets.cartIcon,
-             height: 100.sp,
-             colorFilter: ColorFilter.mode(AppColors.deepAmberColor, BlendMode.srcIn),
+            SvgPicture.asset(
+              SvgAssets.cartIcon,
+              height: 100.sp,
+              colorFilter: ColorFilter.mode(
+                AppColors.deepAmberColor,
+                BlendMode.srcIn,
+              ),
             ),
             SizedBox(height: 20.h),
             customText(
@@ -237,36 +257,36 @@ class CartScreen extends StatelessWidget {
               color: AppColors.obscureTextColor,
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 30.h),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to dashboard tab (index 0) in app navigation
-                try {
-                  final appNavController = Get.find<AppNavigationController>();
-                  appNavController.changeScreenIndex(0);
-                } catch (e) {
-                  // Fallback if controller not found
-                  Get.offNamedUntil(
-                    Routes.APP_NAVIGATION,
-                    (route) => false,
-                    arguments: {'initialIndex': 0},
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
-              child: customText(
-                "Browse Restaurants",
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.whiteColor,
-              ),
-            ),
+            // SizedBox(height: 30.h),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     // Navigate to dashboard tab (index 0) in app navigation
+            //     try {
+            //       final appNavController = Get.find<AppNavigationController>();
+            //       appNavController.changeScreenIndex(0);
+            //     } catch (e) {
+            //       // Fallback if controller not found
+            //       Get.offNamedUntil(
+            //         Routes.APP_NAVIGATION,
+            //         (route) => false,
+            //         arguments: {'initialIndex': 0},
+            //       );
+            //     }
+            //   },
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: AppColors.primaryColor,
+            //     padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 12.h),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(12.r),
+            //     ),
+            //   ),
+            //   child: customText(
+            //     "Browse Restaurants",
+            //     fontSize: 16.sp,
+            //     fontWeight: FontWeight.w600,
+            //     color: AppColors.whiteColor,
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -341,7 +361,9 @@ class CartScreen extends StatelessWidget {
                             color: AppColors.greyColor,
                           ),
                           customText(
-                            isExpanded ? 'Tap to collapse' : 'Tap to view breakdown',
+                            isExpanded
+                                ? 'Tap to collapse'
+                                : 'Tap to view breakdown',
                             fontSize: 12.sp,
                             color: AppColors.primaryColor,
                           ),
@@ -356,58 +378,60 @@ class CartScreen extends StatelessWidget {
               AnimatedContainer(
                 duration: Duration(milliseconds: 300),
                 height: isExpanded ? null : 0,
-                child: isExpanded ? Container(
-                  padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.w),
-                  child: Column(
-                    children: [
-                      Divider(),
-                      SizedBox(height: 12.h),
+                child: isExpanded
+                    ? Container(
+                        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.w),
+                        child: Column(
+                          children: [
+                            Divider(),
+                            SizedBox(height: 12.h),
 
-                      // Subtotal
-                      OrderSummaryItem(
-                        label: "Subtotal",
-                        amount: cartController.subtotal,
-                      ),
-                      SizedBox(height: 8.h),
+                            // Subtotal
+                            OrderSummaryItem(
+                              label: "Subtotal",
+                              amount: cartController.subtotal,
+                            ),
+                            SizedBox(height: 8.h),
 
-                      // Delivery fee
-                      OrderSummaryItem(
-                        label: "Delivery fee",
-                        amount: cartController.deliveryFee,
-                      ),
-                      SizedBox(height: 8.h),
+                            // Delivery fee
+                            OrderSummaryItem(
+                              label: "Delivery fee",
+                              amount: cartController.deliveryFee,
+                            ),
+                            SizedBox(height: 8.h),
 
-                      // Service charge
-                      OrderSummaryItem(
-                        label: "Service charge",
-                        amount: cartController.serviceCharge,
-                      ),
+                            // Service charge
+                            OrderSummaryItem(
+                              label: "Service charge",
+                              amount: cartController.serviceCharge,
+                            ),
 
-                      SizedBox(height: 12.h),
-                      Divider(),
-                      SizedBox(height: 12.h),
+                            SizedBox(height: 12.h),
+                            Divider(),
+                            SizedBox(height: 12.h),
 
-                      // Total
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          customText(
-                            'Total',
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.blackColor,
-                          ),
-                          customText(
-                            '₦${cartController.total.toStringAsFixed(2)}',
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryColor,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ) : null,
+                            // Total
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                customText(
+                                  'Total',
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.blackColor,
+                                ),
+                                customText(
+                                  '₦${cartController.total.toStringAsFixed(2)}',
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )
+                    : null,
               ),
             ],
           ),
@@ -416,7 +440,10 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentOptions(CartController cartController) {
+  Widget _buildPaymentOptions(
+    CartController cartController,
+    BuildContext context,
+  ) {
     return GetBuilder<WalletController>(
       init: WalletController(),
       initState: (state) {
@@ -460,10 +487,17 @@ class CartScreen extends StatelessWidget {
                         title: 'Go Wallet',
                         subtitle: 'Pay with wallet balance',
                         icon: Icons.account_balance_wallet,
-                        onTap: () => _selectWalletPayment(cartController, walletController),
+                        onTap: () => _selectWalletPayment(
+                          cartController,
+                          walletController,
+                        ),
                         isLoading: cartController.isLoading,
-                        isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'wallet',
-                        walletBalance: walletController.walletBalanceData?.balance,
+                        isSelected:
+                            cartController.selectedPaymentMethod.value
+                                .toLowerCase() ==
+                            'wallet',
+                        walletBalance:
+                            walletController.walletBalanceData?.balance,
                         orderTotal: cartController.total,
                       ),
                     ),
@@ -475,9 +509,13 @@ class CartScreen extends StatelessWidget {
                         title: 'Paystack',
                         subtitle: 'Pay with card or bank',
                         icon: Icons.credit_card,
-                        onTap: () => _selectPaymentMethod(cartController, 'paystack'),
+                        onTap: () =>
+                            _selectPaymentMethod(cartController, 'paystack'),
                         isLoading: cartController.isLoading,
-                        isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'paystack',
+                        isSelected:
+                            cartController.selectedPaymentMethod.value
+                                .toLowerCase() ==
+                            'paystack',
                       ),
                     ),
                   ],
@@ -490,10 +528,16 @@ class CartScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 45.h,
                   backgroundColor: AppColors.primaryColor,
-                  title: 'Place Order - ₦${cartController.total.toStringAsFixed(2)}',
+                  title:
+                      'Place Order - ₦${cartController.total.toStringAsFixed(2)}',
                   onPressed: () {
                     if (!cartController.isLoading) {
-                      _processPayment(cartController, cartController.selectedPaymentMethod.value.toLowerCase());
+                      _processPayment(
+                        cartController,
+                        cartController.selectedPaymentMethod.value
+                            .toLowerCase(),
+                        context,
+                      );
                     }
                   },
                   isBusy: cartController.isLoading,
@@ -533,26 +577,22 @@ class CartScreen extends StatelessWidget {
           color: isLoading
               ? AppColors.greyColor.withOpacity(0.1)
               : isSelected
-                  ? AppColors.primaryColor.withOpacity(0.1)
-                  : AppColors.whiteColor,
+              ? AppColors.primaryColor.withOpacity(0.1)
+              : AppColors.whiteColor,
         ),
         child: Column(
           children: [
             Icon(
               icon,
               size: 28.sp,
-              color: isLoading
-                  ? AppColors.greyColor
-                  : AppColors.primaryColor,
+              color: isLoading ? AppColors.greyColor : AppColors.primaryColor,
             ),
             SizedBox(height: 6.h),
             customText(
               title,
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
-              color: isLoading
-                  ? AppColors.greyColor
-                  : AppColors.blackColor,
+              color: isLoading ? AppColors.greyColor : AppColors.blackColor,
             ),
             SizedBox(height: 2.h),
             customText(
@@ -577,7 +617,9 @@ class CartScreen extends StatelessWidget {
     required String? walletBalance,
     required double orderTotal,
   }) {
-    double? balance = walletBalance != null ? double.tryParse(walletBalance) : null;
+    double? balance = walletBalance != null
+        ? double.tryParse(walletBalance)
+        : null;
     bool hasInsufficientFunds = balance != null && balance < orderTotal;
 
     return InkWell(
@@ -589,18 +631,18 @@ class CartScreen extends StatelessWidget {
             color: hasInsufficientFunds
                 ? Colors.red.withOpacity(0.5)
                 : isSelected
-                    ? AppColors.primaryColor
-                    : AppColors.primaryColor.withOpacity(0.3),
+                ? AppColors.primaryColor
+                : AppColors.primaryColor.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12.r),
           color: isLoading
               ? AppColors.greyColor.withOpacity(0.1)
               : hasInsufficientFunds
-                  ? Colors.red.withOpacity(0.05)
-                  : isSelected
-                      ? AppColors.primaryColor.withOpacity(0.1)
-                      : AppColors.whiteColor,
+              ? Colors.red.withOpacity(0.05)
+              : isSelected
+              ? AppColors.primaryColor.withOpacity(0.1)
+              : AppColors.whiteColor,
         ),
         child: Column(
           children: [
@@ -610,17 +652,15 @@ class CartScreen extends StatelessWidget {
               color: isLoading
                   ? AppColors.greyColor
                   : hasInsufficientFunds
-                      ? Colors.red
-                      : AppColors.primaryColor,
+                  ? Colors.red
+                  : AppColors.primaryColor,
             ),
             SizedBox(height: 4.h),
             customText(
               title,
               fontSize: 12.sp,
               fontWeight: FontWeight.w600,
-              color: isLoading
-                  ? AppColors.greyColor
-                  : AppColors.blackColor,
+              color: isLoading ? AppColors.greyColor : AppColors.blackColor,
             ),
             SizedBox(height: 2.h),
             if (walletBalance != null)
@@ -654,11 +694,17 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  void _selectPaymentMethod(CartController cartController, String paymentMethod) {
+  void _selectPaymentMethod(
+    CartController cartController,
+    String paymentMethod,
+  ) {
     cartController.selectPaymentMethod(paymentMethod);
   }
 
-  void _selectWalletPayment(CartController cartController, WalletController walletController) {
+  void _selectWalletPayment(
+    CartController cartController,
+    WalletController walletController,
+  ) {
     // Check if wallet has sufficient funds
     String? balanceStr = walletController.walletBalanceData?.balance;
     if (balanceStr != null) {
@@ -667,7 +713,8 @@ class CartScreen extends StatelessWidget {
 
       if (balance < orderTotal) {
         showToast(
-          message: "Insufficient wallet balance. Please top up your wallet or use Paystack.",
+          message:
+              "Insufficient wallet balance. Please top up your wallet or use Paystack.",
           isError: true,
         );
         return;
@@ -678,9 +725,17 @@ class CartScreen extends StatelessWidget {
     cartController.selectPaymentMethod('wallet');
   }
 
-  void _processPayment(CartController cartController, String paymentMethod) {
+  void _processPayment(
+    CartController cartController,
+    String paymentMethod,
+    BuildContext context,
+  ) {
     // Show additional instructions bottom sheet first
-    _showAdditionalInstructionsBottomSheet(cartController, paymentMethod);
+    _showAdditionalInstructionsBottomSheet(
+      cartController,
+      paymentMethod,
+      context,
+    );
   }
 
   Future<void> _selectDeliveryLocation(CartController cartController) async {
@@ -696,9 +751,12 @@ class CartScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _showAddressEditingDialog(CartController cartController, ItemLocation location) async {
+  Future<void> _showAddressEditingDialog(
+    CartController cartController,
+    ItemLocation location,
+  ) async {
     final TextEditingController addressController = TextEditingController(
-      text: location.formattedAddress ?? ''
+      text: location.formattedAddress ?? '',
     );
 
     final result = await Get.dialog<String>(
@@ -728,7 +786,9 @@ class CartScreen extends StatelessWidget {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
-                  borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.3)),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
@@ -771,13 +831,25 @@ class CartScreen extends StatelessWidget {
 
     if (result != null && result.isNotEmpty) {
       // Update the delivery location
-      cartController.updateDeliveryLocation(result, location.latitude, location.longitude);
-      showToast(message: "Delivery address updated successfully", isError: false);
+      cartController.updateDeliveryLocation(
+        result,
+        location.latitude,
+        location.longitude,
+      );
+      showToast(
+        message: "Delivery address updated successfully",
+        isError: false,
+      );
     }
   }
 
-  void _showAdditionalInstructionsBottomSheet(CartController cartController, String paymentMethod) {
-    final TextEditingController instructionsController = TextEditingController();
+  void _showAdditionalInstructionsBottomSheet(
+    CartController cartController,
+    String paymentMethod,
+    BuildContext context,
+  ) {
+    final TextEditingController instructionsController =
+        TextEditingController();
 
     Get.bottomSheet(
       Container(
@@ -830,7 +902,9 @@ class CartScreen extends StatelessWidget {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.3)),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
@@ -848,7 +922,12 @@ class CartScreen extends StatelessWidget {
                     onPressed: () {
                       Get.back();
                       // Place order without instructions
-                      _finalizeOrder(cartController, paymentMethod, '');
+                      _finalizeOrder(
+                        cartController,
+                        paymentMethod,
+                        '',
+                        context,
+                      );
                     },
                     child: customText(
                       'Skip',
@@ -867,7 +946,12 @@ class CartScreen extends StatelessWidget {
                     title: 'Place Order',
                     onPressed: () {
                       Get.back();
-                      _finalizeOrder(cartController, paymentMethod, instructionsController.text.trim());
+                      _finalizeOrder(
+                        cartController,
+                        paymentMethod,
+                        instructionsController.text.trim(),
+                        context,
+                      );
                     },
                     borderRadius: 12.r,
                     fontSize: 14.sp,
@@ -885,16 +969,41 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  void _finalizeOrder(CartController cartController, String paymentMethod, String instructions) {
+  void _finalizeOrder(
+    CartController cartController,
+    String paymentMethod,
+    String instructions,
+    BuildContext context,
+  ) async {
     // Place order with the selected payment method and instructions
     if (paymentMethod == 'wallet') {
       cartController.placeOrderWithWallet(instructions);
     } else if (paymentMethod == 'paystack') {
-      cartController.placeOrderWithPaystack(instructions);
+      await cartController.placeOrderWithPaystack(instructions);
+      if (cartController.payStackAuthorizationData != null) {
+        WebViewController collectionsWebViewController =
+            createWebViewController(
+              successCallback: () {
+                Get.back();
+              },
+            );
+        showWebViewDialog(
+          context,
+          controller: collectionsWebViewController,
+          onDialogClosed: () {
+            Get.back();
+          },
+          title: "Paystack",
+          url: cartController.payStackAuthorizationData?.authorizationUrl ?? "",
+        );
+      }
     }
   }
 
-  void _showClearCartDialog(BuildContext context, CartController cartController) {
+  void _showClearCartDialog(
+    BuildContext context,
+    CartController cartController,
+  ) {
     Get.dialog(
       AlertDialog(
         title: customText(
