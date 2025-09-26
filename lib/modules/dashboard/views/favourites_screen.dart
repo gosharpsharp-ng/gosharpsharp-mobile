@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../../../core/utils/exports.dart';
 
 class FavouritesScreen extends StatelessWidget {
@@ -10,6 +9,7 @@ class FavouritesScreen extends StatelessWidget {
       builder: (dashboardController) {
         return Scaffold(
           appBar: defaultAppBar(centerTitle: true, title: "Favourites"),
+          backgroundColor: AppColors.backgroundColor,
           body: RefreshIndicator(
             backgroundColor: AppColors.primaryColor,
             color: AppColors.whiteColor,
@@ -40,10 +40,10 @@ class FavouritesScreen extends StatelessWidget {
                   ...List.generate(
                     dashboardController.favoriteRestaurants.length,
                         (i) => FavRestaurantContainer(
-                      restaurant: dashboardController.favoriteRestaurants[i],
+                      favourite: dashboardController.favoriteRestaurants[i],
                       onPressed: () {
                         dashboardController.navigateToRestaurant(
-                            dashboardController.favoriteRestaurants[i]
+                            dashboardController.favoriteRestaurants[i].favoritable!
                         );
                       },
                     ),

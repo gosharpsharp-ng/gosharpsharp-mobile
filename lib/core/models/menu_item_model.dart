@@ -8,11 +8,11 @@ class MenuItemModel {
   final String name;
   final CategoryModel category;
   final double price;
-  final String duration;
+  final int prepTimeMinutes;
   final RestaurantModel restaurant;
-  final String image;
   final int isAvailable;
-  final int availableQuantity;
+  final int isPublished;
+  final int quantity;
   final String? description;
   final String? plateSize;
   final List<ItemFileModel> files;
@@ -23,12 +23,12 @@ class MenuItemModel {
     required this.name,
     required this.category,
     required this.price,
-    required this.duration,
-    required this.image,
-    required this.isAvailable,
-    required this.availableQuantity,
-    this.description,
+    required this.prepTimeMinutes,
     required this.restaurant,
+    required this.isAvailable,
+    required this.isPublished,
+    required this.quantity,
+    this.description,
     this.plateSize,
     this.showOnCustomerApp,
     required this.files,
@@ -36,16 +36,18 @@ class MenuItemModel {
 
   factory MenuItemModel.fromJson(Map<String, dynamic> json) {
     final filesJson = json['files'] as List<dynamic>? ?? [];
+
     return MenuItemModel(
-      id: json['id']??1 ,
+      id: json['id'] ?? 0,
       name: json['name']?.toString() ?? '',
       category: CategoryModel.fromJson(json['category']),
       restaurant: RestaurantModel.fromJson(json['restaurant']),
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      duration: json['duration']?.toString() ?? '',
-      image: json['image']?.toString() ?? '',
-      isAvailable: json['is_available'] ?? true,
-      availableQuantity: int.tryParse(json['available_quantity']?.toString() ?? '0') ?? 0,
+      prepTimeMinutes: json['prep_time_minutes'] ?? 0,
+      // image: filesJson.isNotEmpty ? filesJson.first['url']?.toString() : null,
+      isAvailable: json['is_available'] ?? 0,
+      isPublished: json['is_published'] ?? 0,
+      quantity: json['quantity'] ?? 0,
       description: json['description']?.toString(),
       plateSize: json['plate_size']?.toString(),
       showOnCustomerApp: json['show_on_customer_app'],
@@ -57,19 +59,20 @@ class MenuItemModel {
     return {
       'id': id,
       'name': name,
-      'category': category,
+      'category': category.toJson(),
+      'restaurant': restaurant.toJson(),
       'price': price,
-      'duration': duration,
-      'image': image,
+      'prep_time_minutes': prepTimeMinutes,
+      // 'image': image,
       'is_available': isAvailable,
-      'available_quantity': availableQuantity,
+      'is_published': isPublished,
+      'quantity': quantity,
       'description': description,
       'plate_size': plateSize,
       'show_on_customer_app': showOnCustomerApp,
-      'files': files,
+      'files': files.map((e) => e.toJson()).toList(),
     };
   }
-
-
 }
+
 

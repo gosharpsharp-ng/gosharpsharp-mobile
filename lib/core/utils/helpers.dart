@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
+import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
@@ -1003,8 +1004,10 @@ Color getStatusColor(String? status) {
       return AppColors.lightOrangeColor;
     case "delivered":
       return AppColors.lightGreenColor;
+    case "approved":
+      return AppColors.greenColor; // ✅ Approved status color
     case "canceled":
-      return AppColors.lightGreyColor; // Color for canceled status
+      return AppColors.lightGreyColor;
     default:
       return AppColors.lightGreyColor;
   }
@@ -1028,12 +1031,15 @@ Color getStatusTextColor(String? status) {
       return AppColors.orangeColor;
     case "delivered":
       return AppColors.greenColor;
+    case "approved":
+      return AppColors.greenColor;
     case "canceled":
-      return AppColors.greyColor; // Text color for canceled status
+      return AppColors.greyColor;
     default:
       return AppColors.greyColor;
   }
 }
+
 
 Future<String> convertImageToBase64(String imagePath) async {
   File imageFile = File(imagePath);
@@ -1262,5 +1268,88 @@ void makePhoneCall(String phoneNumber) async {
     await launchUrl(Uri.parse(url));
   } else {
     print('Could not launch $url');
+  }
+}
+
+
+
+String getOpeningHours(RestaurantModel restaurant) {
+  if (restaurant.schedules == null || restaurant.schedules!.isEmpty) {
+    return "No schedule available";
+  }
+
+  final today = DateTime.now().weekday;
+  final dayNames = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+  ];
+  final currentDay = dayNames[today - 1];
+
+  final todaySchedule = restaurant.schedules!.firstWhere(
+        (schedule) => schedule.dayOfWeek.toLowerCase() == currentDay,
+    orElse: () => restaurant.schedules!.first,
+  );
+
+  final openTime = DateTime.parse(todaySchedule.openTime);
+  final closeTime = DateTime.parse(todaySchedule.closeTime);
+
+  return "${formatTimeToPmAm(openTime)} - ${formatTimeToPmAm(closeTime)}";
+}
+
+String formatTimeToPmAm(DateTime time) {
+  final hour = time.hour;
+  final minute = time.minute;
+  final period = hour >= 12 ? 'PM' : 'AM';
+  final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+  return '${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+}
+
+Color getRestaurantStatusColor(String status) {
+  switch (status.toLowerCase()) {
+    case 'active':
+    case 'approved':
+      return AppColors.primaryColor;
+    case 'pending':
+      return AppColors.orangeColor;
+    case 'inactive':
+      return AppColors.redColor;
+    default:
+      return Colors.grey;
+  }
+}
+
+class NavigationHelper {
+  // Method 1: Check if current route is the last one in stack
+  static bool isCurrentRouteLastInStack() {
+    final navigator = Get.key.currentState as NavigatorState?;
+    if (navigator == null) return true;
+
+    // Check if we can pop (if we can't pop, we're at the root/last screen)
+    return !navigator.canPop();
+  }
+
+  // Method 2: Using GetX's routing system
+  static bool isLastRoute() {
+    return Get.routing.previous.isEmpty;
+  }
+
+  // Method 3: Check specific route name
+  static bool isCurrentRoute(String routeName) {
+    return Get.currentRoute == routeName;
+  }
+
+  // Method 4: Get current route info
+  static String getCurrentRoute() {
+    return Get.currentRoute;
+  }
+
+  // Method 5: Check if specific route is the last one
+  static bool isRouteLastInStack(String routeName) {
+    return Get.currentRoute == routeName && isCurrentRouteLastInStack();
   }
 }

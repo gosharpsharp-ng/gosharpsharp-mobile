@@ -32,6 +32,7 @@ class NotificationsHomeScreen extends StatelessWidget {
                 replacement: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    SvgPicture.asset(SvgAssets.emptyNotificationIcon,height: 150.sp,colorFilter: ColorFilter.mode(AppColors.greyColor, BlendMode.srcIn),),
                     Center(
                       child: customText("No Notifications yet"),
                     ),

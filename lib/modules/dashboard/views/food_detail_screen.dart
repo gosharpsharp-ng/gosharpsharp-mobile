@@ -35,7 +35,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
 
   void _incrementQuantity() {
     final menuItem = dashboardController.selectedMenuItem;
-    final maxQuantity = menuItem?.availableQuantity ?? 99;
+    final maxQuantity = menuItem?.quantity ?? 99;
     if (quantity < maxQuantity) {
       setState(() {
         quantity++;
@@ -127,8 +127,19 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
+                      // Close the bottom sheet first
                       Get.back();
-                      Get.toNamed(Routes.CART_SCREEN);
+                      // Navigate to app navigation and set cart tab
+                      Get.offNamedUntil(Routes.APP_NAVIGATION, (route) => false);
+                      // Ensure the controller is available and set cart tab
+                      Future.delayed(Duration(milliseconds: 100), () {
+                        try {
+                          final appNavController = Get.find<AppNavigationController>();
+                          appNavController.changeScreenIndex(1);
+                        } catch (e) {
+                          print('Error setting cart tab: $e');
+                        }
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
@@ -179,6 +190,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
 
             final isAvailable = dashboardController.isMenuItemAvailable(menuItem);
             final availabilityStatus = dashboardController.getMenuItemAvailabilityStatus(menuItem);
+            final isCurrentlyAdding = cartController.isAddingItemToCart(menuItem.id);
 
             return Scaffold(
               backgroundColor: AppColors.backgroundColor,
@@ -431,7 +443,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                                       ),
                                     ],
                                   ),
-                                  if (menuItem.duration.isNotEmpty)
+                                  if (menuItem.prepTimeMinutes!=null)
                                     Container(
                                       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                                       decoration: BoxDecoration(
@@ -444,12 +456,12 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                                           Icon(
                                             Icons.access_time,
                                             color: AppColors.obscureTextColor,
-                                            size: 14.sp,
+                                            size: 25.sp,
                                           ),
                                           SizedBox(width: 4.w),
                                           customText(
-                                            menuItem.duration,
-                                            fontSize: 12.sp,
+                                            "${menuItem.prepTimeMinutes} min(s)",
+                                            fontSize: 14.sp,
                                             color: AppColors.blackColor,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -485,7 +497,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                                       Expanded(
                                         child: customText(
                                           availabilityStatus == "Limited Stock"
-                                              ? "Only ${menuItem.availableQuantity} left in stock"
+                                              ? "Only ${menuItem.quantity} left in stock"
                                               : availabilityStatus,
                                           fontSize: 14.sp,
                                           color: availabilityStatus == "Limited Stock"
@@ -556,7 +568,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                               ),
                             ),
 
-                            SizedBox(height: 24.h),
 
                             // Tabs (Details / Reviews)
                             Container(
@@ -587,7 +598,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
 
                             // Tab Content
                             Container(
-                              height: 200.h,
+                              height: 180.h,
                               child: TabBarView(
                                 controller: _tabController,
                                 children: [
@@ -612,19 +623,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                                             height: 1.6,
                                           ),
                                           SizedBox(height: 16.h),
-
                                           // Additional details
-                                          if (menuItem.duration.isNotEmpty)
-                                            _buildDetailRow("Preparation Time", menuItem.duration),
-                                          if (menuItem.duration.isNotEmpty)
-                                            SizedBox(height: 8.h),
                                           _buildDetailRow("Category", menuItem.category.name),
                                           SizedBox(height: 8.h),
                                           if (menuItem.plateSize != null && menuItem.plateSize!.isNotEmpty) ...[
                                             _buildDetailRow("Plate Size", menuItem.plateSize!),
                                             SizedBox(height: 8.h),
                                           ],
-                                          _buildDetailRow("Available Quantity", "${menuItem.availableQuantity}"),
+                                          // _buildDetailRow("Available Quantity", "${menuItem.quantity}"),
                                         ],
                                       ),
                                     ),
@@ -672,106 +678,42 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                               ),
                             ),
 
-                            SizedBox(height: 20.h),
 
-                            // Quantity Selector
-                            if (isAvailable)
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                                child: Container(
-                                  padding: EdgeInsets.all(16.w),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.backgroundColor,
-                                    borderRadius: BorderRadius.circular(12.r),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
+                            // Cart Controls Section
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal:16.w,vertical: 5.h),
+                                decoration: BoxDecoration(
+                                  color: AppColors.backgroundColor,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        customText(
+                                          "Add to Cart",
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.blackColor,
+                                        ),
+                                        if (cartController.getItemQuantityInCart(menuItem.id) > 0)
                                           customText(
-                                            "Quantity",
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.blackColor,
-                                          ),
-                                          customText(
-                                            "Total: ₦${_calculateTotalPrice(menuItem).toStringAsFixed(2)}",
+                                            "${cartController.getItemQuantityInCart(menuItem.id)} in cart",
                                             fontSize: 14.sp,
                                             color: AppColors.primaryColor,
                                             fontWeight: FontWeight.w500,
                                           ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          InkWell(
-                                            onTap: _decrementQuantity,
-                                            child: Container(
-                                              width: 40.w,
-                                              height: 40.w,
-                                              decoration: BoxDecoration(
-                                                color: quantity > 1
-                                                    ? AppColors.whiteColor
-                                                    : AppColors.greyColor.withOpacity(0.3),
-                                                borderRadius: BorderRadius.circular(10.r),
-                                                border: Border.all(
-                                                  color: AppColors.greyColor.withOpacity(0.3),
-                                                ),
-                                              ),
-                                              child: Icon(
-                                                Icons.remove,
-                                                color: quantity > 1
-                                                    ? AppColors.blackColor
-                                                    : AppColors.greyColor,
-                                                size: 20.sp,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(width: 16.w),
-                                          Container(
-                                            width: 50.w,
-                                            height: 40.w,
-                                            decoration: BoxDecoration(
-                                              color: AppColors.whiteColor,
-                                              borderRadius: BorderRadius.circular(10.r),
-                                              border: Border.all(
-                                                color: AppColors.primaryColor,
-                                              ),
-                                            ),
-                                            child: Center(
-                                              child: customText(
-                                                quantity.toString(),
-                                                fontSize: 18.sp,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.blackColor,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(width: 16.w),
-                                          InkWell(
-                                            onTap: _incrementQuantity,
-                                            child: Container(
-                                              width: 40.w,
-                                              height: 40.w,
-                                              decoration: BoxDecoration(
-                                                color: AppColors.primaryColor,
-                                                borderRadius: BorderRadius.circular(10.r),
-                                              ),
-                                              child: Icon(
-                                                Icons.add,
-                                                color: AppColors.whiteColor,
-                                                size: 20.sp,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
+                                    _buildCartControls(menuItem, cartController, isAvailable, isCurrentlyAdding),
+                                  ],
                                 ),
                               ),
+                            ),
 
                             SizedBox(height: 100.h), // Extra padding for bottom button
                           ],
@@ -781,7 +723,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                   ),
                 ],
               ),
-              bottomNavigationBar: isAvailable ? Container(
+              bottomNavigationBar: cartController.getItemQuantityInCart(menuItem.id) > 0 ? Container(
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
                   color: AppColors.whiteColor,
@@ -798,17 +740,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
                     width: double.infinity,
                     height: 56.h,
                     backgroundColor: AppColors.primaryColor,
-                    title: cartController.isAddingToCart
-                        ? "Adding to cart..."
-                        : "Add $quantity to cart • ₦${_calculateTotalPrice(menuItem).toStringAsFixed(2)}",
+                    title: "View Cart (${cartController.itemCount} items)",
                     onPressed: () {
-                      if (cartController.isAddingToCart) {
-                        log("Adding to cart in progress...");
-                      } else {
-                        _addToCartAndShowSuccess(cartController);
-                      }
+                      Get.offNamedUntil(
+                        Routes.APP_NAVIGATION,
+                        (route) => false,
+                        arguments: {'initialIndex': 1},
+                      );
                     },
-                    isBusy: cartController.isAddingToCart,
                     borderRadius: 12.r,
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -843,5 +782,143 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
         ),
       ],
     );
+  }
+
+  Widget _buildCartControls(
+    MenuItemModel menuItem,
+    CartController cartController,
+    bool isAvailable,
+    bool isCurrentlyAdding,
+  ) {
+    int cartQuantity = cartController.getItemQuantityInCart(menuItem.id);
+
+    if (!isAvailable) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: AppColors.obscureTextColor,
+          borderRadius: BorderRadius.circular(6.r),
+        ),
+        child: customText(
+          "Unavailable",
+          fontSize: 12.sp,
+          color: AppColors.whiteColor,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    if (cartQuantity == 0) {
+      // Show plus button for items not in cart
+      return InkWell(
+        onTap: !isCurrentlyAdding
+            ? () => _addToCart(menuItem, cartController)
+            : null,
+        child: Container(
+          width: 32.w,
+          height: 32.w,
+          decoration: BoxDecoration(
+            color: isCurrentlyAdding
+                ? AppColors.obscureTextColor
+                : AppColors.primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: isCurrentlyAdding
+              ? SizedBox(
+                  width: 16.w,
+                  height: 16.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.whiteColor,
+                    ),
+                  ),
+                )
+              : Icon(
+                  Icons.add,
+                  color: AppColors.whiteColor,
+                  size: 18.sp,
+                ),
+        ),
+      );
+    } else {
+      // Show quantity controls for items in cart
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Minus/Remove button
+          InkWell(
+            onTap: () => _decreaseQuantity(menuItem, cartController, cartQuantity),
+            child: Container(
+              width: 28.w,
+              height: 28.w,
+              decoration: BoxDecoration(
+                color: cartQuantity == 1 ? Colors.red : AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                cartQuantity == 1 ? Icons.delete : Icons.remove,
+                color: AppColors.whiteColor,
+                size: 14.sp,
+              ),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          // Quantity display
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: AppColors.whiteColor,
+              borderRadius: BorderRadius.circular(4.r),
+              border: Border.all(color: AppColors.primaryColor),
+            ),
+            child: customText(
+              cartQuantity.toString(),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.blackColor,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          // Plus button
+          InkWell(
+            onTap: () => _addToCart(menuItem, cartController),
+            child: Container(
+              width: 28.w,
+              height: 28.w,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.add,
+                color: AppColors.whiteColor,
+                size: 14.sp,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  void _addToCart(MenuItemModel menuItem, CartController cartController) async {
+    try {
+      await cartController.addToCart(menuItem.id, 1);
+    } catch (e) {
+      debugPrint('Error adding to cart: $e');
+    }
+  }
+
+  void _decreaseQuantity(
+    MenuItemModel menuItem,
+    CartController cartController,
+    int currentQuantity,
+  ) async {
+    try {
+      await cartController.removeFromCart(menuItem.id);
+    } catch (e) {
+      debugPrint('Error decreasing quantity: $e');
+    }
   }
 }

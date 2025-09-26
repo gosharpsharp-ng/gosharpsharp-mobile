@@ -24,6 +24,6 @@ class RestaurantCartService extends CoreService {
   }
 
   Future<APIResponse> createOrder(dynamic data) async {
-    return await generalPatch("/customer/orders/menu/create-and-pay", data);
+    return await send("/customers/orders/menu/create-and-pay", data);
   }
 }

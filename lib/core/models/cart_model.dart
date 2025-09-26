@@ -1,6 +1,9 @@
 import 'package:gosharpsharp/core/models/categories_model.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 
+import 'item_file_model.dart';
+import 'order_model.dart';
+
 class Cart {
   int id;
   int userId;
@@ -115,6 +118,25 @@ class CartItem {
     "updated_at": updatedAt,
     "purchasable": purchasable.toJson(),
   };
+
+  // Adapter method to create CartItem from OrderItemModel
+  static CartItem fromOrderItem(OrderItemModel orderItem, int cartId) {
+    return CartItem(
+      id: orderItem.id,
+      cartId: cartId,
+      price: orderItem.price.toString(),
+      total: orderItem.total.toString(),
+      discount: "0", // Orders typically don't have discounts at item level
+      quantity: orderItem.quantity,
+      options: orderItem.options,
+      purchasableType: orderItem.orderableType,
+      purchasableId: orderItem.orderableId,
+      deletedAt: null,
+      createdAt: orderItem.createdAt.toIso8601String(),
+      updatedAt: orderItem.updatedAt.toIso8601String(),
+      purchasable: Purchasable.fromOrderableItem(orderItem.orderable),
+    );
+  }
 }
 
 class Purchasable {
@@ -132,6 +154,7 @@ class Purchasable {
   String? deletedAt;
   DateTime createdAt;
   DateTime updatedAt;
+  final List<ItemFileModel> files;
   RestaurantModel restaurant;
   CategoryModel category;
 
@@ -152,27 +175,31 @@ class Purchasable {
     required this.updatedAt,
     required this.restaurant,
     required this.category,
+    required this.files,
   });
 
-  factory Purchasable.fromJson(Map<String, dynamic> json) => Purchasable(
-    id: json["id"],
-    restaurantId: json["restaurant_id"],
-    name: json["name"],
-    description: json["description"],
-    plateSize: json["plate_size"],
-    quantity: json["quantity"],
-    isAvailable: json["is_available"],
-    price: json["price"],
-    prepTimeMinutes: json["prep_time_minutes"],
-    categoryId: json["category_id"],
-    isPublished: json["is_published"],
-    deletedAt: json["deleted_at"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
-    restaurant: RestaurantModel.fromJson(json["restaurant"]),
-    category: CategoryModel.fromJson(json["category"]),
-  );
-
+  factory Purchasable.fromJson(Map<String, dynamic> json) {
+    final filesJson = json['files'] as List<dynamic>? ?? [];
+    return Purchasable(
+      id: json["id"],
+      restaurantId: json["restaurant_id"],
+      name: json["name"],
+      description: json["description"],
+      plateSize: json["plate_size"],
+      quantity: json["quantity"],
+      isAvailable: json["is_available"],
+      price: json["price"],
+      prepTimeMinutes: json["prep_time_minutes"],
+      categoryId: json["category_id"],
+      isPublished: json["is_published"],
+      deletedAt: json["deleted_at"],
+      createdAt: DateTime.parse(json["created_at"]),
+      updatedAt: DateTime.parse(json["updated_at"]),
+      restaurant: RestaurantModel.fromJson(json["restaurant"]),
+      category: CategoryModel.fromJson(json["category"]),
+      files: filesJson.map((e) => ItemFileModel.fromJson(e)).toList(),
+    );
+  }
   Map<String, dynamic> toJson() => {
     "id": id,
     "restaurant_id": restaurantId,
@@ -191,6 +218,54 @@ class Purchasable {
     "restaurant": restaurant.toJson(),
     "category": category.toJson(),
   };
+
+  // Adapter method to create Purchasable from OrderableItemModel
+  static Purchasable fromOrderableItem(dynamic orderableItem) {
+    return Purchasable(
+      id: orderableItem.id,
+      restaurantId: orderableItem.restaurantId,
+      name: orderableItem.name,
+      description: orderableItem.description,
+      plateSize: orderableItem.plateSize,
+      quantity: orderableItem.quantity,
+      isAvailable: orderableItem.isAvailable ? 1 : 0,
+      price: orderableItem.price.toString(),
+      prepTimeMinutes: orderableItem.prepTimeMinutes,
+      categoryId: orderableItem.categoryId,
+      isPublished: orderableItem.isPublished ? 1 : 0,
+      deletedAt: orderableItem.deletedAt?.toIso8601String(),
+      createdAt: orderableItem.createdAt,
+      updatedAt: orderableItem.updatedAt,
+      files: orderableItem.files,
+      restaurant: _createEmptyRestaurant(),
+      category: orderableItem.category ?? _createEmptyCategory(),
+    );
+  }
+
+  static RestaurantModel _createEmptyRestaurant() {
+    return RestaurantModel(
+      id: 0,
+      name: '',
+      email: '',
+      phone: '',
+      isActive: 1,
+      isFeatured: 0,
+      distance: '0.0',
+      commissionRate: '0.0',
+      status: '',
+      userId: 0,
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+  }
+
+  static CategoryModel _createEmptyCategory() {
+    return CategoryModel(
+      id: 0,
+      name: '',
+      description: '',
+    );
+  }
 }
 
 

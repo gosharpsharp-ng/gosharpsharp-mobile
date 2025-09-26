@@ -13,7 +13,7 @@ class WalletsService extends CoreService {
   }
 
   Future<APIResponse> getWalletBalance() async {
-    return await fetch("/me/wallet");
+    return await fetch("/me/wallet/balance");
   }
 
   Future<APIResponse> fundWallet(dynamic data) async {

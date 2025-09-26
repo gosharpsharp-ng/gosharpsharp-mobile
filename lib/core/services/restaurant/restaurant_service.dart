@@ -4,7 +4,9 @@ class RestaurantService extends CoreService {
   Future<RestaurantService> init() async => this;
 
   Future<APIResponse> getRestaurants([dynamic data]) async {
-    return await fetch("/restaurants");
+    return await fetch(
+      "/restaurants?longitude=${data['longitude']}&latitude=${data['latitude']}",
+    );
   }
 
   Future<APIResponse> getRestaurantMenu(dynamic data) async {

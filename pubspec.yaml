@@ -44,6 +44,7 @@ dependencies:
   flutter_native_splash: ^2.4.6
   intl:
   cupertino_icons: ^1.0.8
+  skeletonizer: ^2.1.0+1
   zego_uikit_prebuilt_call: ^4.16.21
   zego_uikit_signaling_plugin: ^2.8.9
   zego_express_engine:

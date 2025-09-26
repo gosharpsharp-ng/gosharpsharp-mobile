@@ -12,11 +12,15 @@ class CartController extends GetxController {
   bool _isAddingToCart = false;
   bool _isRemovingFromCart = false;
   bool _isUpdatingCart = false;
+  int? _addingToCartItemId; // Track specific item being added
 
   get isLoading => _isLoading;
   get isAddingToCart => _isAddingToCart;
   get isRemovingFromCart => _isRemovingFromCart;
   get isUpdatingCart => _isUpdatingCart;
+
+  // Check if specific item is being added to cart
+  bool isAddingItemToCart(int itemId) => _addingToCartItemId == itemId;
 
   void setLoadingState(bool val) {
     _isLoading = val;
@@ -47,12 +51,30 @@ class CartController extends GetxController {
   RxBool orderPlaced = false.obs;
   RxString orderStatus = 'preparing'.obs; // preparing, out_for_delivery, delivered
 
+  // UI states
+  bool _isOrderSummaryExpanded = false;
+  bool get isOrderSummaryExpanded => _isOrderSummaryExpanded;
+
   // Delivery info
   RxString currentLocation = '20 Soho loop street birmingham'.obs;
+  double _selectedLatitude = 43.6532;
+  double _selectedLongitude = 79.3832;
   RxString deliveryPersonName = 'James Williams'.obs;
   RxString deliveryPersonPhone = '+234 806 000 0000'.obs;
   RxDouble deliveryPersonRating = 4.6.obs;
   RxString estimatedArrival = '11:45'.obs;
+
+  // Location getters
+  double get selectedLatitude => _selectedLatitude;
+  double get selectedLongitude => _selectedLongitude;
+
+  // Update delivery location
+  void updateDeliveryLocation(String address, double latitude, double longitude) {
+    currentLocation.value = address;
+    _selectedLatitude = latitude;
+    _selectedLongitude = longitude;
+    update();
+  }
 
   @override
   void onInit() {
@@ -102,6 +124,8 @@ class CartController extends GetxController {
   // Add item to cart
   Future<void> addToCart(int menuId, int quantity) async {
     try {
+      // Set specific item being added
+      _addingToCartItemId = menuId;
       setAddingToCartState(true);
 
       dynamic data = {'menu_id': menuId, 'quantity': quantity};
@@ -118,6 +142,7 @@ class CartController extends GetxController {
     } catch (e) {
       showToast(message: "Failed to add item to cart: $e", isError: true);
     } finally {
+      _addingToCartItemId = null; // Clear specific item
       setAddingToCartState(false);
     }
   }
@@ -146,6 +171,17 @@ class CartController extends GetxController {
       showToast(message: "Failed to update cart: $e", isError: true);
     } finally {
       setUpdatingCartState(false);
+    }
+  }
+
+  // Decrease quantity for a specific menu item
+  Future<void> decreaseQuantity(int menuId) async {
+    CartItem? item = getCartItemByPurchasableId(menuId);
+    if (item != null && item.quantity > 1) {
+      await updateCartItemQuantity(item.id, item.quantity - 1);
+    } else if (item != null && item.quantity == 1) {
+      // Remove item if quantity is 1
+      await removeFromCart(item.id);
     }
   }
 
@@ -195,11 +231,14 @@ class CartController extends GetxController {
 
   // Getters for cart calculations
   double get subtotal {
-    return _cartTotal;
+    // Calculate subtotal from individual cart item totals
+    return _cartItems.fold(0.0, (sum, item) {
+      return sum + (double.tryParse(item.total) ?? 0.0);
+    });
   }
 
   double get deliveryFee => 600.00;
-  double get serviceCharge => 1200.00;
+  double get serviceCharge => 200.00;
   double get total => subtotal + deliveryFee + serviceCharge;
 
   int get itemCount {
@@ -216,6 +255,13 @@ class CartController extends GetxController {
 
   void selectPaymentMethod(String method) {
     selectedPaymentMethod.value = method;
+    update(); // Update UI to reflect selection
+  }
+
+  // Toggle order summary expansion
+  void toggleOrderSummary() {
+    _isOrderSummaryExpanded = !_isOrderSummaryExpanded;
+    update(['order_summary']);
   }
 
   // Place order
@@ -228,11 +274,12 @@ class CartController extends GetxController {
     try {
       setLoadingState(true);
 
-      // Prepare order data
+      // Prepare order data with the specified format
       dynamic orderData = {
-        'payment_method': selectedPaymentMethod.value.toLowerCase(),
         'delivery_address': currentLocation.value,
-        // Add any other required fields for order creation
+        'latitude': selectedLatitude,
+        'longitude': selectedLongitude,
+        'note': 'Order placed via mobile app',
       };
 
       APIResponse response = await cartService.createOrder(orderData);
@@ -241,9 +288,8 @@ class CartController extends GetxController {
         orderPlaced.value = true;
         showToast(message: "Order placed successfully", isError: false);
 
-        // Clear the cart after successful order
-        _cartItems = [];
-        _cartTotal = 0.0;
+        // Refresh the cart after successful order
+        await refreshCart();
 
         // Navigate to checkout success
         Get.to(() => CheckoutScreen());
@@ -252,6 +298,88 @@ class CartController extends GetxController {
       }
     } catch (e) {
       showToast(message: "Failed to place order: $e", isError: true);
+    } finally {
+      setLoadingState(false);
+    }
+  }
+
+  // Place order with Go Wallet
+  Future<void> placeOrderWithWallet([String? instructions]) async {
+    if (isCartEmpty) {
+      showToast(message: "Cart is empty", isError: true);
+      return;
+    }
+
+    try {
+      setLoadingState(true);
+
+      // Prepare order data with wallet payment method using selected location and instructions
+      dynamic orderData = {
+        'delivery_address': currentLocation.value,
+        'latitude': _selectedLatitude,
+        'longitude': _selectedLongitude,
+        'note': instructions?.isNotEmpty == true ? instructions : 'Order placed via mobile app',
+        'payment_method': 'wallet'
+      };
+      customDebugPrint(orderData);
+      APIResponse response = await cartService.createOrder(orderData);
+
+      if (response.status.toLowerCase() == "success") {
+        orderPlaced.value = true;
+        showToast(message: "Order placed successfully with Go Wallet", isError: false);
+
+        // Refresh the cart after successful order
+        await refreshCart();
+
+        // Navigate to checkout success
+        Get.to(() => CheckoutScreen());
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to place order with wallet: $e", isError: true);
+    } finally {
+      setLoadingState(false);
+    }
+  }
+
+  // Place order with Paystack
+  Future<void> placeOrderWithPaystack([String? instructions]) async {
+    if (isCartEmpty) {
+      showToast(message: "Cart is empty", isError: true);
+      return;
+    }
+
+    try {
+      setLoadingState(true);
+
+      // Prepare order data with Paystack payment method using selected location and instructions
+      dynamic orderData = {
+        'delivery_address': currentLocation.value,
+        'latitude': _selectedLatitude,
+        'longitude': _selectedLongitude,
+        'note': instructions?.isNotEmpty == true ? instructions : 'Order placed via mobile app',
+        'payment_method': 'paystack'
+      };
+
+      customDebugPrint(orderData);
+
+      APIResponse response = await cartService.createOrder(orderData);
+
+      if (response.status.toLowerCase() == "success") {
+        orderPlaced.value = true;
+        showToast(message: "Order placed successfully with Paystack", isError: false);
+
+        // Refresh the cart after successful order
+        await refreshCart();
+
+        // Navigate to checkout success
+        Get.to(() => CheckoutScreen());
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to place order with Paystack: $e", isError: true);
     } finally {
       setLoadingState(false);
     }

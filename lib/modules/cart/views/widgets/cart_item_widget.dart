@@ -71,94 +71,6 @@ class CartItemWidget extends StatelessWidget {
                         maxLines: 2,
                       ),
 
-                      SizedBox(height: 6.h),
-
-                      // Restaurant name
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.restaurant,
-                            size: 14.sp,
-                            color: AppColors.obscureTextColor,
-                          ),
-                          SizedBox(width: 4.w),
-                          Expanded(
-                            child: customText(
-                              item.purchasable.restaurant.name,
-                              fontSize: 14.sp,
-                              color: AppColors.obscureTextColor,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 8.h),
-
-                      // Category and Plate Size row
-                      Row(
-                        children: [
-                          // Category badge
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                            decoration: BoxDecoration(
-                              color: _getCategoryColor().withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6.r),
-                              border: Border.all(
-                                color: _getCategoryColor().withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: customText(
-                              item.purchasable.category.name,
-                              fontSize: 11.sp,
-                              color: _getCategoryColor(),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-
-                          SizedBox(width: 8.w),
-
-                          // Plate size if available
-                          if (item.purchasable.plateSize.isNotEmpty) ...[
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                              decoration: BoxDecoration(
-                                color: AppColors.backgroundColor,
-                                borderRadius: BorderRadius.circular(6.r),
-                              ),
-                              child: customText(
-                                "Size: ${item.purchasable.plateSize}",
-                                fontSize: 11.sp,
-                                color: AppColors.obscureTextColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-
-                          Spacer(),
-
-                          // Prep time
-                          if (item.purchasable.prepTimeMinutes > 0) ...[
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.schedule,
-                                  size: 12.sp,
-                                  color: AppColors.obscureTextColor,
-                                ),
-                                SizedBox(width: 2.w),
-                                customText(
-                                  "${item.purchasable.prepTimeMinutes}min",
-                                  fontSize: 11.sp,
-                                  color: AppColors.obscureTextColor,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-
                       SizedBox(height: 12.h),
 
                       // Price information
@@ -182,8 +94,31 @@ class CartItemWidget extends StatelessWidget {
                             ],
                           ),
 
-                          // Quantity controls
-                          _buildQuantityControls(),
+                          // Quantity controls with delete button
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildQuantityControls(),
+                              SizedBox(width: 12.w),
+                              InkWell(
+                                onTap: isRemoving ? null : () => _showRemoveDialog(context),
+                                child: Container(
+                                  padding: EdgeInsets.all(6.w),
+                                  decoration: BoxDecoration(
+                                    color: isRemoving
+                                        ? AppColors.greyColor.withOpacity(0.3)
+                                        : Colors.red.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isRemoving ? Icons.hourglass_empty : Icons.delete_outline,
+                                    size: 18.sp,
+                                    color: isRemoving ? AppColors.greyColor : Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
 
@@ -213,70 +148,6 @@ class CartItemWidget extends StatelessWidget {
               ],
             ),
           ),
-
-          // Action buttons row
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundColor.withOpacity(0.3),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(16.r),
-                bottomRight: Radius.circular(16.r),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Description preview
-                Expanded(
-                  child: customText(
-                    item.purchasable.description,
-                    fontSize: 12.sp,
-                    color: AppColors.obscureTextColor,
-                    maxLines: 1,
-                  ),
-                ),
-
-                SizedBox(width: 16.w),
-
-                // Remove button
-                InkWell(
-                  onTap: isRemoving ? null : () => _showRemoveDialog(context),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                    decoration: BoxDecoration(
-                      color: isRemoving
-                          ? AppColors.greyColor.withOpacity(0.3)
-                          : Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: isRemoving
-                            ? AppColors.greyColor.withOpacity(0.5)
-                            : Colors.red.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isRemoving ? Icons.hourglass_empty : Icons.delete_outline,
-                          size: 14.sp,
-                          color: isRemoving ? AppColors.greyColor : Colors.red,
-                        ),
-                        SizedBox(width: 4.w),
-                        customText(
-                          isRemoving ? "Removing..." : "Remove",
-                          fontSize: 12.sp,
-                          color: isRemoving ? AppColors.greyColor : Colors.red,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -284,7 +155,7 @@ class CartItemWidget extends StatelessWidget {
 
   Widget _buildItemImage() {
     // Try to use banner first, then logo, then fallback
-    String? imageUrl = item.purchasable.restaurant.banner ?? item.purchasable.restaurant.logo;
+    String? imageUrl = item.purchasable.files[0].url??"";
 
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return CachedNetworkImage(

@@ -36,7 +36,7 @@ class CoreService extends GetConnect {
           }
 
           var token = getStorage.read('token');
-          options.headers['content-Type'] = 'application/json';
+          options.headers['Content-Type'] = 'application/json';
           if (token != null) {
             options.headers['Authorization'] = "Bearer $token";
           }

@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/models/menu_item_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
@@ -67,6 +65,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                   // Header Image with Back Button and Menu
                   _buildHeader(restaurant, cartController, dashboardController),
 
+                  // Spacer for overlapping logo
+                  SizedBox(height: 35.h),
+
                   // Restaurant Info Card
                   Expanded(
                     child: Container(
@@ -82,12 +83,42 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 20.h),
 
-                            // Restaurant Info
-                            _buildRestaurantInfo(restaurant),
 
-                            SizedBox(height: 20.h),
+                            // Restaurant Description
+                            if (restaurant.description != null &&
+                                restaurant.description!.isNotEmpty)
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    customText(
+                                      restaurant.name,
+                                      fontSize: 24.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.blackColor,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    if (restaurant.cuisineType != null)
+                                      customText(
+                                        restaurant.cuisineType!,
+                                        fontSize: 14.sp,
+                                        color: AppColors.obscureTextColor,
+                                      ),
+                                    customText(
+                                      restaurant.description!,
+                                      fontSize: 14.sp,
+                                      color: AppColors.obscureTextColor,
+                                      maxLines: 3,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            if (restaurant.description != null &&
+                                restaurant.description!.isNotEmpty)
+                              SizedBox(height: 20.h),
 
                             // Contact Info and Status
                             _buildContactInfo(restaurant),
@@ -130,115 +161,54 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     CartController cartController,
     DashboardController dashboardController,
   ) {
-    return Container(
-      height: 300.h,
-      width: 1.sw,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: restaurant.banner != null && restaurant.banner!.isNotEmpty
-              ? NetworkImage(restaurant.banner!)
-              : restaurant.logo != null && restaurant.logo!.isNotEmpty
-              ? NetworkImage(restaurant.logo!)
-              : AssetImage('assets/images/default_restaurant_banner.png')
-                    as ImageProvider,
-          fit: BoxFit.cover,
-          onError: (exception, stackTrace) {
-            // Fallback to default image on error
-          },
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Dark overlay for better text visibility
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.3),
-                  Colors.black.withOpacity(0.6),
-                ],
-              ),
+    return Stack(
+      children: [
+        // Cover Image
+        Container(
+          height: 180.h,
+          width: 1.sw,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: restaurant.banner != null && restaurant.banner!.isNotEmpty
+                  ? NetworkImage(restaurant.banner!)
+                  : restaurant.logo != null && restaurant.logo!.isNotEmpty
+                  ? NetworkImage(restaurant.logo!)
+                  : AssetImage('assets/images/default_restaurant_banner.png')
+                        as ImageProvider,
+              fit: BoxFit.cover,
+              onError: (exception, stackTrace) {
+                // Fallback to default image on error
+              },
             ),
           ),
-          // Back button and menu
-          Positioned(
-            top: 50.h,
-            left: 20.w,
-            right: 20.w,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(8.sp),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.arrow_back_ios,
-                      color: AppColors.whiteColor,
-                      size: 20.sp,
-                    ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Dark overlay for better text visibility
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.3),
+                      Colors.black.withOpacity(0.6),
+                    ],
                   ),
                 ),
-                Row(
+              ),
+              // Back button and menu
+              Positioned(
+                top: 50.h,
+                left: 20.w,
+                right: 20.w,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Cart icon with badge
                     InkWell(
-                      onTap: () => Get.toNamed(Routes.CART_SCREEN),
-                      child: Container(
-                        padding: EdgeInsets.all(8.sp),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Stack(
-                          children: [
-                            Icon(
-                              Icons.shopping_cart,
-                              color: AppColors.whiteColor,
-                              size: 20.sp,
-                            ),
-                            if (cartController.itemCount > 0)
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  padding: EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  constraints: BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Text(
-                                    cartController.itemCount > 99
-                                        ? '99+'
-                                        : cartController.itemCount.toString(),
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    InkWell(
-                      onTap: () =>
-                          _toggleFavorite(restaurant, dashboardController),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
                       child: Container(
                         padding: EdgeInsets.all(8.sp),
                         decoration: BoxDecoration(
@@ -246,113 +216,132 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          dashboardController.isFavorite(restaurant.id)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: dashboardController.isFavorite(restaurant.id)
-                              ? Colors.red
-                              : AppColors.whiteColor,
+                          Icons.arrow_back_ios,
+                          color: AppColors.whiteColor,
                           size: 20.sp,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Restaurant name overlay
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 120.h,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    AppColors.primaryColor.withAlpha(200),
-                  ],
-                ),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    customText(
-                      restaurant.name,
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.whiteColor,
-                    ),
-                    SizedBox(height: 8.h),
-                    if (restaurant.cuisineType != null)
-                      customText(
-                        restaurant.cuisineType!,
-                        fontSize: 16.sp,
-                        color: AppColors.whiteColor.withOpacity(0.9),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                    Row(
+                      children: [
+                        // Cart icon with badge
+                        InkWell(
+                          onTap: () {
+                            Get.offNamedUntil(
+                              Routes.APP_NAVIGATION,
+                              (route) => false,
+                              arguments: {'initialIndex': 1},
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(8.sp),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Stack(
+                              children: [
+                                SvgPicture.asset(
+                                  SvgAssets.cartIcon,
+                                  color: AppColors.whiteColor,
+                                  height: 25.sp,
+                                ),
+                                if (cartController.itemCount > 0)
+                                  Positioned(
+                                    right: 2,
+                                    top: 0,
+                                    child: Container(
+                                      padding: EdgeInsets.all(0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      constraints: BoxConstraints(
+                                        minWidth: 16,
+                                        minHeight: 16,
+                                      ),
+                                      child: Text(
+                                        cartController.itemCount > 99
+                                            ? '99+'
+                                            : cartController.itemCount
+                                                  .toString(),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
 
-  Widget _buildRestaurantInfo(RestaurantModel restaurant) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 25.r,
-            backgroundColor: AppColors.primaryColor,
-            backgroundImage:
-                restaurant.logo != null && restaurant.logo!.isNotEmpty
-                ? NetworkImage(restaurant.logo!)
-                : null,
-            child: restaurant.logo == null || restaurant.logo!.isEmpty
-                ? Text(
-                    restaurant.name.isNotEmpty
-                        ? restaurant.name[0].toUpperCase()
-                        : "R",
-                    style: TextStyle(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.whiteColor,
+                        InkWell(
+                          onTap: () =>
+                              _toggleFavorite(restaurant, dashboardController),
+                          child: Container(
+                            padding: EdgeInsets.all(8.sp),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              dashboardController.isFavorite(restaurant.id)
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color:
+                                  dashboardController.isFavorite(restaurant.id)
+                                  ? Colors.red
+                                  : AppColors.whiteColor,
+                              size: 20.sp,
+                            ),
+                          ),
+                        ),
+
+                      ],
                     ),
-                  )
-                : null,
-          ),
-          SizedBox(width: 15.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                customText(
-                  restaurant.name,
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.blackColor,
+                  ],
                 ),
-                SizedBox(height: 8.h),
-                customText(
-                  restaurant.description ?? "No description available",
-                  fontSize: 14.sp,
-                  color: AppColors.obscureTextColor,
-                  maxLines: 3,
+              ),
+              Positioned(
+                top: 130.h,
+                left: 20.w,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.whiteColor, width: 4.w),
+                  ),
+                  child: CircleAvatar(
+                    radius: 40.r,
+                    backgroundColor: AppColors.primaryColor,
+                    backgroundImage:
+                    restaurant.logo != null && restaurant.logo!.isNotEmpty
+                        ? NetworkImage(restaurant.logo!)
+                        : null,
+                    child: restaurant.logo == null || restaurant.logo!.isEmpty
+                        ? Text(
+                      restaurant.name.isNotEmpty
+                          ? restaurant.name[0].toUpperCase()
+                          : "R",
+                      style: TextStyle(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.whiteColor,
+                      ),
+                    )
+                        : null,
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+
+
+      ],
     );
   }
 
@@ -396,7 +385,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                       vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(restaurant.status),
+                      color: getStatusColor(restaurant.status),
                       borderRadius: BorderRadius.circular(4.r),
                     ),
                     child: customText(
@@ -443,7 +432,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     color: AppColors.obscureTextColor,
                   ),
                   customText(
-                    _getOpeningHours(restaurant),
+                    getOpeningHours(restaurant),
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.blackColor,
@@ -624,6 +613,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     bool isInCart = cartController.isInCart(menuItem.id);
     int cartQuantity = cartController.getItemQuantityInCart(menuItem.id);
     bool isAvailable = controller.isMenuItemAvailable(menuItem);
+    bool isCurrentlyAdding = cartController.isAddingItemToCart(menuItem.id);
 
     return InkWell(
       onTap: () {
@@ -662,7 +652,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                       )
                     : null,
               ),
-              child: menuItem.image.isEmpty
+              child: menuItem.files.isEmpty
                   ? Icon(
                       Icons.restaurant,
                       color: AppColors.obscureTextColor,
@@ -733,7 +723,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           color: AppColors.obscureTextColor,
                         ),
                       ],
-                      if (menuItem.duration.isNotEmpty) ...[
+                      if (menuItem.prepTimeMinutes != null) ...[
                         SizedBox(width: 8.w),
                         Icon(
                           Icons.access_time,
@@ -742,7 +732,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         ),
                         SizedBox(width: 2.w),
                         customText(
-                          menuItem.duration,
+                          "${menuItem.prepTimeMinutes}",
                           fontSize: 11.sp,
                           color: AppColors.obscureTextColor,
                         ),
@@ -774,54 +764,138 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               ),
             ),
 
-            // Add to Cart Button
+            // Add to Cart Button / Quantity Controls
             SizedBox(width: 8.w),
-            InkWell(
-              onTap: (isAvailable && !cartController.isAddingToCart)
-                  ? () => _addToCart(menuItem, cartController)
-                  : null,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                decoration: BoxDecoration(
-                  color: isAvailable
-                      ? (cartController.isAddingToCart
-                            ? AppColors.obscureTextColor
-                            : AppColors.primaryColor)
-                      : AppColors.obscureTextColor,
-                  borderRadius: BorderRadius.circular(6.r),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (cartController.isAddingToCart) ...[
-                      SizedBox(
-                        width: 12.w,
-                        height: 12.w,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.whiteColor,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 6.w),
-                    ],
-                    customText(
-                      cartController.isAddingToCart
-                          ? "Adding..."
-                          : (isAvailable ? "Add to cart" : "Unavailable"),
-                      fontSize: 12.sp,
-                      color: AppColors.whiteColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ],
-                ),
-              ),
+            _buildCartControls(
+              menuItem,
+              cartController,
+              isAvailable,
+              isCurrentlyAdding,
+              cartQuantity,
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildCartControls(
+    MenuItemModel menuItem,
+    CartController cartController,
+    bool isAvailable,
+    bool isCurrentlyAdding,
+    int cartQuantity,
+  ) {
+    if (!isAvailable) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: AppColors.obscureTextColor,
+          borderRadius: BorderRadius.circular(6.r),
+        ),
+        child: customText(
+          "Unavailable",
+          fontSize: 12.sp,
+          color: AppColors.whiteColor,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    if (cartQuantity == 0) {
+      // Show plus button for items not in cart
+      return InkWell(
+        onTap: !isCurrentlyAdding
+            ? () => _addToCart(menuItem, cartController)
+            : null,
+        child: Container(
+          width: 32.w,
+          height: 32.w,
+          decoration: BoxDecoration(
+            color: isCurrentlyAdding
+                ? AppColors.obscureTextColor
+                : AppColors.primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: isCurrentlyAdding
+              ? SizedBox(
+                  width: 16.w,
+                  height: 16.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.whiteColor,
+                    ),
+                  ),
+                )
+              : Icon(Icons.add, color: AppColors.whiteColor, size: 18.sp),
+        ),
+      );
+    } else {
+      // Show quantity controls for items in cart
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Minus/Remove button
+          InkWell(
+            onTap: () =>
+                _decreaseQuantity(menuItem, cartController, cartQuantity),
+            child: Container(
+              width: 28.w,
+              height: 28.w,
+              decoration: BoxDecoration(
+                color: cartQuantity == 1
+                    ? Colors.transparent
+                    : AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: Container(
+                height: 14.sp,
+                width: 14.sp,
+                child: SvgPicture.asset(
+                  cartQuantity == 1 ? SvgAssets.deleteIcon : SvgAssets.addIcon,
+                  colorFilter: ColorFilter.mode(
+                    cartQuantity == 1
+                        ? AppColors.redColor
+                        : AppColors.whiteColor,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          // Quantity display
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundColor,
+              borderRadius: BorderRadius.circular(4.r),
+            ),
+            child: customText(
+              cartQuantity.toString(),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.blackColor,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          // Plus button
+          InkWell(
+            onTap: () => _addToCart(menuItem, cartController),
+            child: Container(
+              width: 28.w,
+              height: 28.w,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.add, color: AppColors.whiteColor, size: 14.sp),
+            ),
+          ),
+        ],
+      );
+    }
   }
 
   // Helper methods
@@ -844,53 +918,19 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
-  String _getOpeningHours(RestaurantModel restaurant) {
-    if (restaurant.schedules == null || restaurant.schedules!.isEmpty) {
-      return "No schedule available";
-    }
-
-    final today = DateTime.now().weekday;
-    final dayNames = [
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
-      'sunday',
-    ];
-    final currentDay = dayNames[today - 1];
-
-    final todaySchedule = restaurant.schedules!.firstWhere(
-      (schedule) => schedule.dayOfWeek.toLowerCase() == currentDay,
-      orElse: () => restaurant.schedules!.first,
-    );
-
-    final openTime = DateTime.parse(todaySchedule.openTime);
-    final closeTime = DateTime.parse(todaySchedule.closeTime);
-
-    return "${_formatTime(openTime)} - ${_formatTime(closeTime)}";
-  }
-
-  String _formatTime(DateTime time) {
-    final hour = time.hour;
-    final minute = time.minute;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'active':
-      case 'approved':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'inactive':
-        return Colors.red;
-      default:
-        return Colors.grey;
+  void _decreaseQuantity(
+    MenuItemModel menuItem,
+    CartController cartController,
+    int currentQuantity,
+  ) async {
+    try {
+      if (currentQuantity == 1) {
+        await cartController.removeFromCart(menuItem.id);
+      } else {
+        await cartController.removeFromCart(menuItem.id);
+      }
+    } catch (e) {
+      debugPrint('Error decreasing quantity: $e');
     }
   }
 }

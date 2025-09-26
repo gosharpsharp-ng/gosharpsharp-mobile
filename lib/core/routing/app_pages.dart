@@ -3,6 +3,7 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/bindings/cart_bindings.dart';
 import 'package:gosharpsharp/modules/cart/views/cart_screen.dart';
+import 'package:gosharpsharp/modules/dashboard/views/favourites_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart';
 import 'package:gosharpsharp/modules/orders/bindings/orders_bindings.dart';
 import 'package:gosharpsharp/modules/orders/views/order_details_screen.dart';
@@ -74,7 +75,14 @@ class AppPages {
       page: () => const DashboardScreen(),
       //middlewares: [AuthMiddleware()],
       binding: DashboardBindings(),
-    ),  GetPage(
+    ),
+    GetPage(
+      name: Routes.FAVOURITES_SCREEN,
+      page: () => const FavouritesScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: DashboardBindings(),
+    ),
+    GetPage(
       name: Routes.RESTAURANT_DETAILS_SCREEN,
       page: () => const RestaurantDetailScreen(),
       //middlewares: [AuthMiddleware()],

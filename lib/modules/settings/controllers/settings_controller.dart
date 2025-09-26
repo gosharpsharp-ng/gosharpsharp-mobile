@@ -24,7 +24,7 @@ class SettingsController extends GetxController {
 
     setLoadingState(false);
     if (response.status == "success") {
-      userProfile = UserProfile.fromJson(response.data);
+      userProfile = UserProfile.fromJson(response.data['user']);
       update();
       // Initialize the signaling plugin
       ZegoUIKitPrebuiltCallInvitationService().init(
@@ -295,6 +295,6 @@ class SettingsController extends GetxController {
   void onInit() {
     super.onInit();
     // Load profile when the controller is initialized
-    // getProfile();
+    getProfile();
   }
 }

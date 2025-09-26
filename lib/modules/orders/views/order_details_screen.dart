@@ -18,84 +18,91 @@ class OrderDetailsScreen extends GetView<OrdersController> {
               onPop: () => Get.back(),
               title: "Order Details",
             ),
-            body: const Center(
-              child: Text("Order not found"),
-            ),
+            body: const Center(child: Text("Order not found")),
           );
         }
 
         return Scaffold(
-          appBar: defaultAppBar(
-            bgColor: AppColors.backgroundColor,
-            onPop: () => Get.back(),
-            title: "Order Details",
-          ),
           backgroundColor: AppColors.backgroundColor,
-          bottomNavigationBar: _buildActionButtons(ordersController, order),
-          body: Container(
-            padding: EdgeInsets.symmetric(horizontal: 22.sp, vertical: 20.sp),
-            height: 1.sh,
-            width: 1.sw,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Order ID and Status
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          body: CustomScrollView(
+            slivers: [
+              // Beautiful App Bar with Status
+              SliverAppBar(
+                expandedHeight: 140.h,
+                floating: false,
+                pinned: true,
+                backgroundColor: _getStatusColor(order.status),
+                leading: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: Icon(Icons.arrow_back, color: AppColors.whiteColor),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          _getStatusColor(order.status),
+                          _getStatusColor(order.status).withOpacity(0.8),
+                        ],
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(22.w, 60.h, 22.w, 20.h),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  _getStatusIcon(order.status),
+                                  color: AppColors.whiteColor,
+                                  size: 24.sp,
+                                ),
+                                SizedBox(width: 12.w),
+                                Expanded(
+                                  child: customText(
+                                    "Order #${order.ref}",
+                                    color: AppColors.whiteColor,
+                                    fontSize: 24.sp,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 4.h),
+                            customText(
+                              "Placed ${ordersController.formatOrderTime(order.createdAt)} • ${_getStatusDisplayText(order.status)}",
+                              color: AppColors.whiteColor.withOpacity(0.9),
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Content
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 22.sp),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: customText(
-                          "Order #${order.ref}",
-                          color: AppColors.blackColor,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 6.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(order.status).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20.r),
-                        ),
-                        child: customText(
-                          _getStatusDisplayText(order.status),
-                          color: _getStatusColor(order.status),
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 8.h),
-
-                  // Order time
-                  customText(
-                    "Placed ${ordersController.formatOrderTime(order.createdAt)}",
-                    color: AppColors.greyColor,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.normal,
-                  ),
-
-                  SizedBox(height: 24.h),
+                      SizedBox(height: 24.h),
 
                   // Order Items Section
                   Container(
-                    padding: EdgeInsets.all(16.sp),
+                    padding: EdgeInsets.symmetric(vertical:16.sp,horizontal: 12.w),
                     decoration: BoxDecoration(
                       color: AppColors.whiteColor,
                       borderRadius: BorderRadius.circular(12.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +132,8 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: order.items.length,
-                          separatorBuilder: (context, index) => Divider(height: 24.h),
+                          separatorBuilder: (context, index) =>
+                              Divider(height: 24.h,color: AppColors.greyColor,thickness: 0.2,),
                           itemBuilder: (context, index) {
                             final item = order.items[index];
                             return _buildOrderItem(item);
@@ -167,19 +175,22 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                           ),
                         ],
 
-                        Divider(height: 24.h),
+                        Divider(height: 24.h,color: AppColors.greyColor,thickness: 0.2,),
 
                         // Order total breakdown
                         Column(
                           children: [
                             _buildPriceRow("Subtotal", order.subtotal),
-                            if (order.tax > 0)
-                              _buildPriceRow("Tax", order.tax),
+                            if (order.tax > 0) _buildPriceRow("Tax", order.tax),
                             if (order.deliveryFee > 0)
                               _buildPriceRow("Delivery Fee", order.deliveryFee),
                             if (order.discountAmount > 0)
-                              _buildPriceRow("Discount", -order.discountAmount, isDiscount: true),
-                            Divider(height: 16.h),
+                              _buildPriceRow(
+                                "Discount",
+                                -order.discountAmount,
+                                isDiscount: true,
+                              ),
+                            Divider(height: 16.h,color: AppColors.greyColor,thickness: 0.2,),
                             _buildPriceRow("Total", order.total, isTotal: true),
                           ],
                         ),
@@ -195,13 +206,13 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                     decoration: BoxDecoration(
                       color: AppColors.whiteColor,
                       borderRadius: BorderRadius.circular(12.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.black.withOpacity(0.05),
+                      //     blurRadius: 10,
+                      //     offset: const Offset(0, 2),
+                      //   ),
+                      // ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,21 +274,7 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                                 ],
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () => _callCustomer(_getCustomerPhone(order)),
-                              child: Container(
-                                padding: EdgeInsets.all(8.sp),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.phone,
-                                  color: AppColors.primaryColor,
-                                  size: 18.sp,
-                                ),
-                              ),
-                            ),
+
                           ],
                         ),
                       ],
@@ -293,13 +290,13 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                       decoration: BoxDecoration(
                         color: AppColors.whiteColor,
                         borderRadius: BorderRadius.circular(12.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        // boxShadow: [
+                        //   BoxShadow(
+                        //     color: Colors.black.withOpacity(0.05),
+                        //     blurRadius: 10,
+                        //     offset: const Offset(0, 2),
+                        //   ),
+                        // ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,13 +342,13 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                       decoration: BoxDecoration(
                         color: AppColors.whiteColor,
                         borderRadius: BorderRadius.circular(12.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        // boxShadow: [
+                        //   BoxShadow(
+                        //     color: Colors.black.withOpacity(0.05),
+                        //     blurRadius: 10,
+                        //     offset: const Offset(0, 2),
+                        //   ),
+                        // ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,19 +362,27 @@ class OrderDetailsScreen extends GetView<OrdersController> {
 
                           SizedBox(height: 12.h),
 
-                          _buildInfoRow("Payment Reference", order.paymentReference),
+                          _buildInfoRow(
+                            "Payment Reference",
+                            order.paymentReference,
+                          ),
                           SizedBox(height: 8.h),
-                          _buildInfoRow("Payment Status", "Paid"), // Assuming paid if reference exists
+                          _buildInfoRow(
+                            "Payment Status",
+                            "Paid",
+                          ), // Assuming paid if reference exists
                         ],
                       ),
                     ),
                     SizedBox(height: 20.h),
                   ],
 
-                  SizedBox(height: 100.h), // Space for bottom buttons
-                ],
+                      SizedBox(height: 100.h), // Space for bottom buttons
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         );
       },
@@ -389,18 +394,22 @@ class OrderDetailsScreen extends GetView<OrdersController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Item image placeholder
-        Container(
+       item.orderable.files.isNotEmpty?Container(
+         width: 50.w,
+         height: 50.h,
+         decoration: BoxDecoration(
+           borderRadius: BorderRadius.circular(8.r),
+           image: DecorationImage(image:NetworkImage(item.orderable.files[0].url))
+         ),
+         child: Icon(Icons.fastfood, color: AppColors.greyColor, size: 24.sp),
+       ): Container(
           width: 50.w,
           height: 50.h,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8.r),
             color: AppColors.greyColor.withOpacity(0.1),
           ),
-          child: Icon(
-            Icons.fastfood,
-            color: AppColors.greyColor,
-            size: 24.sp,
-          ),
+          child: Icon(Icons.fastfood, color: AppColors.greyColor, size: 24.sp),
         ),
 
         SizedBox(width: 12.w),
@@ -453,16 +462,20 @@ class OrderDetailsScreen extends GetView<OrdersController> {
               ),
               if (item.options != null && item.options!.isNotEmpty) ...[
                 SizedBox(height: 4.h),
-                ...item.options!.entries.map((entry) => Padding(
-                  padding: EdgeInsets.only(top: 2.h),
-                  child: customText(
-                    "${entry.key}: ${entry.value}",
-                    color: AppColors.primaryColor,
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.normal,
-                    fontStyle: FontStyle.italic,
-                  ),
-                )).toList(),
+                ...item.options!.entries
+                    .map(
+                      (entry) => Padding(
+                        padding: EdgeInsets.only(top: 2.h),
+                        child: customText(
+                          "${entry.key}: ${entry.value}",
+                          color: AppColors.primaryColor,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.normal,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    )
+                    .toList(),
               ],
             ],
           ),
@@ -493,7 +506,12 @@ class OrderDetailsScreen extends GetView<OrdersController> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, {bool isTotal = false, bool isDiscount = false}) {
+  Widget _buildPriceRow(
+    String label,
+    double amount, {
+    bool isTotal = false,
+    bool isDiscount = false,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Row(
@@ -507,7 +525,9 @@ class OrderDetailsScreen extends GetView<OrdersController> {
           ),
           customText(
             "${isDiscount ? '-' : ''}${Get.find<OrdersController>().formatCurrency(amount.abs())}",
-            color: isDiscount ? Colors.green : (isTotal ? AppColors.blackColor : AppColors.greyColor),
+            color: isDiscount
+                ? Colors.green
+                : (isTotal ? AppColors.blackColor : AppColors.greyColor),
             fontSize: isTotal ? 14.sp : 13.sp,
             fontWeight: isTotal ? FontWeight.w600 : FontWeight.w500,
           ),
@@ -708,29 +728,39 @@ class OrderDetailsScreen extends GetView<OrdersController> {
 
   // Helper methods for safe property access
   String _getCustomerName(OrderModel order) {
-    return order.user.fname.isNotEmpty ? order.user.fname : 'Customer';
+    final settingsController = Get.find<SettingsController>();
+    final profile = settingsController.userProfile;
+    return profile != null ? "${profile.fname} ${profile.lname}".trim() : "Customer";
   }
 
   String _getCustomerPhone(OrderModel order) {
-    return order.user.phone;
+    final settingsController = Get.find<SettingsController>();
+    final profile = settingsController.userProfile;
+    return profile?.phone ?? "Phone not available";
   }
 
   String _getCustomerEmail(OrderModel order) {
-    return order.user.email;
+    final settingsController = Get.find<SettingsController>();
+    final profile = settingsController.userProfile;
+    return profile?.email ?? "";
   }
 
   String _getCustomerInitial(OrderModel order) {
-    return (order.user.fname.isNotEmpty ? order.user.fname[0] : 'U').toUpperCase();
+    final settingsController = Get.find<SettingsController>();
+    final profile = settingsController.userProfile;
+    return (profile?.fname.isNotEmpty == true ? profile!.fname[0] : 'U').toUpperCase();
   }
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return AppColors.greenColor;
       case 'pending':
         return Colors.orange;
       case 'preparing':
         return Colors.blue;
       case 'ready':
-        return Colors.green;
+        return AppColors.greenColor;
       case 'in_transit':
         return AppColors.primaryColor;
       case 'completed':
@@ -744,6 +774,8 @@ class OrderDetailsScreen extends GetView<OrdersController> {
 
   String _getStatusDisplayText(String status) {
     switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Paid';
       case 'pending':
         return 'Pending';
       case 'preparing':
@@ -758,6 +790,27 @@ class OrderDetailsScreen extends GetView<OrdersController> {
         return 'Cancelled';
       default:
         return status.toUpperCase();
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return Icons.payment;
+      case 'pending':
+        return Icons.schedule;
+      case 'preparing':
+        return Icons.restaurant;
+      case 'ready':
+        return Icons.check_circle;
+      case 'in_transit':
+        return Icons.local_shipping;
+      case 'completed':
+        return Icons.done_all;
+      case 'cancelled':
+        return Icons.cancel;
+      default:
+        return Icons.receipt;
     }
   }
 }
