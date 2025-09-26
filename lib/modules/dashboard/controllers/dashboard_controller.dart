@@ -212,7 +212,6 @@ class DashboardController extends GetxController {
       });
 
       if (response.status.toLowerCase() == "success") {
-        customDebugPrint(response.data);
         menuItems = (response.data['data'] as List)
             .map((json) => MenuItemModel.fromJson(json))
             .toList();
