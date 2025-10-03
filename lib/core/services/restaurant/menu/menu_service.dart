@@ -23,7 +23,7 @@ class MenuService extends CoreService {
 
   Future<APIResponse> getAllMenu(dynamic data) async {
     return await fetch(
-      "/customer/menus?fresh=${data['fresh']}&${data['page']}&page_size=${data['per_page']}",
+      "/customers/menus?restaurant_id=${data['restaurant_id']}&per_page=${data['per_page']}&search=${data['search'] ?? ''}",
     );
   }
 

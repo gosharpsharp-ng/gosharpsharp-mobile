@@ -94,8 +94,11 @@ class CartController extends GetxController {
       setLoadingState(true);
       APIResponse response = await cartService.getMenuCart();
 
+
+
       if (response.status.toLowerCase() == "success") {
         if (response.data != null) {
+          customDebugPrint(response.data);
           // Handle the new API structure: {items: [], total: 0}
           final data = response.data as Map<String, dynamic>;
           final itemsData = data['items'] as List<dynamic>? ?? [];
@@ -127,13 +130,21 @@ class CartController extends GetxController {
   }
 
   // Add item to cart
-  Future<void> addToCart(int menuId, int quantity) async {
+  Future<void> addToCart(int menuId, int quantity, {int? addonMenuId}) async {
     try {
       // Set specific item being added
       _addingToCartItemId = menuId;
       setAddingToCartState(true);
 
-      dynamic data = {'menu_id': menuId, 'quantity': quantity};
+      dynamic data = {
+        'menu_id': menuId,
+        'quantity': quantity,
+      };
+
+      // Add addon_menu_id to data if it's provided
+      if (addonMenuId != null) {
+        data['addon_menu_id'] = addonMenuId;
+      }
 
       APIResponse response = await cartService.addToMenuCart(data);
 

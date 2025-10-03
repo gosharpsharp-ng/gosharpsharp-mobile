@@ -132,7 +132,7 @@ export 'package:gosharpsharp/core/models/user_profile_model.dart';
 export 'package:gosharpsharp/modules/delivery/views/create_delivery/delivery_success_screen.dart';
 export 'package:gosharpsharp/modules/delivery/views/create_delivery/processed_delivery_summary_screen.dart';
 export 'package:gosharpsharp/modules/settings/views/change_password/change_password_screen.dart';
-export 'package:gosharpsharp/core/models/notification_model.dart';
+
 export 'package:gosharpsharp/modules/delivery/views/create_delivery/select_location_screen.dart';
 export 'package:gosharpsharp/modules/delivery/views/widgets/delivery_item_accordion.dart';
 export 'package:gosharpsharp/modules/delivery/views/widgets/currier_type_container.dart';
