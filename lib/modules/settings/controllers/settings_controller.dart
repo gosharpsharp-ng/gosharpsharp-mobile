@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/core/utils/base64_image_utils.dart';
 
 class SettingsController extends GetxController {
   final profileService = serviceLocator<ProfileService>();
@@ -109,6 +110,7 @@ class SettingsController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
   File? userProfilePicture;
+
   pickUserProfilePicture({required bool pickFromCamera}) async {
     XFile? photo;
     if (pickFromCamera) {
@@ -116,24 +118,41 @@ class SettingsController extends GetxController {
     } else {
       photo = await _picker.pickImage(source: ImageSource.gallery);
     }
+
     if (photo != null) {
-      final croppedPhoto = await cropImage(photo);
-      userProfilePicture = File(croppedPhoto.path);
-      update();
-      setLoadingProfileAvatarState(true);
-      dynamic data = {'avatar': userProfilePicture};
-      APIResponse response = await profileService.updateProfile(data);
-      if (response.status == "success") {
-        getProfile();
-        showAnyBottomSheet(
-            isControlled: false,
-            child: const ProfileUpdateSuccessBottomSheet());
-      } else {
-        showToast(
-            message: response.message, isError: response.status != "success");
+      try {
+        setLoadingProfileAvatarState(true);
+
+        final croppedPhoto = await cropImage(photo);
+        userProfilePicture = File(croppedPhoto.path);
+        update();
+
+        // Convert image to base64
+        String base64Avatar = await Base64ImageUtils.convertImageToBase64(croppedPhoto.path);
+
+        dynamic data = {
+          'avatar': base64Avatar,
+          'fname': userProfile?.fname ?? fNameController.text,
+          'lname': userProfile?.lname ?? lNameController.text,
+        };
+
+        APIResponse response = await profileService.updateProfile(data);
+
+        if (response.status == "success") {
+          getProfile();
+          showAnyBottomSheet(
+              isControlled: false,
+              child: const ProfileUpdateSuccessBottomSheet());
+        } else {
+          showToast(
+              message: response.message, isError: response.status != "success");
+        }
+      } catch (e) {
+        showToast(message: "Failed to update profile picture: $e", isError: true);
+      } finally {
+        setLoadingProfileAvatarState(false);
       }
     }
-    setLoadingProfileAvatarState(false);
   }
 
   final changePasswordFormKey = GlobalKey<FormState>();

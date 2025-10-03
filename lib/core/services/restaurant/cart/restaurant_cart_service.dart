@@ -16,7 +16,7 @@ class RestaurantCartService extends CoreService {
   }
 
   Future<APIResponse> clearCart() async {
-    return await remove("/menu-cart/clear");
+    return await remove("/menu-cart");
   }
 
   Future<APIResponse> addToMenuCart(dynamic data) async {

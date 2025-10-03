@@ -120,10 +120,7 @@ class SettingsHomeScreen extends StatelessWidget {
                   ),
                   SettingsItem(
                     onPressed: () {
-                      showWebViewDialog(context, controller: webViewController,
-                          onDialogClosed: () {
-                        Get.back();
-                      }, title: "FAQ", url: "https://gosharpsharp.com/faq");
+                     Get.toNamed(Routes.FAQS_SCREEN);
                     },
                     title: "FAQS",
                     icon: SvgAssets.faqsIcon,

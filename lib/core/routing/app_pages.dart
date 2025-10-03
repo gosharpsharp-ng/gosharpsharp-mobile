@@ -3,11 +3,14 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/bindings/cart_bindings.dart';
 import 'package:gosharpsharp/modules/cart/views/cart_screen.dart';
+import 'package:gosharpsharp/modules/cart/views/order_checkout_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/favourites_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart';
 import 'package:gosharpsharp/modules/orders/bindings/orders_bindings.dart';
 import 'package:gosharpsharp/modules/orders/views/order_details_screen.dart';
 import 'package:gosharpsharp/modules/orders/views/orders_home_screen.dart';
+import 'package:gosharpsharp/modules/support/bindings/support_bindings.dart';
+import 'package:gosharpsharp/modules/support/views/faq_screen.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -184,7 +187,7 @@ class AppPages {
       name: Routes.FAQS_SCREEN,
       page: () => const FaqScreen(),
       //middlewares: [AuthMiddleware()],
-      binding: SettingsBindings(),
+      binding: SupportBindings(),
     ),
     GetPage(
       name: Routes.EDIT_PROFILE_SCREEN,
@@ -231,6 +234,12 @@ class AppPages {
     GetPage(
       name: Routes.CART_SCREEN,
       page: () => const CartScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: CartBindings(),
+    ),
+    GetPage(
+      name: Routes.CHECKOUT_SCREEN,
+      page: () => const OrderCheckoutScreen(),
       //middlewares: [AuthMiddleware()],
       binding: CartBindings(),
     ),

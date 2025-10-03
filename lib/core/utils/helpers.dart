@@ -1301,6 +1301,148 @@ String getOpeningHours(RestaurantModel restaurant) {
   return "${formatTimeToPmAm(openTime)} - ${formatTimeToPmAm(closeTime)}";
 }
 
+bool isRestaurantOpen(RestaurantModel restaurant) {
+  if (restaurant.schedules == null || restaurant.schedules!.isEmpty) {
+    return false;
+  }
+
+  final now = DateTime.now();
+  final today = now.weekday;
+  final dayNames = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+  ];
+  final currentDay = dayNames[today - 1];
+
+  final todaySchedule = restaurant.schedules!.where(
+    (schedule) => schedule.dayOfWeek.toLowerCase() == currentDay,
+  );
+
+  if (todaySchedule.isEmpty) {
+    return false;
+  }
+
+  for (final schedule in todaySchedule) {
+    try {
+      final openTime = DateTime.parse(schedule.openTime);
+      final closeTime = DateTime.parse(schedule.closeTime);
+
+      final currentTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        now.hour,
+        now.minute,
+      );
+
+      final todayOpenTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        openTime.hour,
+        openTime.minute,
+      );
+
+      final todayCloseTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        closeTime.hour,
+        closeTime.minute,
+      );
+
+      // Handle cases where close time is on the next day (e.g., opens at 9 PM, closes at 2 AM)
+      if (todayCloseTime.isBefore(todayOpenTime)) {
+        todayCloseTime.add(Duration(days: 1));
+      }
+
+      if (currentTime.isAfter(todayOpenTime) && currentTime.isBefore(todayCloseTime)) {
+        return true;
+      }
+    } catch (e) {
+      print("Error parsing schedule time: $e");
+    }
+  }
+
+  return false;
+}
+
+String getNextOpeningTime(RestaurantModel restaurant) {
+  if (restaurant.schedules == null || restaurant.schedules!.isEmpty) {
+    return "Schedule unavailable";
+  }
+
+  final now = DateTime.now();
+  final today = now.weekday;
+  final dayNames = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+  ];
+
+  // First check if restaurant opens later today
+  final currentDay = dayNames[today - 1];
+  final todaySchedule = restaurant.schedules!.where(
+    (schedule) => schedule.dayOfWeek.toLowerCase() == currentDay,
+  );
+
+  for (final schedule in todaySchedule) {
+    try {
+      final openTime = DateTime.parse(schedule.openTime);
+      final todayOpenTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        openTime.hour,
+        openTime.minute,
+      );
+
+      if (todayOpenTime.isAfter(now)) {
+        return "Opens at ${formatTimeToPmAm(openTime)}";
+      }
+    } catch (e) {
+      print("Error parsing schedule time: $e");
+    }
+  }
+
+  // If not opening today, check the next 6 days
+  for (int i = 1; i <= 6; i++) {
+    final nextDayIndex = (today + i - 1) % 7;
+    final nextDay = dayNames[nextDayIndex];
+
+    final nextDaySchedule = restaurant.schedules!.where(
+      (schedule) => schedule.dayOfWeek.toLowerCase() == nextDay,
+    );
+
+    if (nextDaySchedule.isNotEmpty) {
+      try {
+        final schedule = nextDaySchedule.first;
+        final openTime = DateTime.parse(schedule.openTime);
+        final dayName = nextDay[0].toUpperCase() + nextDay.substring(1);
+
+        if (i == 1) {
+          return "Opens tomorrow at ${formatTimeToPmAm(openTime)}";
+        } else {
+          return "Opens $dayName at ${formatTimeToPmAm(openTime)}";
+        }
+      } catch (e) {
+        print("Error parsing schedule time: $e");
+      }
+    }
+  }
+
+  return "Opening hours unavailable";
+}
+
 String formatTimeToPmAm(DateTime time) {
   final hour = time.hour;
   final minute = time.minute;

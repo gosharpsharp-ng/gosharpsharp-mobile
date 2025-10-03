@@ -114,7 +114,6 @@ class SignUpController extends GetxController {
         'lname': lastNameController.text,
         'email': emailController.text,
         'phone': filledPhoneNumber?.completeNumber ?? '',
-        'as_rider': false,
         'password': passwordController.text,
       };
       APIResponse response = await authService.signup(data);

@@ -4,11 +4,11 @@ class ProfileService extends CoreService {
   Future<ProfileService> init() async => this;
 
   Future<APIResponse> getProfile() async {
-    return await fetch("/customer/me");
+    return await fetch("/customers/me");
   }
 
   Future<APIResponse> updateProfile(dynamic data) async {
-    return await formUpdate("/customer/me", data);
+    return await update("/customers/profile", data);
   }
 
   Future<APIResponse> getNotifications(dynamic data) async {
@@ -21,7 +21,7 @@ class ProfileService extends CoreService {
   }
 
   Future<APIResponse> changePassword(dynamic data) async {
-    return await send("/auth/change-password", data);
+    return await send("/customers/change-password", data);
   }
 
   Future<APIResponse> deleteAccount(dynamic data) async {

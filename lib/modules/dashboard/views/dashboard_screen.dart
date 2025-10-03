@@ -1,11 +1,7 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:gosharpsharp/core/utils/widgets/dot.dart';
 import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
-import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart'
-    show RestaurantDetailScreen;
 import 'package:upgrader/upgrader.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -344,48 +340,93 @@ class DashboardScreen extends StatelessWidget {
                             SizedBox(height: 15.h),
 
                             // Popular Brands Section
-                            ordersController.allDeliveries.isEmpty
+                            dashboardController.restaurants
+                                    .where(
+                                      (restaurant) =>
+                                          restaurant.isFeatured == 1,
+                                    )
+                                    .isNotEmpty
                                 ? const SectionHeader(title: "Popular Brands")
-                                : PartialViewHeader(
-                                    title: "Popular Brands",
-                                    onPressed: () {
-                                      Get.toNamed(Routes.DELIVERIES_HOME);
-                                    },
-                                  ),
+                                : SizedBox.shrink(),
+
                             SizedBox(height: 10.h),
-                            Container(
-                              width: 1.sw,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    BrandsContainer(
-                                      name: "Wendy",
-                                      image: PngAssets.wendyBrand,
+                            dashboardController.isLoadingRestaurants
+                                ? Container(
+                                    height: 120.h,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: List.generate(
+                                          4,
+                                          (index) => Container(
+                                            width: 100.w,
+                                            margin: EdgeInsets.only(
+                                              right: 10.w,
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  width: 80.sp,
+                                                  height: 80.sp,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: AppColors
+                                                        .backgroundColor,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8.h),
+                                                Container(
+                                                  height: 12.h,
+                                                  width: 70.w,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4.r,
+                                                        ),
+                                                    color: AppColors
+                                                        .backgroundColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    BrandsContainer(
-                                      name: "In-n-Out",
-                                      image: PngAssets.inOutBrand,
+                                  )
+                                : Container(
+                                    width: 1.sw,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: dashboardController
+                                            .restaurants
+                                            .where(
+                                              (restaurant) =>
+                                                  restaurant.isFeatured == 1,
+                                            )
+                                            .take(6)
+                                            .map(
+                                              (restaurant) => BrandsContainer(
+                                                restaurant: restaurant,
+                                                onPressed: () {
+                                                  dashboardController
+                                                      .navigateToRestaurant(
+                                                        restaurant,
+                                                      );
+                                                },
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
                                     ),
-                                    BrandsContainer(
-                                      name: "Pizza-Hut",
-                                      image: PngAssets.pizzaHutBrand,
-                                    ),
-                                    BrandsContainer(
-                                      name: "Jonny Rockets",
-                                      image: PngAssets.jonnyRocketsBrand,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                                  ),
                             SizedBox(height: 25.h),
 
                             // Top Restaurants Section
-                            SectionHeader(
-                              title: "Top Restaurants",
-                            ),
+                            SectionHeader(title: "Top Restaurants"),
                             SizedBox(height: 10.h),
                             // Loading state for top restaurants
                             dashboardController.isLoadingRestaurants
@@ -459,9 +500,7 @@ class DashboardScreen extends StatelessWidget {
                               SizedBox(height: 25.h),
 
                               // Favourites Header
-                              SectionHeader(
-                                title: "Favourites",
-                              ),
+                              SectionHeader(title: "Favourites"),
                               SizedBox(height: 10.h),
 
                               // Loading state or favourite restaurants list
@@ -758,34 +797,111 @@ class CategoryContainer extends StatelessWidget {
 }
 
 class BrandsContainer extends StatelessWidget {
-  final String image;
-  final String name;
+  final RestaurantModel restaurant;
   final VoidCallback? onPressed;
 
-  const BrandsContainer({
-    super.key,
-    this.name = "Brand",
-    this.image = PngAssets.food,
-    this.onPressed,
-  });
+  const BrandsContainer({super.key, required this.restaurant, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
+    final bool restaurantOpen = isRestaurantOpen(restaurant);
+
     return InkWell(
-      onTap: onPressed,
+      onTap: restaurantOpen ? onPressed : null,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
         margin: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(image, height: 80.sp, width: 80.sp),
+            // Restaurant logo
+            Container(
+              width: 80.sp,
+              height: 80.sp,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.backgroundColor,
+                border: Border.all(
+                  color: AppColors.primaryColor.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  ClipOval(
+                    child:
+                        restaurant.logo != null && restaurant.logo!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: restaurant.logo!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: AppColors.backgroundColor,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Center(
+                              child: customText(
+                                restaurant.name.isNotEmpty
+                                    ? restaurant.name[0].toUpperCase()
+                                    : "R",
+                                fontSize: 32.sp,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: customText(
+                              restaurant.name.isNotEmpty
+                                  ? restaurant.name[0].toUpperCase()
+                                  : "R",
+                              fontSize: 32.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                  ),
+                  // Closed overlay
+                  if (!restaurantOpen)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black.withOpacity(0.7),
+                        ),
+                        child: Center(
+                          child: customText(
+                            "Closed",
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.whiteColor,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
             SizedBox(height: 8.h),
-            customText(
-              name,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w400,
-              color: AppColors.blackColor,
+            // Restaurant name
+            SizedBox(
+              width: 90.w,
+              child: customText(
+                restaurant.name,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.blackColor,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -806,10 +922,13 @@ class RestaurantContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool restaurantOpen = isRestaurantOpen(restaurant);
+
     return GetBuilder<DashboardController>(
       builder: (controller) {
         return InkWell(
-          onTap: onPressed,
+          onTap:  onPressed,
+          // onTap: restaurantOpen ? onPressed : null,
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
             margin: EdgeInsets.only(right: 5.w, bottom: 10.h),
@@ -858,6 +977,37 @@ class RestaurantContainer extends StatelessWidget {
                           ),
                         ),
                       ),
+                      // Closed overlay
+                      if (!restaurantOpen)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.r),
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  customText(
+                                    "Closed",
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.whiteColor,
+                                  ),
+                                  SizedBox(height: 5.h),
+                                  customText(
+                                    getNextOpeningTime(restaurant),
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.whiteColor,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       // Featured badge
                       if (restaurant.isFeatured == 1)
                         Positioned(
@@ -963,23 +1113,23 @@ class RestaurantContainer extends StatelessWidget {
                                 ),
                         ),
 
-                        // Active status
+                        // Active status based on schedule
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 6.w,
                             vertical: 2.h,
                           ),
                           decoration: BoxDecoration(
-                            color: restaurant.isActive == 1
+                            color: restaurantOpen
                                 ? AppColors.primaryColor.withAlpha(80)
                                 : AppColors.redColor.withAlpha(80),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: customText(
-                            restaurant.isActive == 1 ? "Open" : "Closed",
+                            restaurantOpen ? "Open" : "Closed",
                             fontSize: 11.sp,
                             fontWeight: FontWeight.w500,
-                            color: restaurant.isActive == 1
+                            color: restaurantOpen
                                 ? AppColors.primaryColor
                                 : AppColors.redColor,
                           ),
@@ -1045,10 +1195,14 @@ class FavRestaurantContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool restaurantOpen = favourite.favoritable != null
+        ? isRestaurantOpen(favourite.favoritable!)
+        : false;
+
     return GetBuilder<DashboardController>(
       builder: (controller) {
         return InkWell(
-          onTap: onPressed,
+          onTap: restaurantOpen ? onPressed : null,
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
             margin: EdgeInsets.only(right: 5.w, bottom: 10.h),
@@ -1097,6 +1251,37 @@ class FavRestaurantContainer extends StatelessWidget {
                           ),
                         ),
                       ),
+                      // Closed overlay
+                      if (!restaurantOpen && favourite.favoritable != null)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.r),
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  customText(
+                                    "Closed",
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.whiteColor,
+                                  ),
+                                  SizedBox(height: 5.h),
+                                  customText(
+                                    getNextOpeningTime(favourite.favoritable!),
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.whiteColor,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       // Featured badge
                       if (favourite.favoritable?.isFeatured == 1)
                         Positioned(
@@ -1206,25 +1391,23 @@ class FavRestaurantContainer extends StatelessWidget {
                                 ),
                         ),
 
-                        // Active status
+                        // Active status based on schedule
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 6.w,
                             vertical: 2.h,
                           ),
                           decoration: BoxDecoration(
-                            color: favourite.favoritable!.isActive == 1
+                            color: restaurantOpen
                                 ? AppColors.primaryColor.withAlpha(80)
                                 : AppColors.redColor.withAlpha(80),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: customText(
-                            favourite.favoritable!.isActive == 1
-                                ? "Open"
-                                : "Closed",
+                            restaurantOpen ? "Open" : "Closed",
                             fontSize: 11.sp,
                             fontWeight: FontWeight.w500,
-                            color: favourite.favoritable!.isActive == 1
+                            color: restaurantOpen
                                 ? AppColors.primaryColor
                                 : AppColors.redColor,
                           ),

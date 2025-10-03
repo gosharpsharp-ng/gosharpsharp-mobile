@@ -46,6 +46,7 @@ class CartController extends GetxController {
   List<CartItem> _cartItems = [];
   double _cartTotal = 0.0;
   RxString selectedPaymentMethod = 'Cash'.obs;
+  RxString instructions = ''.obs;
 
   // Order tracking states
   RxBool orderPlaced = false.obs;
@@ -219,13 +220,15 @@ class CartController extends GetxController {
     try {
       setLoadingState(true);
 
-      // Remove all items one by one (if there's no clear cart endpoint)
-      for (CartItem item in _cartItems) {
-        await cartService.removeFromMenuCart({'id': item.id});
-      }
+      // Use the dedicated clear cart endpoint
+      APIResponse response = await cartService.clearCart();
 
-      showToast(message: "Cart cleared successfully", isError: false);
-      await fetchCart();
+      if (response.status.toLowerCase() == "success") {
+        showToast(message: "Cart cleared successfully", isError: false);
+        await fetchCart();
+      } else {
+        showToast(message: response.message, isError: true);
+      }
     } catch (e) {
       showToast(message: "Failed to clear cart: $e", isError: true);
     } finally {
@@ -260,6 +263,10 @@ class CartController extends GetxController {
   void selectPaymentMethod(String method) {
     selectedPaymentMethod.value = method;
     update(); // Update UI to reflect selection
+  }
+
+  void updateInstructions(String newInstructions) {
+    instructions.value = newInstructions;
   }
 
   // Toggle order summary expansion

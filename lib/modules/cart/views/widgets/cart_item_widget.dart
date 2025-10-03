@@ -154,8 +154,11 @@ class CartItemWidget extends StatelessWidget {
   }
 
   Widget _buildItemImage() {
-    // Try to use banner first, then logo, then fallback
-    String? imageUrl = item.purchasable.files[0].url??"";
+    // Check if files exist and are not empty
+    String? imageUrl;
+    if (item.purchasable.files.isNotEmpty) {
+      imageUrl = item.purchasable.files[0].url;
+    }
 
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return CachedNetworkImage(
