@@ -5,6 +5,7 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 import 'package:gosharpsharp/modules/dashboard/controllers/dashboard_controller.dart';
 import 'package:gosharpsharp/core/models/menu_item_model.dart';
+import 'package:gosharpsharp/modules/dashboard/views/widgets/addon_selection_bottom_sheet.dart';
 
 class FoodDetailScreen extends StatefulWidget {
   const FoodDetailScreen({super.key});
@@ -904,7 +905,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> with TickerProvider
 
   void _addToCart(MenuItemModel menuItem, CartController cartController) async {
     try {
-      await cartController.addToCart(menuItem.id, 1);
+      // Check if menu item has addons
+      if (menuItem.addonMenus != null && menuItem.addonMenus!.isNotEmpty) {
+        // Show addon selection bottom sheet
+        Get.bottomSheet(
+          AddonSelectionBottomSheet(
+            menuItem: menuItem,
+            onAddToCart: (int? addonMenuId) async {
+              await cartController.addToCart(menuItem.id, 1, addonMenuId: addonMenuId);
+            },
+          ),
+          isScrollControlled: true,
+          isDismissible: true,
+          enableDrag: true,
+        );
+      } else {
+        // No addons, add directly to cart
+        await cartController.addToCart(menuItem.id, 1);
+      }
     } catch (e) {
       debugPrint('Error adding to cart: $e');
     }

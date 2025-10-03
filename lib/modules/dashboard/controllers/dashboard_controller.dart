@@ -174,23 +174,40 @@ class DashboardController extends GetxController {
       });
 
       if (response.status.toLowerCase() == "success") {
-        favoriteRestaurants = (response.data['data'] as List)
-            .map((json) => FavouriteRestaurantModel.fromJson(json))
-            .toList();
+        if (response.data != null && response.data['data'] != null) {
+          final dataList = response.data['data'] as List? ?? [];
+          favoriteRestaurants = dataList
+              .where((json) => json != null)
+              .map((json) {
+                try {
+                  return FavouriteRestaurantModel.fromJson(json as Map<String, dynamic>);
+                } catch (e) {
+                  // Skip invalid favorites
+                  return null;
+                }
+              })
+              .where((restaurant) => restaurant != null)
+              .cast<FavouriteRestaurantModel>()
+              .toList();
 
-        // Update favorite IDs set
-        _favoriteRestaurantIds.clear();
-        for (var restaurant in favoriteRestaurants) {
-          _favoriteRestaurantIds.add(restaurant.id);
+          // Update favorite IDs set
+          _favoriteRestaurantIds.clear();
+          for (var restaurant in favoriteRestaurants) {
+            _favoriteRestaurantIds.add(restaurant.id);
+          }
+        } else {
+          favoriteRestaurants = [];
         }
       } else {
         showToast(message: response.message, isError: true);
+        favoriteRestaurants = [];
       }
     } catch (e) {
       showToast(
         message: "Failed to fetch favorite restaurants: $e",
         isError: true,
       );
+      favoriteRestaurants = [];
     } finally {
       setFavoritesLoadingState(false);
     }
@@ -212,14 +229,31 @@ class DashboardController extends GetxController {
       });
 
       if (response.status.toLowerCase() == "success") {
-        menuItems = (response.data['data'] as List)
-            .map((json) => MenuItemModel.fromJson(json))
-            .toList();
+        if (response.data != null && response.data['data'] != null) {
+          final dataList = response.data['data'] as List? ?? [];
+          menuItems = dataList
+              .where((json) => json != null)
+              .map((json) {
+                try {
+                  return MenuItemModel.fromJson(json as Map<String, dynamic>);
+                } catch (e) {
+                  // Skip invalid menu items
+                  return null;
+                }
+              })
+              .where((item) => item != null)
+              .cast<MenuItemModel>()
+              .toList();
+        } else {
+          menuItems = [];
+        }
       } else {
         showToast(message: response.message, isError: true);
+        menuItems = [];
       }
     } catch (e) {
       showToast(message: "Failed to fetch menu items: $e", isError: true);
+      menuItems = [];
     } finally {
       setMenusLoadingState(false);
     }
