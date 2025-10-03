@@ -3,6 +3,7 @@ import 'package:gosharpsharp/core/services/restaurant/menu/menu_service.dart';
 import 'package:gosharpsharp/core/services/restaurant/orders/orders_service.dart';
 import 'package:gosharpsharp/core/services/restaurant/restaurant_service.dart';
 import 'package:gosharpsharp/core/services/restaurant/transactions/transactions_service.dart';
+import 'package:gosharpsharp/core/services/support/support_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 GetIt serviceLocator = GetIt.instance;
@@ -24,6 +25,9 @@ void setupServiceLocator() {
   );
   serviceLocator.registerLazySingleton<RestaurantService>(
     () => RestaurantService(),
+  );
+  serviceLocator.registerLazySingleton<SupportService>(
+    () => SupportService(),
   );
 
   // serviceLocator.registerLazySingleton<User>(() => UserImpl());

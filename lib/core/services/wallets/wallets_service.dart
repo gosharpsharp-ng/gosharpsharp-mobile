@@ -5,11 +5,11 @@ class WalletsService extends CoreService {
 
   Future<APIResponse> getAllTransactions(dynamic data) async {
     return await fetch(
-        "/me/transactions?page=${data['page']}&per_page=${data['per_page']}");
+        "/customers/transaction?page=${data['page']}&per_page=${data['per_page']}");
   }
 
   Future<APIResponse> getSingleTransaction(dynamic data) async {
-    return await fetch("/me/transactions/${data['id']}");
+    return await fetch("/customers/transaction/${data['id']}");
   }
 
   Future<APIResponse> getWalletBalance() async {

@@ -32,7 +32,7 @@ class AuthenticationService extends CoreService {
   }
 
   Future<APIResponse> signup(dynamic data) async {
-    return await send("/auth/register", data);
+    return await send("/auth/customer/onboard", data);
   }
 
   Future<APIResponse> getUserProfile(dynamic data) async {

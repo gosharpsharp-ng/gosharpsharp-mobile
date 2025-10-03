@@ -1,6 +1,7 @@
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/models/menu_item_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
@@ -477,14 +478,17 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             color: AppColors.obscureTextColor,
           ),
           if (dashboardController.isLoadingMenus)
-            SizedBox(
+            Container(
               width: 20.w,
               height: 20.w,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.primaryColor,
-                ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(
+                Icons.refresh,
+                size: 12.sp,
+                color: AppColors.primaryColor,
               ),
             ),
         ],
@@ -497,10 +501,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     CartController cartController,
   ) {
     if (dashboardController.isLoadingMenus) {
-      return Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-        ),
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 0.w),
+        child: SkeletonLoaders.menuItem(count: 8),
       );
     }
 
