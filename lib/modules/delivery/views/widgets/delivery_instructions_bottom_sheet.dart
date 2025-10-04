@@ -59,23 +59,31 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildInstructionItem(
-                  "Is given by you in person to the rider at the designated location."),
+                "Is given by you in person to the rider at the designated location.",
+              ),
               _buildInstructionItem(
-                  " Is picked up by the recipient at the designated location."),
+                " Is picked up by the recipient at the designated location.",
+              ),
               _buildInstructionItem(
-                  " Is packed into a box, bag or envelope properly."),
+                " Is packed into a box, bag or envelope properly.",
+              ),
               _buildInstructionItem(
-                  "Fits easily in the box and won't damage it."),
-              _buildInstructionItem("Does not contain prohibited items prohibited under the law"),
+                "Fits easily in the box and won't damage it.",
+              ),
+              _buildInstructionItem(
+                "Does not contain prohibited items prohibited under the law",
+              ),
               _buildInstructionItem("Items should not be above 20kg"),
               _buildInstructionItem(
-                  hasCurrency: true,
-                  "Items should not exceed the permitted goods value of ₦50,000 (Fifty thousand naira)."),
+                hasCurrency: true,
+                "Items should not exceed the permitted goods value of ₦50,000 (Fifty thousand naira).",
+              ),
             ],
           ),
           SizedBox(height: 24.h),
           Center(
             child: RichText(
+              textAlign: TextAlign.center,
               text: TextSpan(
                 text: "By using continuing, you agree to our ",
                 style: TextStyle(
@@ -99,9 +107,7 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
                     ),
                     recognizer: TapGestureRecognizer()..onTap = () {},
                   ),
-                  const TextSpan(
-                    text: ".",
-                  ),
+                  const TextSpan(text: "."),
                 ],
               ),
             ),
@@ -111,6 +117,8 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
             children: [
               Expanded(
                 child: CustomButton(
+                  width: 1.sw,
+                  height: 55.h,
                   onPressed: () {
                     Get.back();
                     onContinue!();
@@ -122,6 +130,7 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
               ),
             ],
           ),
+          SizedBox(height: 20.h),
         ],
       ),
     );
@@ -133,11 +142,7 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.check,
-            color: AppColors.primaryColor,
-            size: 20.sp,
-          ),
+          Icon(Icons.check, color: AppColors.primaryColor, size: 20.sp),
           SizedBox(width: 8.w),
           Expanded(
             child: customText(

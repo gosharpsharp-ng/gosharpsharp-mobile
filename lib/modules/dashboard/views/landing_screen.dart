@@ -53,18 +53,27 @@ class LandingScreen extends StatelessWidget {
 
 class CircularMenu extends StatelessWidget {
   // Food delivery item for center
-  final MenuItem centerItem = MenuItem(
+  MenuItem get centerItem => MenuItem(
     title: "Food\nDelivery",
     icon: PngAssets.food,
     color: AppColors.secondaryColor,
+    onTap: () {
+      // Toggle to show restaurant dashboard
+      final controller = Get.find<AppNavigationController>();
+      controller.toggleToRestaurantView();
+    },
   );
 
   // Surrounding menu items (excluding food delivery)
-  final List<MenuItem> menuItems = [
+  List<MenuItem> get menuItems => [
     MenuItem(
       title: "Package\nDelivery",
       icon: PngAssets.rider,
       color: AppColors.primaryColor,
+      onTap: () {
+        // Navigate to parcel delivery flow
+        Get.toNamed(Routes.INITIATE_DELIVERY_SCREEN);
+      },
     ),
     // MenuItem(
     //   title: "Bukkateria\nFast Food",

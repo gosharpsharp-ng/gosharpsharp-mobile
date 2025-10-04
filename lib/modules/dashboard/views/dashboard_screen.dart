@@ -44,6 +44,18 @@ class DashboardScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          GetBuilder<AppNavigationController>(
+                            builder: (navController) {
+                              return IconButton(
+                                icon: Icon(Icons.arrow_back, size: 24.sp),
+                                onPressed: () {
+                                  navController.toggleToRestaurantView();
+                                },
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(),
+                              );
+                            },
+                          ),
                           GetBuilder<SettingsController>(
                             builder: (settingsController) {
                               return Container(

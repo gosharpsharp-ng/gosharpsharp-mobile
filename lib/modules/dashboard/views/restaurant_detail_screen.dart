@@ -60,7 +60,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             }
 
             return Scaffold(
-              backgroundColor: AppColors.backgroundColor,
+              backgroundColor: AppColors.whiteColor,
               body: Column(
                 children: [
                   // Header Image with Back Button and Menu
@@ -223,86 +223,26 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         ),
                       ),
                     ),
-                    Row(
-                      children: [
-                        // Cart icon with badge
-                        InkWell(
-                          onTap: () {
-                            Get.offNamedUntil(
-                              Routes.APP_NAVIGATION,
-                              (route) => false,
-                              arguments: {'initialIndex': 1},
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(8.sp),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Stack(
-                              children: [
-                                SvgPicture.asset(
-                                  SvgAssets.cartIcon,
-                                  color: AppColors.whiteColor,
-                                  height: 25.sp,
-                                ),
-                                if (cartController.itemCount > 0)
-                                  Positioned(
-                                    right: 2,
-                                    top: 0,
-                                    child: Container(
-                                      padding: EdgeInsets.all(0),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      constraints: BoxConstraints(
-                                        minWidth: 16,
-                                        minHeight: 16,
-                                      ),
-                                      child: Text(
-                                        cartController.itemCount > 99
-                                            ? '99+'
-                                            : cartController.itemCount
-                                                  .toString(),
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                    InkWell(
+                      onTap: () =>
+                          _toggleFavorite(restaurant, dashboardController),
+                      child: Container(
+                        padding: EdgeInsets.all(8.sp),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
                         ),
-                        SizedBox(width: 8.w),
-
-                        InkWell(
-                          onTap: () =>
-                              _toggleFavorite(restaurant, dashboardController),
-                          child: Container(
-                            padding: EdgeInsets.all(8.sp),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
+                        child: Icon(
+                          dashboardController.isFavorite(restaurant.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color:
                               dashboardController.isFavorite(restaurant.id)
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color:
-                                  dashboardController.isFavorite(restaurant.id)
-                                  ? Colors.red
-                                  : AppColors.whiteColor,
-                              size: 20.sp,
-                            ),
-                          ),
+                              ? Colors.red
+                              : AppColors.whiteColor,
+                          size: 20.sp,
                         ),
-
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -627,154 +567,180 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: AppColors.whiteColor,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          // borderRadius: BorderRadius.circular(12.r),
+          border: Border(bottom: BorderSide(color: AppColors.obscureTextColor,width: 0.2)),
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Colors.black.withOpacity(0.05),
+          //     blurRadius: 10,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max
+          ,
           children: [
-            // Food Image
-            Container(
-              width: 60.w,
-              height: 60.w,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.r),
-                color: AppColors.backgroundColor,
-                image: menuItem.files.isNotEmpty
-                    ? DecorationImage(
-                        image: NetworkImage(menuItem.files[0].url),
-                        fit: BoxFit.cover,
-                        onError: (exception, stackTrace) {
-                          // Handle image loading error
-                        },
-                      )
-                    : null,
-              ),
-              child: menuItem.files.isEmpty
-                  ? Icon(
-                      Icons.restaurant,
-                      color: AppColors.obscureTextColor,
-                      size: 30.sp,
-                    )
-                  : null,
-            ),
-            SizedBox(width: 15.w),
-
-            // Food Details
-            Expanded(
-              flex: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  customText(
-                    menuItem.name,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.blackColor,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Food Image
+                Container(
+                  width: 120.w,
+                  height: 120.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.r),
+                    color: AppColors.backgroundColor,
+                    image: menuItem.files.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(menuItem.files[0].url),
+                            fit: BoxFit.cover,
+                            onError: (exception, stackTrace) {
+                              // Handle image loading error
+                            },
+                          )
+                        : null,
                   ),
-                  SizedBox(height: 4.h),
+                  child: menuItem.files.isEmpty
+                      ? Icon(
+                          Icons.restaurant,
+                          color: AppColors.obscureTextColor,
+                          size: 30.sp,
+                        )
+                      : null,
+                ),
+                SizedBox(width: 15.w),
 
-                  // Category badge
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 6.w,
-                      vertical: 2.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.backgroundColor,
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                    child: customText(
-                      menuItem.category.name,
-                      fontSize: 10.sp,
-                      color: AppColors.obscureTextColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-
-                  SizedBox(height: 4.h),
-
-                  if (menuItem.description != null &&
-                      menuItem.description!.isNotEmpty)
-                    customText(
-                      menuItem.description!,
-                      fontSize: 12.sp,
-                      color: AppColors.obscureTextColor,
-                      maxLines: 2,
-                    ),
-                  SizedBox(height: 8.h),
-
-                  Row(
+                // Food Details
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
                       customText(
-                        "₦${menuItem.price.toStringAsFixed(2)}",
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryColor,
+                        menuItem.name,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.blackColor,
                       ),
-                      if (menuItem.plateSize != null &&
-                          menuItem.plateSize!.isNotEmpty) ...[
-                        SizedBox(width: 8.w),
+                      // SizedBox(height: 4.h),
+                      //
+                      // // Category badge
+                      // Container(
+                      //   padding: EdgeInsets.symmetric(
+                      //     horizontal: 6.w,
+                      //     vertical: 2.h,
+                      //   ),
+                      //   decoration: BoxDecoration(
+                      //     color: AppColors.secondaryColor,
+                      //     borderRadius: BorderRadius.circular(4.r),
+                      //   ),
+                      //   child: customText(
+                      //     menuItem.category.name,
+                      //     fontSize: 10.sp,
+                      //     color: AppColors.blackColor,
+                      //     fontWeight: FontWeight.w500,
+                      //   ),
+                      // ),
+
+                      SizedBox(height: 4.h),
+
+                      if (menuItem.description != null &&
+                          menuItem.description!.isNotEmpty)
                         customText(
-                          "• ${menuItem.plateSize}",
+                          menuItem.description!,
                           fontSize: 12.sp,
-                          color: AppColors.obscureTextColor,
+                          color: AppColors.blackColor,
+                          overflow: TextOverflow.visible,
+                          maxLines: 2,
+                        ),
+                      SizedBox(height: 8.h),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          if (menuItem.plateSize != null &&
+                              menuItem.plateSize!.isNotEmpty) ...[
+                            customText(
+                              "${menuItem.plateSize}",
+                              fontSize: 12.sp,
+                              color: AppColors.blackColor,
+                            ),
+                          ],
+                          if (menuItem.prepTimeMinutes != null) ...[
+                            SizedBox(width: 8.w),
+                            Icon(
+                              Icons.access_time,
+                              color: AppColors.blackColor,
+                              size: 12.sp,
+                            ),
+                            SizedBox(width: 2.w),
+                            customText(
+                              "${menuItem.prepTimeMinutes}",
+                              fontSize: 11.sp,
+                              color: AppColors.blackColor,
+                            ),
+                          ],
+                        ],
+                      ),
+
+                      if (isInCart) ...[
+                        SizedBox(height: 4.h),
+                        customText(
+                          "$cartQuantity in cart",
+                          fontSize: 11.sp,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w500,
                         ),
                       ],
-                      if (menuItem.prepTimeMinutes != null) ...[
-                        SizedBox(width: 8.w),
-                        Icon(
-                          Icons.access_time,
-                          color: AppColors.obscureTextColor,
-                          size: 12.sp,
-                        ),
-                        SizedBox(width: 2.w),
+
+                      // Stock status
+                      if (!isAvailable) ...[
+                        SizedBox(height: 4.h),
                         customText(
-                          "${menuItem.prepTimeMinutes}",
+                          controller.getMenuItemAvailabilityStatus(menuItem),
                           fontSize: 11.sp,
-                          color: AppColors.obscureTextColor,
+                          color: Colors.red,
+                          fontWeight: FontWeight.w500,
                         ),
                       ],
                     ],
                   ),
+                ),
 
-                  if (isInCart) ...[
-                    SizedBox(height: 4.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
                     customText(
-                      "$cartQuantity in cart",
-                      fontSize: 11.sp,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w500,
+                      formatToCurrency(menuItem.price),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.normal,
+                      color: AppColors.blackColor,
                     ),
                   ],
+                ),
 
-                  // Stock status
-                  if (!isAvailable) ...[
-                    SizedBox(height: 4.h),
-                    customText(
-                      controller.getMenuItemAvailabilityStatus(menuItem),
-                      fontSize: 11.sp,
-                      color: Colors.red,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ],
-                ],
-              ),
+
+              ],
             ),
-
-            // Add to Cart Button / Quantity Controls
-            SizedBox(width: 8.w),
-            _buildCartControls(
-              menuItem,
-              cartController,
-              isAvailable,
-              isCurrentlyAdding,
-              cartQuantity,
+            SizedBox(height: 5.h),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _buildCartControls(
+                  menuItem,
+                  cartController,
+                  isAvailable,
+                  isCurrentlyAdding,
+                  cartQuantity,
+                ),
+              ],
             ),
           ],
         ),
@@ -790,7 +756,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     int cartQuantity,
   ) {
     if (!isAvailable) {
-      return Container(
+      return Container(width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: AppColors.obscureTextColor,
@@ -817,7 +783,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           decoration: BoxDecoration(
             color: isCurrentlyAdding
                 ? AppColors.obscureTextColor
-                : AppColors.primaryColor,
+                : AppColors.lightGreyColor,
             shape: BoxShape.circle,
           ),
           child: isCurrentlyAdding
@@ -831,7 +797,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     ),
                   ),
                 )
-              : Icon(Icons.add, color: AppColors.whiteColor, size: 18.sp),
+              : Icon(Icons.add, color: AppColors.blackColor, size: 18.sp),
         ),
       );
     } else {
@@ -853,9 +819,11 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 shape: BoxShape.circle,
               ),
               child: Container(
-                height: 14.sp,
-                width: 14.sp,
+                height: 10.sp,
+                width: 10.sp,
                 child: SvgPicture.asset(
+                  height: 10.sp,
+                  width: 10.sp,
                   cartQuantity == 1 ? SvgAssets.deleteIcon : SvgAssets.addIcon,
                   colorFilter: ColorFilter.mode(
                     cartQuantity == 1
@@ -890,10 +858,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               width: 28.w,
               height: 28.w,
               decoration: BoxDecoration(
-                color: AppColors.primaryColor,
+                color: AppColors.lightGreyColor,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.add, color: AppColors.whiteColor, size: 14.sp),
+              child: Icon(Icons.add, color: AppColors.blackColor, size: 14.sp),
             ),
           ),
         ],
@@ -915,7 +883,15 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
 
   void _addToCart(MenuItemModel menuItem, CartController cartController) async {
     try {
-      await cartController.addToCart(menuItem.id, 1);
+      // Check if menu item has addons
+      if (menuItem.addonMenus != null && menuItem.addonMenus!.isNotEmpty) {
+        // Navigate to food detail screen to show addons
+        final controller = Get.find<DashboardController>();
+        controller.navigateToFoodDetail(menuItem);
+      } else {
+        // No addons, add directly to cart
+        await cartController.addToCart(menuItem.id, 1);
+      }
     } catch (e) {
       debugPrint('Error adding to cart: $e');
     }
