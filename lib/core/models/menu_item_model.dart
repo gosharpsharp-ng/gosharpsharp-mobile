@@ -40,6 +40,12 @@ class MenuItemModel {
     final filesJson = json['files'] as List<dynamic>? ?? [];
     final addonMenusJson = json['addon_menus'] as List<dynamic>?;
 
+    // Debug logging for addon_menus
+    print('MenuItemModel parsing: ${json['name']}');
+    print('Has addon_menus field: ${json.containsKey('addon_menus')}');
+    print('addon_menus value: $addonMenusJson');
+    print('addon_menus length: ${addonMenusJson?.length ?? 0}');
+
     // Safely parse category with null check
     CategoryModel? category;
     try {

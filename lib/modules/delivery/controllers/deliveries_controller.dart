@@ -335,6 +335,20 @@ class DeliveriesController extends GetxController {
     update();
   }
 
+  // Mock bike and payment selection
+  String? selectedBikeType;
+  String? selectedPaymentType;
+
+  setSelectedBikeType(String bikeType) {
+    selectedBikeType = bikeType;
+    update();
+  }
+
+  setSelectedPaymentType(String paymentType) {
+    selectedPaymentType = paymentType;
+    update();
+  }
+
   DeliveryResponseModel? selectedDeliveryResponseModel;
   static const CameraPosition kLagosPosition = CameraPosition(
     target: LatLng(6.5244, 3.3792),

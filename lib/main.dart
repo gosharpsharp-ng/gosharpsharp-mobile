@@ -42,6 +42,9 @@ class GoSharpSharp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'GoSharpSharp',
+      theme: ThemeData(
+        fontFamily: 'HelveticaNeue',
+      ),
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       // navigatorKey: navigatorKey,

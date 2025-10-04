@@ -9,6 +9,8 @@ import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 class AppNavigationController extends GetxController {
   ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
   socket_io.Socket? socket;
+  bool showRestaurantView = false; // Toggle between landing and restaurant view
+
   void changeTabIndex(int index) {
     selectedIndex.value = index;
   }
@@ -16,15 +18,28 @@ class AppNavigationController extends GetxController {
   int currentScreenIndex = 0;
   changeScreenIndex(selectedIndex) {
     currentScreenIndex = selectedIndex;
+    // If user navigates away from home, reset to landing view
+    if (selectedIndex != 0) {
+      showRestaurantView = false;
+    }
     update();
   }
 
-  List<Widget> screens = [
-    // const LandingScreen(),
-    const DashboardScreen(),
+  // Toggle to show restaurant dashboard
+  void toggleToRestaurantView() {
+    showRestaurantView = !showRestaurantView;
+    update();
+  }
+
+  // Get the appropriate home screen based on toggle state
+  Widget get homeScreen => showRestaurantView
+      ? const DashboardScreen()
+      : const LandingScreen();
+
+  List<Widget> get screens => [
+    homeScreen,
     const CartScreen(),
     const OrdersHomeScreen(),
-    // const WalletHomeScreen(),
     const SettingsHomeScreen(),
   ];
   @override
