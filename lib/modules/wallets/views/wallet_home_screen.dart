@@ -87,7 +87,7 @@ class WalletHomeScreen extends StatelessWidget {
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
                                 fontFamily:
-                                    GoogleFonts.montserrat().fontFamily!,
+                                    'HelveticaNeue',
                                 fontSize: 30.sp,
                                 overflow: TextOverflow.visible,
                               ),
@@ -112,7 +112,7 @@ class WalletHomeScreen extends StatelessWidget {
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
                                 fontFamily:
-                                    GoogleFonts.montserrat().fontFamily!,
+                                    'HelveticaNeue',
                                 fontSize: 15.sp,
                                 overflow: TextOverflow.visible,
                               ),
@@ -131,7 +131,7 @@ class WalletHomeScreen extends StatelessWidget {
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
                                 fontFamily:
-                                    GoogleFonts.montserrat().fontFamily!,
+                                    'HelveticaNeue',
                                 fontSize: 20.sp,
                                 overflow: TextOverflow.visible,
                               ),

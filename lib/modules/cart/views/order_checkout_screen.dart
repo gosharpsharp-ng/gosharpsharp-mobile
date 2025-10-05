@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/utils/exports.dart';
 
@@ -29,6 +30,11 @@ class OrderCheckoutScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Map Preview Section
+                            _buildMapPreview(cartController),
+
+                            SizedBox(height: 16.h),
+
                             // Delivery Location Section
                             _buildDeliveryLocationSection(cartController),
 
@@ -98,19 +104,94 @@ class OrderCheckoutScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildMapPreview(CartController cartController) {
+    final lat = cartController.selectedLatitude;
+    final lng = cartController.selectedLongitude;
+
+    return Container(
+      height: 180.h,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: AppColors.greyColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(lat, lng),
+              zoom: 15,
+            ),
+            markers: {
+              Marker(
+                markerId: MarkerId('delivery_location'),
+                position: LatLng(lat, lng),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+              ),
+            },
+            zoomControlsEnabled: false,
+            myLocationButtonEnabled: false,
+            mapToolbarEnabled: false,
+            scrollGesturesEnabled: false,
+            zoomGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            rotateGesturesEnabled: false,
+            liteModeEnabled: true,
+          ),
+          // Overlay to indicate tap to change location
+          Positioned(
+            bottom: 8.h,
+            right: 8.w,
+            child: GestureDetector(
+              onTap: () => _selectDeliveryLocation(cartController),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: AppColors.whiteColor,
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: AppColors.greyColor.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.edit_location,
+                      size: 14.sp,
+                      color: AppColors.blackColor,
+                    ),
+                    SizedBox(width: 4.w),
+                    customText(
+                      'Change',
+                      fontSize: 12.sp,
+                      color: AppColors.blackColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDeliveryLocationSection(CartController cartController) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: AppColors.greyColor.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +211,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(8.sp),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
+                    color: AppColors.blackColor,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -158,6 +239,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: AppColors.blackColor,
                         maxLines: 2,
+                        overflow: TextOverflow.visible
                       ),
                     ],
                   ),
@@ -165,7 +247,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                 Icon(
                   Icons.edit,
                   size: 16.sp,
-                  color: AppColors.primaryColor,
+                  color: AppColors.blackColor,
                 ),
               ],
             ),
@@ -226,7 +308,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                 color: AppColors.blackColor,
               ),
               customText(
-                '₦${cartController.total.toStringAsFixed(2)}',
+                formatToCurrency(cartController.total),
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primaryColor,
@@ -255,7 +337,7 @@ class OrderCheckoutScreen extends StatelessWidget {
           color: AppColors.greyColor,
         ),
         customText(
-          '₦${amount.toStringAsFixed(2)}',
+          formatToCurrency(amount),
           fontSize: 14.sp,
           color: AppColors.blackColor,
         ),
@@ -277,13 +359,10 @@ class OrderCheckoutScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.whiteColor,
             borderRadius: BorderRadius.circular(12.r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
+            border: Border.all(
+              color: AppColors.greyColor.withOpacity(0.2),
+              width: 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,13 +419,10 @@ class OrderCheckoutScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: AppColors.greyColor.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +457,7 @@ class OrderCheckoutScreen extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
-                borderSide: BorderSide(color: AppColors.primaryColor),
+                borderSide: BorderSide(color: AppColors.blackColor),
               ),
               contentPadding: EdgeInsets.all(12.w),
             ),
@@ -396,20 +472,19 @@ class OrderCheckoutScreen extends StatelessWidget {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.whiteColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, -2),
+        border: Border(
+          top: BorderSide(
+            color: AppColors.greyColor.withOpacity(0.2),
+            width: 1,
           ),
-        ],
+        ),
       ),
       child: SafeArea(
         child: CustomButton(
           width: double.infinity,
           height: 50.h,
           backgroundColor: AppColors.primaryColor,
-          title: 'Place Order - ₦${cartController.total.toStringAsFixed(2)}',
+          title: 'Place Order - ${formatToCurrency(cartController.total)}',
           onPressed: () {
             if (!cartController.isLoading && cartController.selectedPaymentMethod.value.isNotEmpty) {
               _processPayment(cartController, cartController.selectedPaymentMethod.value.toLowerCase(), context);
@@ -442,15 +517,15 @@ class OrderCheckoutScreen extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected
-                ? AppColors.primaryColor
-                : AppColors.primaryColor.withOpacity(0.3),
+                ? AppColors.blackColor
+                : AppColors.greyColor.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12.r),
           color: isLoading
               ? AppColors.greyColor.withOpacity(0.1)
               : isSelected
-              ? AppColors.primaryColor.withOpacity(0.1)
+              ? AppColors.blackColor.withOpacity(0.05)
               : AppColors.whiteColor,
         ),
         child: Column(
@@ -458,7 +533,7 @@ class OrderCheckoutScreen extends StatelessWidget {
             Icon(
               icon,
               size: 28.sp,
-              color: isLoading ? AppColors.greyColor : AppColors.primaryColor,
+              color: isLoading ? AppColors.greyColor : AppColors.blackColor,
             ),
             SizedBox(height: 6.h),
             customText(
@@ -502,8 +577,8 @@ class OrderCheckoutScreen extends StatelessWidget {
             color: hasInsufficientFunds
                 ? Colors.red.withOpacity(0.5)
                 : isSelected
-                ? AppColors.primaryColor
-                : AppColors.primaryColor.withOpacity(0.3),
+                ? AppColors.blackColor
+                : AppColors.greyColor.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12.r),
@@ -512,7 +587,7 @@ class OrderCheckoutScreen extends StatelessWidget {
               : hasInsufficientFunds
               ? Colors.red.withOpacity(0.05)
               : isSelected
-              ? AppColors.primaryColor.withOpacity(0.1)
+              ? AppColors.blackColor.withOpacity(0.05)
               : AppColors.whiteColor,
         ),
         child: Column(
@@ -524,7 +599,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                   ? AppColors.greyColor
                   : hasInsufficientFunds
                   ? Colors.red
-                  : AppColors.primaryColor,
+                  : AppColors.blackColor,
             ),
             SizedBox(height: 4.h),
             customText(
@@ -536,10 +611,10 @@ class OrderCheckoutScreen extends StatelessWidget {
             SizedBox(height: 2.h),
             if (walletBalance != null)
               customText(
-                '₦${double.tryParse(walletBalance)?.toStringAsFixed(2) ?? '0.00'}',
+                formatToCurrency(double.tryParse(walletBalance) ?? 0.0),
                 fontSize: 10.sp,
                 fontWeight: FontWeight.w500,
-                color: hasInsufficientFunds ? Colors.red : AppColors.primaryColor,
+                color: hasInsufficientFunds ? Colors.red : AppColors.blackColor,
               )
             else
               customText(

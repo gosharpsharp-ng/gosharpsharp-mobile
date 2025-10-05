@@ -168,7 +168,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                               ],
                               SizedBox(height: 4.h),
                               customText(
-                                "+₦${addon.price.toStringAsFixed(2)}",
+                                "+${formatToCurrency(addon.price)}",
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primaryColor,

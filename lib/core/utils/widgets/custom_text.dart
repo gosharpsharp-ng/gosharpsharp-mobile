@@ -12,7 +12,7 @@ Widget customText(String text,
       TextDecoration? decoration,
       FontWeight? fontWeight,
       FontStyle? fontStyle,
-      String fontFamily='Satoshi',
+      String fontFamily='HelveticaNeue',
       bool blur = false}) {
   return Text(
     text,

@@ -333,7 +333,7 @@ class OrdersController extends GetxController {
 
   // Format currency
   String formatCurrency(double amount) {
-    return "₦${amount.toStringAsFixed(2)}";
+    return formatToCurrency(amount);
   }
 
   // Get next action for order based on current status - UPDATED

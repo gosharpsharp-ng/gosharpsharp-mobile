@@ -176,58 +176,7 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildSimpleTotalSummary(CartController cartController) {
-    return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: AppColors.whiteColor,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              customText(
-                'Total Amount',
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blackColor,
-              ),
-              customText(
-                '₦${cartController.total.toStringAsFixed(2)}',
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryColor,
-              ),
-            ],
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              customText(
-                '${cartController.itemCount} item${cartController.itemCount != 1 ? 's' : ''}',
-                fontSize: 12.sp,
-                color: AppColors.greyColor,
-              ),
-              customText(
-                'Includes delivery & service charges',
-                fontSize: 10.sp,
-                color: AppColors.greyColor,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return SizedBox.shrink();
   }
 
   Widget _buildCheckoutButton(CartController cartController) {
@@ -235,28 +184,56 @@ class CartScreen extends StatelessWidget {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.whiteColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, -2),
+        border: Border(
+          top: BorderSide(
+            color: AppColors.greyColor.withOpacity(0.2),
+            width: 1,
           ),
-        ],
+        ),
       ),
       child: SafeArea(
-        child: CustomButton(
-          width: double.infinity,
-          height: 50.h,
-          backgroundColor: AppColors.primaryColor,
-          title: 'Checkout - ₦${cartController.total.toStringAsFixed(2)}',
-          onPressed: () {
-            // Navigate to checkout screen
-            Get.toNamed(Routes.CHECKOUT_SCREEN);
-          },
-          borderRadius: 12.r,
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w600,
-          fontColor: AppColors.whiteColor,
+        child: Row(
+          children: [
+            // Total Amount Section
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  customText(
+                    'Total',
+                    fontSize: 13.sp,
+                    color: AppColors.obscureTextColor,
+                  ),
+                  SizedBox(height: 2.h),
+                  customText(
+                    formatToCurrency(cartController.total),
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.blackColor,
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(width: 16.w),
+
+            // Checkout Button
+            CustomButton(
+              width: 140.w,
+              height: 50.h,
+              backgroundColor: AppColors.primaryColor,
+              title: 'Checkout',
+              onPressed: () {
+                // Navigate to checkout screen
+                Get.toNamed(Routes.CHECKOUT_SCREEN);
+              },
+              borderRadius: 12.r,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              fontColor: AppColors.whiteColor,
+            ),
+          ],
         ),
       ),
     );
