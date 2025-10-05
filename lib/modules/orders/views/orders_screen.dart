@@ -128,7 +128,7 @@ class CartScreen extends StatelessWidget {
                           color: AppColors.blackColor,
                         ),
                         customText(
-                          '₦${cartController.total.toStringAsFixed(2)}',
+                          formatToCurrency(cartController.total),
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
                           color: AppColors.blackColor,
@@ -185,7 +185,7 @@ class CartScreen extends StatelessWidget {
               height: 58.h,
               backgroundColor: AppColors.primaryColor,
               title:
-                  'Place Order - ₦${cartController.total.toStringAsFixed(2)}',
+                  'Place Order - ${formatToCurrency(cartController.total)}',
               onPressed: () {
                 cartController.placeOrder();
               },

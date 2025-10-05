@@ -70,7 +70,7 @@ class OrderDetailRow extends StatelessWidget {
           customText(
             label,
             fontSize: 16.sp,
-            fontFamily: GoogleFonts.montserrat().fontFamily!,
+            fontFamily: 'HelveticaNeue',
             fontWeight: FontWeight.bold,
           ),
           SizedBox(width: 10.sp),
@@ -78,7 +78,7 @@ class OrderDetailRow extends StatelessWidget {
             child: customText(value,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
-                fontFamily: GoogleFonts.montserrat().fontFamily!),
+                fontFamily: 'HelveticaNeue'),
           ),
         ],
       ),

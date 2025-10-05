@@ -10,7 +10,7 @@ class CustomButton extends StatelessWidget {
     this.borderColor = Colors.transparent,
     this.fontWeight = FontWeight.w600,
     this.width = 260,
-    this.height = 52,
+    this.height = 56,
     this.fontSize = 14,
     this.borderRadius = 16, // Default border radius
     this.isBusy = false,

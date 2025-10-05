@@ -23,7 +23,7 @@ PreferredSize defaultAppBar({String title = "", VoidCallback? onPop,Color bgColo
   return PreferredSize(
     preferredSize: Size.fromHeight(40.0.h), // Adjust the height as needed
     child: AppBar(
-      title: customText(title,fontSize:24.sp,fontWeight: FontWeight.w600,color:AppColors.blackColor  ), // Added title if needed
+      title: customText(title,fontSize:18.sp,fontWeight: FontWeight.w600,color:AppColors.blackColor  ), // Added title if needed
       centerTitle: centerTitle,
       foregroundColor: bgColor,
       surfaceTintColor: bgColor,

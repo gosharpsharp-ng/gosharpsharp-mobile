@@ -163,23 +163,24 @@ class SettingsHomeScreen extends StatelessWidget {
                   // ),
                   SettingsItem(
                     onPressed: () {
-                      settingsController.logout();
-                    },
-                    title: "Logout",
-                    icon: SvgAssets.logoutIcon,
-                    isLogout: true,
-                    isLast: true,
-                  ),
-                  SettingsItem(
-                    onPressed: () {
                       settingsController.deletePasswordController.clear();
                       settingsController.showAccountDeletionDialog();
                     },
                     title: "Delete Account",
                     icon: SvgAssets.deleteIcon,
-                    isLogout: true,
+                    // isLogout: true,
+                    // isLast: true,
+                  ),
+                  SettingsItem(
+                    onPressed: () {
+                      settingsController.logout();
+                    },
+                    title: "Log out",
+                    icon: SvgAssets.logoutIcon,
+                    // isLogout: true,
                     isLast: true,
                   ),
+
                 ]),
               ],
             ),

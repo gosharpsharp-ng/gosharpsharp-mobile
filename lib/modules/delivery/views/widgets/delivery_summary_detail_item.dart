@@ -38,7 +38,7 @@ class DeliverySummaryDetailItem extends StatelessWidget {
                         value,
                         color: AppColors.blackColor,
                         fontSize: 15.sp,
-                        fontFamily: isCurrency?GoogleFonts.montserrat().fontFamily!:'Satoshi',
+                        fontFamily: isCurrency?'HelveticaNeue':'HelveticaNeue',
                         fontWeight: FontWeight.w500,
                         overflow: TextOverflow.visible,
                       ),
@@ -78,7 +78,7 @@ class DeliverySummaryDetailItem extends StatelessWidget {
                 customText(
                   value,
                   color: AppColors.blackColor,
-                  fontFamily: isCurrency?GoogleFonts.montserrat().fontFamily!:'Satoshi',
+                  fontFamily: isCurrency?'HelveticaNeue':'HelveticaNeue',
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w500,
                   overflow: TextOverflow.visible,

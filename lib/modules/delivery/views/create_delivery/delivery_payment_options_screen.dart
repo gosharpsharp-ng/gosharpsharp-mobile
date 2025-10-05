@@ -29,7 +29,7 @@ class DeliveryPaymentOptionsScreen extends StatelessWidget {
                         customText("₦7,000",
                             fontWeight: FontWeight.w600,
                             fontSize: 30.sp,
-                            fontFamily: GoogleFonts.montserrat().fontFamily!)
+                            fontFamily: 'HelveticaNeue')
                       ],
                     ),
                     TitleSectionBox(

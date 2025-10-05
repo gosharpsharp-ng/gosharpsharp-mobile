@@ -21,129 +21,73 @@ class CartItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.symmetric(vertical: 16.h),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
+        // border: Border(
+        //   bottom: BorderSide(
+        //     color: AppColors.greyColor.withOpacity(0.2),
+        //     width: 1,
+        //   ),
+        // ),
       ),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Main item row
-          Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Row(
+          // Food/Restaurant Image
+          Container(
+            width: 80.w,
+            height: 80.w,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.r),
+              color: AppColors.backgroundColor,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.r),
+              child: _buildItemImage(),
+            ),
+          ),
+
+          SizedBox(width: 16.w),
+
+          // Item Details
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Food/Restaurant Image
-                Container(
-                  width: 80.w,
-                  height: 80.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12.r),
-                    color: AppColors.backgroundColor,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: _buildItemImage(),
-                  ),
+                // Item name
+                customText(
+                  item.purchasable.name,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.blackColor,
+                  maxLines: 2,
                 ),
 
-                SizedBox(width: 16.w),
+                SizedBox(height: 8.h),
 
-                // Item Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Item name
-                      customText(
-                        item.purchasable.name,
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.blackColor,
-                        maxLines: 2,
-                      ),
+                // Price information
+                customText(
+                  "₦${item.price} each",
+                  fontSize: 13.sp,
+                  color: AppColors.obscureTextColor,
+                ),
 
-                      SizedBox(height: 12.h),
+                SizedBox(height: 8.h),
 
-                      // Price information
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              customText(
-                                "₦${item.price} each",
-                                fontSize: 14.sp,
-                                color: AppColors.obscureTextColor,
-                              ),
-                              customText(
-                                "₦${item.total}",
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryColor,
-                              ),
-                            ],
-                          ),
+                // Total and quantity controls
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    customText(
+                      "₦${item.total}",
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.blackColor,
+                    ),
 
-                          // Quantity controls with delete button
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildQuantityControls(),
-                              SizedBox(width: 12.w),
-                              InkWell(
-                                onTap: isRemoving ? null : () => _showRemoveDialog(context),
-                                child: Container(
-                                  padding: EdgeInsets.all(6.w),
-                                  decoration: BoxDecoration(
-                                    color: isRemoving
-                                        ? AppColors.greyColor.withOpacity(0.3)
-                                        : Colors.red.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    isRemoving ? Icons.hourglass_empty : Icons.delete_outline,
-                                    size: 18.sp,
-                                    color: isRemoving ? AppColors.greyColor : Colors.red,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      // Discount row if applicable
-                      if (double.tryParse(item.discount) != null && double.parse(item.discount) > 0) ...[
-                        SizedBox(height: 8.h),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.local_offer,
-                              size: 14.sp,
-                              color: Colors.green,
-                            ),
-                            SizedBox(width: 4.w),
-                            customText(
-                              "You saved ₦${item.discount}",
-                              fontSize: 12.sp,
-                              color: Colors.green,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+                    // Quantity controls
+                    _buildQuantityControls(),
+                  ],
                 ),
               ],
             ),
@@ -211,47 +155,40 @@ class CartItemWidget extends StatelessWidget {
   Widget _buildQuantityControls() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(12.r),
+        color: AppColors.primaryColor.withOpacity(0.1),
+        // border: Border.all(color: AppColors.greyColor.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(18.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Decrease button
+          // Decrease button (shows delete icon when quantity is 1)
           InkWell(
-            onTap: isUpdating || item.quantity <= 1
+            onTap: isUpdating
                 ? null
-                : () => onQuantityChanged(item.quantity - 1),
+                : item.quantity == 1
+                    ? () => _showRemoveDialog(Get.context!)
+                    : () => onQuantityChanged(item.quantity - 1),
             child: Container(
-              padding: EdgeInsets.all(8.sp),
-              decoration: BoxDecoration(
-                color: item.quantity <= 1 || isUpdating
-                    ? AppColors.backgroundColor
-                    : AppColors.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12.r),
-                  bottomLeft: Radius.circular(12.r),
-                ),
-              ),
+              padding: EdgeInsets.all(6.sp),
               child: Icon(
-                Icons.remove,
+                item.quantity == 1 ? Icons.delete_outline : Icons.remove,
                 size: 16.sp,
-                color: item.quantity <= 1 || isUpdating
-                    ? AppColors.greyColor
-                    : AppColors.primaryColor,
+                color: isUpdating
+                    ? AppColors.greyColor.withOpacity(0.5)
+                    : item.quantity == 1
+                        ? AppColors.primaryColor.withAlpha(250)
+                        : AppColors.blackColor,
               ),
             ),
           ),
 
           // Quantity display
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            decoration: BoxDecoration(
-              color: AppColors.whiteColor,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
             child: customText(
               item.quantity.toString(),
-              fontSize: 16.sp,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w600,
               color: AppColors.blackColor,
             ),
@@ -263,22 +200,13 @@ class CartItemWidget extends StatelessWidget {
                 ? null
                 : () => onQuantityChanged(item.quantity + 1),
             child: Container(
-              padding: EdgeInsets.all(8.sp),
-              decoration: BoxDecoration(
-                color: isUpdating
-                    ? AppColors.backgroundColor
-                    : AppColors.primaryColor,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(12.r),
-                  bottomRight: Radius.circular(12.r),
-                ),
-              ),
+              padding: EdgeInsets.all(6.sp),
               child: Icon(
                 Icons.add,
-                size: 16.sp,
+                size: 14.sp,
                 color: isUpdating
-                    ? AppColors.greyColor
-                    : AppColors.whiteColor,
+                    ? AppColors.greyColor.withOpacity(0.5)
+                    : AppColors.blackColor,
               ),
             ),
           ),
