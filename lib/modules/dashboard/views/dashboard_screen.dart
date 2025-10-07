@@ -233,18 +233,44 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   body: Column(
                     children: [
-                      // Fixed location widget
+                      // Fixed location widget and search
                       Container(
-                        width: double.infinity,
                         color: AppColors.backgroundColor,
                         padding: EdgeInsets.symmetric(
                           horizontal: 20.w,
                           vertical: 10.h,
                         ),
-                        child: LocationDisplayWidget(
-                          textColor: AppColors.blackColor,
-                          iconColor: AppColors.blackColor,
-                          fontSize: 13,
+                        child: Column(
+                          children: [
+                            LocationDisplayWidget(
+                              textColor: AppColors.blackColor,
+                              iconColor: AppColors.blackColor,
+                              fontSize: 13,
+                            ),
+                            SizedBox(height: 15.h),
+                            CustomOutlinedRoundedInputField(
+                              borderRadius: 12.r,
+                              isSearch: true,
+                              prefixWidget: Icon(Icons.search, size: 25.sp),
+                              suffixWidget: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 5.h,
+                                  horizontal: 5.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor.withAlpha(180),
+                                  borderRadius: BorderRadius.circular(8.r),
+                                ),
+                                child: SvgPicture.asset(
+                                  SvgAssets.filterIcon,
+                                  colorFilter: ColorFilter.mode(
+                                    AppColors.whiteColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       // Scrollable content
@@ -271,77 +297,6 @@ class DashboardScreen extends StatelessWidget {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            SizedBox(height: 15.h),
-                            // Row(
-                            //   mainAxisSize: MainAxisSize.max,
-                            //   mainAxisAlignment: MainAxisAlignment.center,
-                            //   children: [
-                            //     GestureDetector(
-                            //       onTap: () {
-                            //         dashboardController.openLocationPicker();
-                            //       },
-                            //       child: Container(
-                            //         padding: EdgeInsets.symmetric(
-                            //           horizontal: 10.w,
-                            //           vertical: 5.h,
-                            //         ),
-                            //         decoration: BoxDecoration(
-                            //           color: AppColors.secondaryColor.withAlpha(
-                            //             120,
-                            //           ),
-                            //           borderRadius: BorderRadius.circular(8.r),
-                            //         ),
-                            //         child: Row(
-                            //           children: [
-                            //             Icon(
-                            //               Icons.location_on,
-                            //               size: 16.sp,
-                            //               color: AppColors.primaryColor,
-                            //             ),
-                            //             SizedBox(width: 6.w),
-                            //             Flexible(
-                            //               child: customText(
-                            //                 dashboardController
-                            //                     .getCurrentLocationAddress(),
-                            //                 color: AppColors.blackColor,
-                            //                 maxLines: 1,
-                            //                 overflow: TextOverflow.ellipsis,
-                            //               ),
-                            //             ),
-                            //             SizedBox(width: 8.w),
-                            //             Icon(
-                            //               CupertinoIcons.chevron_down,
-                            //               size: 15.sp,
-                            //             ),
-                            //           ],
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
-                            SizedBox(height: 15.h),
-                            CustomOutlinedRoundedInputField(
-                              borderRadius: 12.r,
-                              isSearch: true,
-                              prefixWidget: Icon(Icons.search, size: 25.sp),
-                              suffixWidget: Container(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: 5.h,
-                                  horizontal: 5.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor.withAlpha(180),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                child: SvgPicture.asset(
-                                  SvgAssets.filterIcon,
-                                  colorFilter: ColorFilter.mode(
-                                    AppColors.whiteColor,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                              ),
-                            ),
                             SizedBox(height: 15.h),
 
                             // // Categories Section
@@ -453,7 +408,7 @@ class DashboardScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                            SizedBox(height: 25.h),
+                            SizedBox(height: 5.h),
 
                             // Top Restaurants Section
                             SectionHeader(title: "Top Restaurants"),
