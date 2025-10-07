@@ -231,7 +231,25 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  body: RefreshIndicator(
+                  body: Column(
+                    children: [
+                      // Fixed location widget
+                      Container(
+                        width: double.infinity,
+                        color: AppColors.backgroundColor,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 10.h,
+                        ),
+                        child: LocationDisplayWidget(
+                          textColor: AppColors.blackColor,
+                          iconColor: AppColors.blackColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                      // Scrollable content
+                      Expanded(
+                        child: RefreshIndicator(
                     backgroundColor: AppColors.primaryColor,
                     color: AppColors.whiteColor,
                     onRefresh: () async {
@@ -619,6 +637,9 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     // child:Container(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

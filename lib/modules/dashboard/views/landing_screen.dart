@@ -31,6 +31,15 @@ class LandingScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Location display
+              LocationDisplayWidget(
+                textColor: AppColors.blackColor,
+                iconColor: AppColors.blackColor,
+                fontSize: 14,
+              ),
+
+              SizedBox(height: 24.h),
+
               customText("What do you want to get Sharp Sharp?",fontWeight: FontWeight.w500,fontSize: 24.sp,overflow: TextOverflow.visible),
               // SizedBox(height: 15.h,),
               // customText("Let's know what you want to do today?",fontWeight: FontWeight.w500,fontSize: 18.sp,),
@@ -117,16 +126,9 @@ class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderSt
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 15), // Slower, more elegant rotation
-    )..addListener(() {
-      if (!_isUserInteracting) {
-        setState(() {
-          _currentRotation = _rotationController.value * 2 * math.pi;
-        });
-      }
-    });
+    );
 
-    // Start initial rotation
-    _rotationController.forward();
+    // Auto-rotation disabled
   }
 
   @override
@@ -176,21 +178,7 @@ class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderSt
         setState(() {
           _currentRotation += momentumRotation;
         });
-
-        // Start 5-second auto-rotation after momentum
-        Future.delayed(const Duration(milliseconds: 800), () {
-          if (mounted) {
-            _rotationController.reset();
-            _rotationController.forward();
-          }
-        });
       });
-    } else {
-      // Start 5-second auto-rotation immediately
-      if (mounted) {
-        _rotationController.reset();
-        _rotationController.forward();
-      }
     }
 
     _rotationVelocity = 0.0;
@@ -275,10 +263,9 @@ class MenuItemWidget extends StatelessWidget {
       child: AnimatedScale(
         scale: isInteracting ? 0.95 : 1.0,
         duration: const Duration(milliseconds: 150),
-        child: Container(
-          width: size.w,
-          height: size.h,
-          decoration: BoxDecoration(
+        child: CustomPaint(
+          size: Size(size.w, size.h),
+          painter: AmoebicShapePainter(
             gradient: item.isAvailable
                 ? LinearGradient(
                     begin: Alignment.topLeft,
@@ -296,102 +283,198 @@ class MenuItemWidget extends StatelessWidget {
                       Colors.grey.shade400,
                     ],
                   ),
-            borderRadius: BorderRadius.circular(60.r),
-            boxShadow: item.isAvailable
-                ? [
-                    BoxShadow(
-                      color: item.color.withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                      spreadRadius: 0,
+            shadowColor: item.isAvailable ? item.color.withOpacity(0.4) : Colors.black.withOpacity(0.1),
+            borderColor: Colors.white.withOpacity(0.3),
+            isCenter: isCenter,
+          ),
+          child: Container(
+            width: size.w,
+            height: size.h,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Icon with subtle shadow
+                    Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Image.asset(
+                        item.icon,
+                        height: iconSize.h,
+                        width: iconSize.w,
+                        color: item.isAvailable ? null : Colors.grey.shade600,
+                      ),
                     ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                    SizedBox(height: 6.h),
+                    customText(
+                      item.title,
+                      textAlign: TextAlign.center,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: item.isAvailable
+                          ? (item.color == AppColors.primaryColor
+                              ? AppColors.whiteColor
+                              : AppColors.blackColor)
+                          : Colors.grey.shade600,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
-            border: Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 2,
+                ),
+
+                // Coming Soon overlay with dotted border
+                if (!item.isAvailable)
+                  CustomPaint(
+                    size: Size(120.w, 120.h),
+                    painter: DottedCircleBorder(
+                      color: Colors.white.withOpacity(0.6),
+                      strokeWidth: 3,
+                      gap: 8,
+                    ),
+                  ),
+              ],
             ),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Subtle inner glow effect
-              if (item.isAvailable)
-                Container(
-                  margin: EdgeInsets.all(4.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(56.r),
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.2),
-                        Colors.transparent,
-                      ],
-                      center: Alignment.topLeft,
-                      radius: 1.5,
-                    ),
-                  ),
-                ),
-
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Icon with subtle shadow
-                  Container(
-                    padding: EdgeInsets.all(8.w),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Image.asset(
-                      item.icon,
-                      height: iconSize.h,
-                      width: iconSize.w,
-                      color: item.isAvailable ? null : Colors.grey.shade600,
-                    ),
-                  ),
-                  SizedBox(height: 6.h),
-                  customText(
-                    item.title,
-                    textAlign: TextAlign.center,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    color: item.isAvailable
-                        ? (item.color == AppColors.primaryColor
-                            ? AppColors.whiteColor
-                            : AppColors.blackColor)
-                        : Colors.grey.shade600,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-
-              // Coming Soon overlay with dotted border
-              if (!item.isAvailable)
-                CustomPaint(
-                  size: Size(120.w, 120.h),
-                  painter: DottedCircleBorder(
-                    color: Colors.white.withOpacity(0.6),
-                    strokeWidth: 3,
-                    gap: 8,
-                  ),
-                ),
-            ],
           ),
         ),
       ),
     );
+  }
+}
+
+// Custom painter for amoebic/organic blob shape
+class AmoebicShapePainter extends CustomPainter {
+  final Gradient gradient;
+  final Color shadowColor;
+  final Color borderColor;
+  final bool isCenter;
+
+  AmoebicShapePainter({
+    required this.gradient,
+    required this.shadowColor,
+    required this.borderColor,
+    this.isCenter = false,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final baseRadius = size.width / 2;
+
+    // Create organic blob path using perlin-like noise
+    final path = Path();
+    const int points = 36; // Number of points around the perimeter
+    final random = math.Random(42); // Fixed seed for consistent shape per widget
+
+    // Generate organic offsets for each point
+    List<double> offsets = [];
+    for (int i = 0; i < points; i++) {
+      // Create smooth variation using sine waves with different frequencies
+      final variation = (math.sin(i * 0.5) * 0.08) +
+                       (math.sin(i * 0.3) * 0.05) +
+                       (math.sin(i * 0.7) * 0.03);
+      offsets.add(1.0 + variation);
+    }
+
+    // Draw shadow
+    final shadowPath = Path();
+    for (int i = 0; i <= points; i++) {
+      final angle = (i / points) * 2 * math.pi;
+      final radiusOffset = offsets[i % points];
+      final radius = baseRadius * radiusOffset * 0.92; // Slightly smaller for organic feel
+
+      final x = center.dx + radius * math.cos(angle);
+      final y = center.dy + radius * math.sin(angle);
+
+      if (i == 0) {
+        shadowPath.moveTo(x, y);
+      } else {
+        // Use quadratic curves for smooth organic edges
+        final prevAngle = ((i - 1) / points) * 2 * math.pi;
+        final prevRadiusOffset = offsets[(i - 1) % points];
+        final prevRadius = baseRadius * prevRadiusOffset * 0.92;
+        final prevX = center.dx + prevRadius * math.cos(prevAngle);
+        final prevY = center.dy + prevRadius * math.sin(prevAngle);
+
+        final controlX = (prevX + x) / 2;
+        final controlY = (prevY + y) / 2;
+
+        shadowPath.quadraticBezierTo(controlX, controlY, x, y);
+      }
+    }
+    shadowPath.close();
+
+    // Draw shadow
+    canvas.drawShadow(shadowPath, shadowColor, 15, true);
+    canvas.drawShadow(shadowPath, Colors.black.withOpacity(0.1), 8, true);
+
+    // Create main shape path
+    final shapePath = Path();
+    for (int i = 0; i <= points; i++) {
+      final angle = (i / points) * 2 * math.pi;
+      final radiusOffset = offsets[i % points];
+      final radius = baseRadius * radiusOffset * 0.92;
+
+      final x = center.dx + radius * math.cos(angle);
+      final y = center.dy + radius * math.sin(angle);
+
+      if (i == 0) {
+        shapePath.moveTo(x, y);
+      } else {
+        final prevAngle = ((i - 1) / points) * 2 * math.pi;
+        final prevRadiusOffset = offsets[(i - 1) % points];
+        final prevRadius = baseRadius * prevRadiusOffset * 0.92;
+        final prevX = center.dx + prevRadius * math.cos(prevAngle);
+        final prevY = center.dy + prevRadius * math.sin(prevAngle);
+
+        final controlX = (prevX + x) / 2;
+        final controlY = (prevY + y) / 2;
+
+        shapePath.quadraticBezierTo(controlX, controlY, x, y);
+      }
+    }
+    shapePath.close();
+
+    // Fill with gradient
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final gradientPaint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(shapePath, gradientPaint);
+
+    // Draw border
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    canvas.drawPath(shapePath, borderPaint);
+
+    // Add inner glow effect
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withOpacity(0.2),
+          Colors.transparent,
+        ],
+        center: Alignment.topLeft,
+        radius: 1.5,
+      ).createShader(rect)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(shapePath, glowPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant AmoebicShapePainter oldDelegate) {
+    return gradient != oldDelegate.gradient ||
+           shadowColor != oldDelegate.shadowColor ||
+           borderColor != oldDelegate.borderColor;
   }
 }
 

@@ -75,6 +75,21 @@ class DashboardController extends GetxController {
     // Defer all network calls to avoid blocking initialization
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeDashboard();
+      _setupLocationListener();
+    });
+  }
+
+  void _setupLocationListener() {
+    // Get or create LocationController
+    final locationController = Get.put(LocationController());
+
+    // Listen to location changes and refetch restaurants
+    ever(locationController.selectedLocation, (location) {
+      if (location.isNotEmpty && location != 'Choose Location to continue') {
+        debugPrint('📍 Location changed to: $location - Refetching restaurants...');
+        fetchRestaurants();
+        fetchFavoriteRestaurants();
+      }
     });
   }
 

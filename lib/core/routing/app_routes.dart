@@ -56,6 +56,7 @@ abstract class Routes {
 
   static const RATINGS_AND_REVIEWS_HOME = '/ratings_and_reviews_home';
   static const SELECT_LOCATION_SCREEN = '/select_location_screen';
+  static const LOCATION_PERMISSION_SCREEN = '/location_permission_screen';
 
   // Orders
   static const ORDERS_HOME_SCREEN = '/orders_home_screen';
