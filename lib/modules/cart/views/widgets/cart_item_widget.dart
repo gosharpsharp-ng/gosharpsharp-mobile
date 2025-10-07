@@ -110,12 +110,6 @@ class CartItemWidget extends StatelessWidget {
         fit: BoxFit.cover,
         placeholder: (context, url) => Container(
           color: AppColors.backgroundColor,
-          child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-            ),
-          ),
         ),
         errorWidget: (context, url, error) => _buildFallbackImage(),
       );

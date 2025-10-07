@@ -65,8 +65,44 @@ class SignInController extends GetxController {
         Get.put(WalletController());
         Get.put(SettingsController());
         Get.put(DeliveriesController());
-        Get.toNamed(Routes.APP_NAVIGATION);
+
+        // Check if location is set up
+        final hasLocationSetup = await _checkLocationSetup();
+        if (hasLocationSetup) {
+          Get.toNamed(Routes.APP_NAVIGATION);
+        } else {
+          Get.toNamed(Routes.LOCATION_PERMISSION_SCREEN);
+        }
       }
     }
   }
+
+  Future<bool> _checkLocationSetup() async {
+    final box = GetStorage();
+
+    // Check if user has already set up location
+    final savedLocation = box.read('selected_location');
+
+    // If location is saved, return true
+    if (savedLocation != null && savedLocation.isNotEmpty) {
+      return true;
+    }
+
+    // Check if location services are enabled and permission granted
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse) {
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking location: $e');
+    }
+
+    return false;
+  }
 }
+

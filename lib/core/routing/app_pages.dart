@@ -11,6 +11,7 @@ import 'package:gosharpsharp/modules/orders/views/order_details_screen.dart';
 import 'package:gosharpsharp/modules/orders/views/orders_home_screen.dart';
 import 'package:gosharpsharp/modules/support/bindings/support_bindings.dart';
 import 'package:gosharpsharp/modules/support/views/faq_screen.dart';
+import 'package:gosharpsharp/modules/location_permission/views/location_permission_screen.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -246,6 +247,10 @@ class AppPages {
     GetPage(
       name: Routes.SELECT_LOCATION_SCREEN,
       page: () => const SelectLocation(),
+    ),
+    GetPage(
+      name: Routes.LOCATION_PERMISSION_SCREEN,
+      page: () => const LocationPermissionScreen(),
     ),
   ];
 }

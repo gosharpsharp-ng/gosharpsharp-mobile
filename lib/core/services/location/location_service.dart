@@ -7,6 +7,7 @@ import '../../models/location_model.dart';
 import '../../utils/helpers.dart';
 import '../../utils/exports.dart';
 import '../../utils/widgets/select_location.dart' as widgets;
+import '../../controllers/location_controller.dart';
 
 // Service area model for geofencing
 class ServiceArea {
@@ -105,6 +106,58 @@ class LocationService extends GetxService {
     // Set default location immediately to avoid null states
     _setDefaultLocation();
     // Do NOT automatically initialize location - only when explicitly requested
+    _setupLocationControllerListener();
+  }
+
+  void _setupLocationControllerListener() {
+    try {
+      // Import the location controller
+      final locationController = Get.put(LocationController());
+
+      // Load initial location from storage
+      final storage = GetStorage();
+      final savedLocation = storage.read('selected_location');
+      final lat = storage.read('location_lat');
+      final lng = storage.read('location_lng');
+
+      if (savedLocation != null && lat != null && lng != null) {
+        final initialLocation = ItemLocation(
+          formattedAddress: savedLocation,
+          latitude: double.parse(lat),
+          longitude: double.parse(lng),
+        );
+        _currentLocation.value = initialLocation;
+        _hasLocationPermission.value = true;
+        debugPrint('📍 LocationService: Loaded initial location: $savedLocation');
+      }
+
+      // Listen to location changes from LocationController
+      ever(locationController.selectedLocation, (location) async {
+        if (location.isNotEmpty && location != 'Choose Location to continue') {
+          debugPrint('📍 LocationService: Location changed to: $location');
+
+          // Get coordinates from storage
+          final lat = storage.read('location_lat');
+          final lng = storage.read('location_lng');
+
+          if (lat != null && lng != null) {
+            final newLocation = ItemLocation(
+              formattedAddress: location,
+              latitude: double.parse(lat),
+              longitude: double.parse(lng),
+            );
+
+            // Update current location
+            _currentLocation.value = newLocation;
+            _hasLocationPermission.value = true;
+
+            debugPrint('📍 LocationService updated: $location (${newLocation.latitude}, ${newLocation.longitude})');
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('❌ Error setting up location listener: $e');
+    }
   }
 
   /// Initialize location service - tries to get current location silently

@@ -143,3 +143,7 @@ export 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 export 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 export 'package:gosharpsharp/core/services/websocket/websocket_service_manager.dart';
+
+export 'package:gosharpsharp/core/utils/widgets/location_display_widget.dart';
+export 'package:gosharpsharp/core/controllers/location_controller.dart';
+
