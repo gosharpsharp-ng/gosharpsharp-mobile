@@ -10,8 +10,34 @@ class AppNavigationScreen extends StatelessWidget {
           return false;
         },
         child: Scaffold(
-          body: appNavigationController
-              .screens[appNavigationController.currentScreenIndex],
+          body: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              // Slide and fade transition
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.05, 0.0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutCubic,
+                    ),
+                  ),
+                  child: child,
+                ),
+              );
+            },
+            child: Container(
+              key: ValueKey<String>(
+                '${appNavigationController.currentScreenIndex}_${appNavigationController.showRestaurantView}',
+              ),
+              child: appNavigationController
+                  .screens[appNavigationController.currentScreenIndex],
+            ),
+          ),
           bottomNavigationBar: BottomAppBar(
             surfaceTintColor: AppColors.whiteColor,
             padding: const EdgeInsets.all(0.0),

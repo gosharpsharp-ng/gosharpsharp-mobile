@@ -663,8 +663,8 @@ class DottedBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.obscureTextColor
-      ..strokeWidth = 2
+      ..color = AppColors.greyColor
+      ..strokeWidth = 0.8
       ..style = PaintingStyle.stroke;
 
     const double dashWidth = 3.0;
