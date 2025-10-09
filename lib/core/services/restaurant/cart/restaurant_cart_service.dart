@@ -23,6 +23,35 @@ class RestaurantCartService extends CoreService {
     return await send("/menu-cart/items", data);
   }
 
+  // Addon management endpoints
+  Future<APIResponse> removeAddonFromCartItem({
+    required int cartItemId,
+    required int addonId,
+  }) async {
+    return await remove("/menu-cart/items/$cartItemId/addons/$addonId");
+  }
+
+  Future<APIResponse> updateAddonQuantity({
+    required int cartItemId,
+    required int addonId,
+    required int quantity,
+  }) async {
+    return await update(
+      "/menu-cart/items/$cartItemId/addons/$addonId",
+      {'quantity': quantity},
+    );
+  }
+
+  Future<APIResponse> addAddonToCartItem({
+    required int cartItemId,
+    required List<int> addonIds,
+  }) async {
+    return await send(
+      "/menu-cart/items/$cartItemId/addons",
+      {'addons': addonIds},
+    );
+  }
+
   Future<APIResponse> createOrder(dynamic data) async {
     return await send("/customers/orders/menu/create-and-pay", data);
   }

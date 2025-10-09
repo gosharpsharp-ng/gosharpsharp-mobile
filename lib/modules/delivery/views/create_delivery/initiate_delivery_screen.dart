@@ -223,31 +223,33 @@ class InitiateDeliveryScreen extends StatelessWidget {
                           title: "Phone number (required)",
                           label: "7061032122",
                           onChanged: (PhoneNumber phone) {
-                            if (phone.number.isNotEmpty &&
-                                phone.number.startsWith('0')) {
-                              final updatedNumber = phone.number.replaceFirst(
-                                RegExp(r'^0'),
-                                '',
-                              );
+                            // Remove all spaces and leading zero
+                            String cleanedNumber = phone.number.replaceAll(' ', '');
+
+                            if (cleanedNumber.isNotEmpty && cleanedNumber.startsWith('0')) {
+                              cleanedNumber = cleanedNumber.replaceFirst(RegExp(r'^0'), '');
+                            }
+
+                            if (cleanedNumber != phone.number) {
                               ordersController.receiverPhoneController.value =
                                   TextEditingValue(
-                                    text: updatedNumber,
+                                    text: cleanedNumber,
                                     selection: TextSelection.collapsed(
-                                      offset: updatedNumber.length,
+                                      offset: cleanedNumber.length,
                                     ),
                                   );
                               ordersController.setReceiverPhoneNumber(
                                 PhoneNumber(
                                   countryISOCode: phone.countryISOCode,
                                   countryCode: phone.countryCode,
-                                  number: updatedNumber,
+                                  number: cleanedNumber,
                                 ),
                               );
                               ordersController.setFilledPhoneNumber(
                                 PhoneNumber(
                                   countryISOCode: phone.countryISOCode,
                                   countryCode: phone.countryCode,
-                                  number: updatedNumber,
+                                  number: cleanedNumber,
                                 ),
                               );
                             } else {

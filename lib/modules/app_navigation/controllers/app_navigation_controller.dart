@@ -18,10 +18,6 @@ class AppNavigationController extends GetxController {
   int currentScreenIndex = 0;
   changeScreenIndex(selectedIndex) {
     currentScreenIndex = selectedIndex;
-    // If user navigates away from home, reset to landing view
-    if (selectedIndex != 0) {
-      showRestaurantView = false;
-    }
     update();
   }
 

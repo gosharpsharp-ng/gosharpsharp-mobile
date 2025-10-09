@@ -78,14 +78,28 @@ class ResetPasswordEmailEntry extends StatelessWidget {
                                 title: "Phone number",
                                 label: "7061032122",
                                 onChanged: (PhoneNumber phone) {
-                                  if (phone.number.startsWith('0')) {
-                                    final updatedNumber =
-                                        phone.number.replaceFirst('0', '');
+                                  // Remove all spaces and leading zero
+                                  String cleanedNumber = phone.number.replaceAll(' ', '');
+
+                                  if (cleanedNumber.isNotEmpty && cleanedNumber.startsWith('0')) {
+                                    cleanedNumber = cleanedNumber.replaceFirst(RegExp(r'^0'), '');
+                                  }
+
+                                  if (cleanedNumber != phone.number) {
+                                    passwordResetController.loginController.value =
+                                        TextEditingValue(
+                                          text: cleanedNumber,
+                                          selection: TextSelection.collapsed(
+                                            offset: cleanedNumber.length,
+                                          ),
+                                        );
                                     PhoneNumber num = PhoneNumber(
                                         countryISOCode: phone.countryISOCode,
                                         countryCode: phone.countryCode,
-                                        number: updatedNumber);
+                                        number: cleanedNumber);
                                     passwordResetController.setPhoneNumber(num);
+                                  } else {
+                                    passwordResetController.setPhoneNumber(phone);
                                   }
                                 },
                                 keyboardType: TextInputType.phone,
