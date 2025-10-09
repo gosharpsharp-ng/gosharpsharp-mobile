@@ -3,6 +3,7 @@ import 'package:gosharpsharp/core/services/restaurant/cart/restaurant_cart_servi
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/views/checkout_screen.dart';
 import 'package:gosharpsharp/modules/cart/views/order_tracking_screen.dart';
+import 'package:gosharpsharp/modules/cart/views/widgets/package_selection_dialog.dart';
 
 class CartController extends GetxController {
   final cartService = serviceLocator<RestaurantCartService>();
@@ -14,10 +15,10 @@ class CartController extends GetxController {
   bool _isUpdatingCart = false;
   int? _addingToCartItemId; // Track specific item being added
 
-  get isLoading => _isLoading;
-  get isAddingToCart => _isAddingToCart;
-  get isRemovingFromCart => _isRemovingFromCart;
-  get isUpdatingCart => _isUpdatingCart;
+  bool get isLoading => _isLoading;
+  bool get isAddingToCart => _isAddingToCart;
+  bool get isRemovingFromCart => _isRemovingFromCart;
+  bool get isUpdatingCart => _isUpdatingCart;
 
   // Check if specific item is being added to cart
   bool isAddingItemToCart(int itemId) => _addingToCartItemId == itemId;
@@ -47,6 +48,19 @@ class CartController extends GetxController {
   double _cartTotal = 0.0;
   RxString selectedPaymentMethod = 'Cash'.obs;
   RxString instructions = ''.obs;
+
+  // Package management
+  List<String> _packageNames = [];
+  String? _selectedPackageName;
+
+  List<String> get packageNames => _packageNames;
+  String? get selectedPackageName => _selectedPackageName;
+
+  // Set selected package
+  void setSelectedPackage(String? packageName) {
+    _selectedPackageName = packageName;
+    update();
+  }
 
   // Order tracking states
   RxBool orderPlaced = false.obs;
@@ -94,44 +108,92 @@ class CartController extends GetxController {
       setLoadingState(true);
       APIResponse response = await cartService.getMenuCart();
 
-
-
       if (response.status.toLowerCase() == "success") {
         if (response.data != null) {
           customDebugPrint(response.data);
-          // Handle the new API structure: {items: [], total: 0}
-          final data = response.data as Map<String, dynamic>;
-          final itemsData = data['items'] as List<dynamic>? ?? [];
-          final total = data['total'] ?? 0;
 
-          // Parse cart items
-          _cartItems = itemsData
-              .map((item) => CartItem.fromJson(item as Map<String, dynamic>))
+          // Parse the Cart object from response
+          final Cart cart = Cart.fromJson(response.data as Map<String, dynamic>);
+
+          // Extract items
+          _cartItems = cart.items;
+
+          // Extract package names from cart packages
+          _packageNames = (cart.packages as List<dynamic>)
+              .map((pkg) => pkg['name']?.toString() ?? '')
+              .where((name) => name.isNotEmpty)
               .toList();
 
+          // Set default package if cart is not empty and no package selected
+          if (_cartItems.isNotEmpty && _selectedPackageName == null) {
+            if (_packageNames.isEmpty) {
+              _packageNames = ['Pack 1'];
+            }
+            _selectedPackageName = _packageNames.first;
+          }
+
           // Set total
-          _cartTotal = double.tryParse(total.toString()) ?? 0.0;
+          _cartTotal = double.tryParse(cart.totalAmount) ?? 0.0;
         } else {
           _cartItems = [];
           _cartTotal = 0.0;
+          _packageNames = [];
+          _selectedPackageName = null;
         }
+        update(); // Trigger UI update
       } else {
         showToast(message: response.message, isError: true);
         _cartItems = [];
         _cartTotal = 0.0;
+        _packageNames = [];
+        _selectedPackageName = null;
+        update(); // Trigger UI update
       }
     } catch (e) {
       showToast(message: "Failed to fetch cart: $e", isError: true);
       _cartItems = [];
       _cartTotal = 0.0;
+      _packageNames = [];
+      _selectedPackageName = null;
+      update(); // Trigger UI update
     } finally {
       setLoadingState(false);
     }
   }
 
-  // Add item to cart
-  Future<void> addToCart(int menuId, int quantity, {int? addonMenuId}) async {
+  // Add item to cart with package and addons support
+  Future<void> addToCart(
+    int menuId,
+    int quantity, {
+    int? addonMenuId,
+    List<int>? addonIds,
+    String? packageName,
+    bool showPackageDialog = false,
+  }) async {
     try {
+      // If user wants to choose package or cart has multiple packages, show dialog
+      if (showPackageDialog && _packageNames.isNotEmpty) {
+        // This will be handled by the UI showing package selection dialog
+        return;
+      }
+
+      // Determine package name
+      String finalPackageName;
+      if (packageName != null) {
+        finalPackageName = packageName;
+      } else if (_selectedPackageName != null) {
+        finalPackageName = _selectedPackageName!;
+      } else if (isCartEmpty) {
+        // First item in cart, default to Pack 1
+        finalPackageName = 'Pack 1';
+      } else if (_packageNames.isNotEmpty) {
+        // Use existing package
+        finalPackageName = _packageNames.first;
+      } else {
+        // Fallback to Pack 1
+        finalPackageName = 'Pack 1';
+      }
+
       // Set specific item being added
       _addingToCartItemId = menuId;
       setAddingToCartState(true);
@@ -139,11 +201,15 @@ class CartController extends GetxController {
       dynamic data = {
         'menu_id': menuId,
         'quantity': quantity,
+        'package_name': finalPackageName,
       };
 
-      // Add addon_menu_id to data if it's provided
-      if (addonMenuId != null) {
-        data['addon_menu_id'] = addonMenuId;
+      // Add addons if provided (new API format expects array of addon IDs)
+      if (addonIds != null && addonIds.isNotEmpty) {
+        data['addons'] = addonIds;
+      } else if (addonMenuId != null) {
+        // Support legacy single addon parameter
+        data['addons'] = [addonMenuId];
       }
 
       APIResponse response = await cartService.addToMenuCart(data);
@@ -160,6 +226,41 @@ class CartController extends GetxController {
     } finally {
       _addingToCartItemId = null; // Clear specific item
       setAddingToCartState(false);
+    }
+  }
+
+  // Show package selection dialog and add to cart
+  Future<void> showPackageSelectionAndAddToCart(
+    int menuId,
+    int quantity, {
+    List<int>? addonIds,
+  }) async {
+    // Get context for showing dialog
+    final context = Get.context;
+    if (context == null) return;
+
+    // If cart is empty, just add to Pack 1
+    if (isCartEmpty) {
+      await addToCart(menuId, quantity, addonIds: addonIds, packageName: 'Pack 1');
+      return;
+    }
+
+    // Show dialog to select package or create new one
+    final result = await Get.dialog<String>(
+      PackageSelectionDialog(
+        existingPackages: _packageNames,
+        currentPackage: _selectedPackageName,
+      ),
+    );
+
+    if (result != null) {
+      // User selected or created a package
+      await addToCart(
+        menuId,
+        quantity,
+        addonIds: addonIds,
+        packageName: result,
+      );
     }
   }
 
@@ -458,5 +559,237 @@ class CartController extends GetxController {
   // Refresh cart data
   Future<void> refreshCart() async {
     await fetchCart();
+  }
+
+  // Package-aware helper methods
+
+  // Get cart items by package
+  List<CartItem> getItemsByPackage(String packageName) {
+    // Note: We need to enhance Cart model to store package info
+    // For now, filter by package name from packages list
+    return _cartItems.where((item) {
+      // This would work if API returns package info with items
+      // You may need to match packageId with package names
+      return true; // Placeholder - needs API structure clarification
+    }).toList();
+  }
+
+  // Get cart item by menu ID and optional package
+  CartItem? getCartItemByMenuId(int menuId, {int? packageId}) {
+    try {
+      if (packageId != null) {
+        return _cartItems.firstWhere(
+          (item) => item.purchasableId == menuId && item.packageId == packageId,
+        );
+      } else {
+        return _cartItems.firstWhere(
+          (item) => item.purchasableId == menuId,
+        );
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Addon helper methods (Updated for new structure)
+  // Note: In the new API, addons are nested within cart items, not separate items
+
+  bool isAddonInCart(int mainItemId, int addonId) {
+    try {
+      // Find the main cart item
+      final mainItem = _cartItems.firstWhere(
+        (item) => item.purchasableId == mainItemId,
+      );
+
+      // Check if addon exists in the addons array
+      return mainItem.addons.any((addon) =>
+        addon is Map && addon['id'] == addonId
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
+  int getAddonQuantityInCart(int mainItemId, int addonId) {
+    try {
+      // Find the main cart item
+      final mainItem = _cartItems.firstWhere(
+        (item) => item.purchasableId == mainItemId,
+      );
+
+      // Find the addon and get its quantity
+      final addon = mainItem.addons.firstWhere(
+        (addon) => addon is Map && addon['id'] == addonId,
+        orElse: () => null,
+      );
+
+      if (addon != null && addon is Map) {
+        return addon['quantity'] ?? 0;
+      }
+
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // Addon management with API endpoints
+
+  Future<void> removeAddonFromCart(int mainItemId, int addonId) async {
+    try {
+      setUpdatingCartState(true);
+
+      // Find the cart item
+      final cartItem = _cartItems.firstWhere(
+        (item) => item.purchasableId == mainItemId,
+      );
+
+      APIResponse response = await cartService.removeAddonFromCartItem(
+        cartItemId: cartItem.id,
+        addonId: addonId,
+      );
+
+      if (response.status.toLowerCase() == "success") {
+        showToast(message: "Addon removed successfully", isError: false);
+        await fetchCart();
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to remove addon: $e", isError: true);
+      debugPrint('Error removing addon from cart: $e');
+    } finally {
+      setUpdatingCartState(false);
+    }
+  }
+
+  Future<void> increaseAddonQuantity(int mainItemId, int addonId) async {
+    try {
+      setUpdatingCartState(true);
+
+      // Find the cart item
+      final cartItem = _cartItems.firstWhere(
+        (item) => item.purchasableId == mainItemId,
+      );
+
+      // Get current addon quantity
+      final currentQuantity = getAddonQuantityInCart(mainItemId, addonId);
+      final newQuantity = currentQuantity + 1;
+
+      APIResponse response = await cartService.updateAddonQuantity(
+        cartItemId: cartItem.id,
+        addonId: addonId,
+        quantity: newQuantity,
+      );
+
+      if (response.status.toLowerCase() == "success") {
+        showToast(message: "Addon quantity updated", isError: false);
+        await fetchCart();
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to update addon quantity: $e", isError: true);
+      debugPrint('Error increasing addon quantity: $e');
+    } finally {
+      setUpdatingCartState(false);
+    }
+  }
+
+  Future<void> decreaseAddonQuantity(int mainItemId, int addonId) async {
+    try {
+      setUpdatingCartState(true);
+
+      // Find the cart item
+      final cartItem = _cartItems.firstWhere(
+        (item) => item.purchasableId == mainItemId,
+      );
+
+      // Get current addon quantity
+      final currentQuantity = getAddonQuantityInCart(mainItemId, addonId);
+
+      if (currentQuantity > 1) {
+        // Decrease quantity
+        final newQuantity = currentQuantity - 1;
+
+        APIResponse response = await cartService.updateAddonQuantity(
+          cartItemId: cartItem.id,
+          addonId: addonId,
+          quantity: newQuantity,
+        );
+
+        if (response.status.toLowerCase() == "success") {
+          showToast(message: "Addon quantity updated", isError: false);
+          await fetchCart();
+        } else {
+          showToast(message: response.message, isError: true);
+        }
+      } else {
+        // Remove addon if quantity would be 0
+        await removeAddonFromCart(mainItemId, addonId);
+      }
+    } catch (e) {
+      showToast(message: "Failed to update addon quantity: $e", isError: true);
+      debugPrint('Error decreasing addon quantity: $e');
+    } finally {
+      setUpdatingCartState(false);
+    }
+  }
+
+  // Add addons to existing cart item
+  Future<void> addAddonsToCartItem(int cartItemId, List<int> addonIds) async {
+    try {
+      setUpdatingCartState(true);
+
+      APIResponse response = await cartService.addAddonToCartItem(
+        cartItemId: cartItemId,
+        addonIds: addonIds,
+      );
+
+      if (response.status.toLowerCase() == "success") {
+        showToast(message: "Addons added successfully", isError: false);
+        await fetchCart();
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to add addons: $e", isError: true);
+      debugPrint('Error adding addons to cart item: $e');
+    } finally {
+      setUpdatingCartState(false);
+    }
+  }
+
+  // Package-aware quantity management
+
+  // Increase quantity of a cart item (package-aware)
+  Future<void> increaseItemQuantity(int cartItemId) async {
+    try {
+      final item = _cartItems.firstWhere((item) => item.id == cartItemId);
+      await updateCartItemQuantity(cartItemId, item.quantity + 1);
+    } catch (e) {
+      debugPrint('Error increasing item quantity: $e');
+    }
+  }
+
+  // Decrease quantity of a cart item (package-aware)
+  Future<void> decreaseItemQuantity(int cartItemId) async {
+    try {
+      final item = _cartItems.firstWhere((item) => item.id == cartItemId);
+
+      if (item.quantity > 1) {
+        await updateCartItemQuantity(cartItemId, item.quantity - 1);
+      } else {
+        // Remove item if quantity would be 0
+        await removeFromCart(cartItemId);
+      }
+    } catch (e) {
+      debugPrint('Error decreasing item quantity: $e');
+    }
+  }
+
+  // Remove entire cart item from package
+  Future<void> removeCartItem(int cartItemId) async {
+    await removeFromCart(cartItemId);
   }
 }

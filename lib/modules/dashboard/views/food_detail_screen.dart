@@ -1,9 +1,5 @@
-import 'dart:developer';
-
-import 'package:flutter/material.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
-import 'package:gosharpsharp/modules/dashboard/controllers/dashboard_controller.dart';
 import 'package:gosharpsharp/core/models/menu_item_model.dart';
 import 'package:gosharpsharp/modules/dashboard/views/widgets/addon_selection_bottom_sheet.dart';
 
@@ -493,39 +489,20 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.blackColor,
                                     ),
-                                    SizedBox(height: 8.h),
-                                    ...menuItem.addonMenus!
-                                        .map(
-                                          (addon) => Padding(
-                                            padding: EdgeInsets.only(
-                                              bottom: 12.h,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.add_circle_outline,
-                                                  size: 16.sp,
-                                                  color: AppColors.primaryColor,
-                                                ),
-                                                SizedBox(width: 8.w),
-                                                Expanded(
-                                                  child: customText(
-                                                    addon.name,
-                                                    fontSize: 14.sp,
-                                                    color: AppColors.blackColor,
-                                                  ),
-                                                ),
-                                                customText(
-                                                  formatToCurrency(addon.price),
-                                                  fontSize: 13.sp,
-                                                  fontWeight: FontWeight.normal,
-                                                  color: AppColors.blackColor,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
+                                    SizedBox(height: 12.h),
+                                    GetBuilder<CartController>(
+                                      builder: (cartCtrl) => Column(
+                                        children: menuItem.addonMenus!
+                                            .map(
+                                              (addon) => _buildAddonItem(
+                                                addon,
+                                                cartCtrl,
+                                                menuItem,
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                    ),
                                     SizedBox(height: 16.h),
                                   ],
 
@@ -543,51 +520,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                             ),
 
                             SizedBox(height: 24.h),
-
-                            // Reviews Section
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20.w),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  customText(
-                                    "Reviews",
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.blackColor,
-                                  ),
-                                  SizedBox(height: 12.h),
-                                  // No reviews state
-                                  Container(
-                                    padding: EdgeInsets.all(20.w),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.rate_review,
-                                          size: 48.sp,
-                                          color: AppColors.obscureTextColor
-                                              .withOpacity(0.5),
-                                        ),
-                                        SizedBox(height: 12.h),
-                                        customText(
-                                          "No Reviews Yet",
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.blackColor,
-                                        ),
-                                        SizedBox(height: 8.h),
-                                        customText(
-                                          "Be the first to leave a review for this item",
-                                          fontSize: 14.sp,
-                                          color: AppColors.obscureTextColor,
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
 
                             SizedBox(
                               height: 100.h,
@@ -884,5 +816,147 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     } catch (e) {
       debugPrint('Error adding to cart from button: $e');
     }
+  }
+
+  Widget _buildAddonItem(
+    MenuItemModel addon,
+    CartController cartController,
+    MenuItemModel mainItem,
+  ) {
+    // Check if addon is in cart
+    final isInCart = cartController.isAddonInCart(mainItem.id, addon.id);
+    final addonQuantity = cartController.getAddonQuantityInCart(mainItem.id, addon.id);
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: isInCart ? AppColors.primaryColor.withOpacity(0.1) : AppColors.lightGreyColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isInCart ? AppColors.primaryColor : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Checkbox
+          GestureDetector(
+            onTap: () async {
+              if (isInCart) {
+                // Remove from cart
+                await cartController.removeAddonFromCart(mainItem.id, addon.id);
+              } else {
+                // Add to cart
+                await cartController.addToCart(
+                  mainItem.id,
+                  1,
+                  addonMenuId: addon.id,
+                );
+              }
+            },
+            child: Container(
+              width: 24.w,
+              height: 24.w,
+              decoration: BoxDecoration(
+                color: isInCart ? AppColors.primaryColor : AppColors.whiteColor,
+                borderRadius: BorderRadius.circular(6.r),
+                border: Border.all(
+                  color: isInCart ? AppColors.primaryColor : AppColors.greyColor,
+                  width: 2,
+                ),
+              ),
+              child: isInCart
+                  ? Icon(
+                      Icons.check,
+                      size: 16.sp,
+                      color: AppColors.whiteColor,
+                    )
+                  : null,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          // Addon details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                customText(
+                  addon.name,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.blackColor,
+                ),
+                SizedBox(height: 2.h),
+                customText(
+                  formatToCurrency(addon.price),
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.normal,
+                  color: AppColors.primaryColor,
+                ),
+              ],
+            ),
+          ),
+          // Quantity controls - always visible
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: AppColors.whiteColor,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: addonQuantity > 0
+                      ? () async {
+                          if (addonQuantity > 1) {
+                            await cartController.decreaseAddonQuantity(mainItem.id, addon.id);
+                          } else {
+                            await cartController.removeAddonFromCart(mainItem.id, addon.id);
+                          }
+                        }
+                      : null,
+                  child: Icon(
+                    addonQuantity > 1 ? Icons.remove : Icons.delete_outline,
+                    size: 16.sp,
+                    color: addonQuantity > 0
+                        ? (addonQuantity > 1 ? AppColors.blackColor : AppColors.redColor)
+                        : AppColors.greyColor,
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                customText(
+                  addonQuantity.toString(),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.blackColor,
+                ),
+                SizedBox(width: 8.w),
+                GestureDetector(
+                  onTap: () async {
+                    if (addonQuantity > 0) {
+                      await cartController.increaseAddonQuantity(mainItem.id, addon.id);
+                    } else {
+                      // Add to cart for the first time
+                      await cartController.addToCart(
+                        mainItem.id,
+                        1,
+                        addonMenuId: addon.id,
+                      );
+                    }
+                  },
+                  child: Icon(
+                    Icons.add,
+                    size: 16.sp,
+                    color: AppColors.blackColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

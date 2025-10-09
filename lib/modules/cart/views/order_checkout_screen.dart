@@ -121,6 +121,7 @@ class OrderCheckoutScreen extends StatelessWidget {
       child: Stack(
         children: [
           GoogleMap(
+            key: ValueKey('${lat}_${lng}'), // Force rebuild when location changes
             initialCameraPosition: CameraPosition(
               target: LatLng(lat, lng),
               zoom: 15,

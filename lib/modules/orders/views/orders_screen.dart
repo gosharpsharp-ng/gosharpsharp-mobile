@@ -184,12 +184,11 @@ class CartScreen extends StatelessWidget {
               width: double.infinity,
               height: 58.h,
               backgroundColor: AppColors.primaryColor,
-              title:
-                  'Place Order - ${formatToCurrency(cartController.total)}',
+              title: 'Place Order - ${formatToCurrency(cartController.total)}',
               onPressed: () {
                 cartController.placeOrder();
               },
-              isBusy: cartController.isLoading.value,
+              isBusy: cartController.isLoading,
               borderRadius: 8.r,
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
