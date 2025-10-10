@@ -377,7 +377,7 @@ class CartController extends GetxController {
       customDebugPrint("Request body: ${data.toString()}");
 
       APIResponse response = await cartService.updateMenuCart(
-        id: cartItem.purchasableId, // Use purchasable ID instead of cart item ID
+        id: cartItem.cartId, // Use purchasable ID instead of cart item ID
         data: data,
       );
 

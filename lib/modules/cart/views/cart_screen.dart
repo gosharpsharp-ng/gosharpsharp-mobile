@@ -288,17 +288,17 @@ class CartScreen extends StatelessWidget {
                     icon: Icon(
                       Icons.content_copy,
                       size: 14.sp,
-                      color: AppColors.greyColor,
+                      color: AppColors.blackColor,
                     ),
                     label: customText(
                       'Duplicate Pack',
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.greyColor,
+                      color: AppColors.blackColor,
                     ),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),
-                      backgroundColor: AppColors.lightGreyColor,
+                      backgroundColor: AppColors.secondaryColor.withAlpha(190),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6.r),
                       ),
