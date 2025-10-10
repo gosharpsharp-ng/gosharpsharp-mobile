@@ -626,115 +626,42 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
       );
     }
 
-    if (cartQuantity == 0) {
-      // Show plus button for items not in cart
-      return InkWell(
-        onTap: !isCurrentlyAdding
-            ? () => _addToCart(menuItem, cartController)
-            : null,
-        child: Container(
-          width: 32.w,
-          height: 32.w,
-          decoration: BoxDecoration(
-            color: isCurrentlyAdding
-                ? AppColors.obscureTextColor
-                : AppColors.lightGreyColor,
-            shape: BoxShape.circle,
-          ),
-          child: isCurrentlyAdding
-              ? SizedBox(
-                  width: 16.w,
-                  height: 16.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.whiteColor,
-                    ),
-                  ),
-                )
-              : Icon(Icons.add, color: AppColors.blackColor, size: 18.sp),
-        ),
-      );
-    } else {
-      // Show quantity controls for items in cart
-      return Container(
-        padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 8.w),
+    // Always show Add to Cart button (or cart icon if item is in cart)
+    bool isInCart = cartQuantity > 0;
+
+    return InkWell(
+      onTap: !isCurrentlyAdding
+          ? () => _addToCart(menuItem, cartController)
+          : null,
+      child: Container(
+        width: 32.w,
+        height: 32.w,
         decoration: BoxDecoration(
-          color: AppColors.lightGreyColor,
-          borderRadius: BorderRadius.circular(12.r),
+          color: isCurrentlyAdding
+              ? AppColors.obscureTextColor
+              : isInCart
+                  ? AppColors.primaryColor
+                  : AppColors.lightGreyColor,
+          shape: BoxShape.circle,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Minus/Remove button
-            InkWell(
-              onTap: () =>
-                  _decreaseQuantity(menuItem, cartController, cartQuantity),
-              child: Container(
-                width: 28.w,
-                height: 28.w,
-                decoration: BoxDecoration(
-                  color: cartQuantity == 1
-                      ? Colors.transparent
-                      : AppColors.primaryColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Container(
-                  height: 10.sp,
-                  width: 10.sp,
-                  child: SvgPicture.asset(
-                    height: 10.sp,
-                    width: 10.sp,
-                    cartQuantity == 1
-                        ? SvgAssets.deleteIcon
-                        : SvgAssets.addIcon,
-                    colorFilter: ColorFilter.mode(
-                      cartQuantity == 1
-                          ? AppColors.redColor
-                          : AppColors.whiteColor,
-                      BlendMode.srcIn,
-                    ),
+        child: isCurrentlyAdding
+            ? SizedBox(
+                width: 16.w,
+                height: 16.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.whiteColor,
                   ),
                 ),
+              )
+            : Icon(
+                Icons.add,
+                color: isInCart ? AppColors.whiteColor : AppColors.blackColor,
+                size: 18.sp,
               ),
-            ),
-            SizedBox(width: 8.w),
-            // Quantity display
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: AppColors.lightGreyColor,
-                borderRadius: BorderRadius.circular(4.r),
-              ),
-              child: customText(
-                cartQuantity.toString(),
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blackColor,
-              ),
-            ),
-            SizedBox(width: 8.w),
-            // Plus button
-            InkWell(
-              onTap: () => _addToCart(menuItem, cartController),
-              child: Container(
-                width: 28.w,
-                height: 28.w,
-                decoration: BoxDecoration(
-                  color: AppColors.lightGreyColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.add,
-                  color: AppColors.blackColor,
-                  size: 14.sp,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+      ),
+    );
   }
 
   void _addToCart(MenuItemModel menuItem, CartController cartController) async {

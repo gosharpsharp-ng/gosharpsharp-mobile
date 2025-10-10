@@ -74,6 +74,77 @@ class CartItemWidget extends StatelessWidget {
 
                 SizedBox(height: 8.h),
 
+                // Addons (if any)
+                if (item.addons.isNotEmpty) ...[
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 8.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightGreyColor,
+                      borderRadius: BorderRadius.circular(6.r),
+                      border: Border.all(
+                        color: AppColors.greyColor.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.add_circle_outline,
+                              size: 12.sp,
+                              color: AppColors.greyColor,
+                            ),
+                            SizedBox(width: 4.w),
+                            customText(
+                              'Add-ons:',
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.greyColor,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4.h),
+                        ...item.addons.map((addon) {
+                          final addonName = addon.addonMenu?.name ?? 'Unknown addon';
+                          final addonPrice = double.tryParse(addon.price) ?? 0.0;
+                          return Padding(
+                            padding: EdgeInsets.only(left: 16.w, top: 2.h),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 4.w,
+                                  height: 4.w,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.greyColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                SizedBox(width: 6.w),
+                                Expanded(
+                                  child: customText(
+                                    '$addonName (x${addon.quantity})',
+                                    fontSize: 11.sp,
+                                    color: AppColors.blackColor,
+                                  ),
+                                ),
+                                customText(
+                                  '₦${(addonPrice * addon.quantity).toStringAsFixed(2)}',
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.obscureTextColor,
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                ],
+
                 // Total and quantity controls
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -149,8 +220,8 @@ class CartItemWidget extends StatelessWidget {
   Widget _buildQuantityControls() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.1),
-        // border: Border.all(color: AppColors.greyColor.withOpacity(0.3)),
+        color: AppColors.lightGreyColor,
+        border: Border.all(color: AppColors.greyColor.withOpacity(0.3)),
         borderRadius: BorderRadius.circular(18.r),
       ),
       child: Row(
@@ -171,7 +242,7 @@ class CartItemWidget extends StatelessWidget {
                 color: isUpdating
                     ? AppColors.greyColor.withOpacity(0.5)
                     : item.quantity == 1
-                        ? AppColors.primaryColor.withAlpha(250)
+                        ? AppColors.redColor
                         : AppColors.blackColor,
               ),
             ),

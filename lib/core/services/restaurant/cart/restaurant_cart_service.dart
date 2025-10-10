@@ -55,4 +55,9 @@ class RestaurantCartService extends CoreService {
   Future<APIResponse> createOrder(dynamic data) async {
     return await send("/customers/orders/menu/create-and-pay", data);
   }
+
+  // Duplicate package
+  Future<APIResponse> duplicatePackage(int packageId) async {
+    return await send("/menu-cart/packages/$packageId/duplicate", {});
+  }
 }

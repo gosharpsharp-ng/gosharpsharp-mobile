@@ -44,16 +44,15 @@ class CartController extends GetxController {
   }
 
   // Cart data - Updated structure
-  List<CartItem> _cartItems = [];
-  double _cartTotal = 0.0;
+  List<CartPackage> _packages = [];
   RxString selectedPaymentMethod = 'Cash'.obs;
   RxString instructions = ''.obs;
 
   // Package management
-  List<String> _packageNames = [];
   String? _selectedPackageName;
 
-  List<String> get packageNames => _packageNames;
+  List<CartPackage> get packages => _packages;
+  List<String> get packageNames => _packages.map((p) => p.name).toList();
   String? get selectedPackageName => _selectedPackageName;
 
   // Set selected package
@@ -115,45 +114,27 @@ class CartController extends GetxController {
           // Parse the Cart object from response
           final Cart cart = Cart.fromJson(response.data as Map<String, dynamic>);
 
-          // Extract items
-          _cartItems = cart.items;
-
-          // Extract package names from cart packages
-          _packageNames = (cart.packages as List<dynamic>)
-              .map((pkg) => pkg['name']?.toString() ?? '')
-              .where((name) => name.isNotEmpty)
-              .toList();
+          // Extract packages
+          _packages = cart.packages;
 
           // Set default package if cart is not empty and no package selected
-          if (_cartItems.isNotEmpty && _selectedPackageName == null) {
-            if (_packageNames.isEmpty) {
-              _packageNames = ['Pack 1'];
-            }
-            _selectedPackageName = _packageNames.first;
+          if (_packages.isNotEmpty && _selectedPackageName == null) {
+            _selectedPackageName = _packages.first.name;
           }
-
-          // Set total
-          _cartTotal = double.tryParse(cart.totalAmount) ?? 0.0;
         } else {
-          _cartItems = [];
-          _cartTotal = 0.0;
-          _packageNames = [];
+          _packages = [];
           _selectedPackageName = null;
         }
         update(); // Trigger UI update
       } else {
         showToast(message: response.message, isError: true);
-        _cartItems = [];
-        _cartTotal = 0.0;
-        _packageNames = [];
+        _packages = [];
         _selectedPackageName = null;
         update(); // Trigger UI update
       }
     } catch (e) {
       showToast(message: "Failed to fetch cart: $e", isError: true);
-      _cartItems = [];
-      _cartTotal = 0.0;
-      _packageNames = [];
+      _packages = [];
       _selectedPackageName = null;
       update(); // Trigger UI update
     } finally {
@@ -168,12 +149,12 @@ class CartController extends GetxController {
     int? addonMenuId,
     List<int>? addonIds,
     String? packageName,
-    bool showPackageDialog = false,
+    bool skipDialog = false, // New parameter to skip dialog when explicitly providing packageName
   }) async {
     try {
-      // If user wants to choose package or cart has multiple packages, show dialog
-      if (showPackageDialog && _packageNames.isNotEmpty) {
-        // This will be handled by the UI showing package selection dialog
+      // If packageName is not explicitly provided and skipDialog is false, show package selection dialog
+      if (packageName == null && !skipDialog) {
+        await showPackageSelectionAndAddToCart(menuId, quantity, addonIds: addonIds);
         return;
       }
 
@@ -186,12 +167,27 @@ class CartController extends GetxController {
       } else if (isCartEmpty) {
         // First item in cart, default to Pack 1
         finalPackageName = 'Pack 1';
-      } else if (_packageNames.isNotEmpty) {
+      } else if (packageNames.isNotEmpty) {
         // Use existing package
-        finalPackageName = _packageNames.first;
+        finalPackageName = packageNames.first;
       } else {
         // Fallback to Pack 1
         finalPackageName = 'Pack 1';
+      }
+
+      // Check if item already exists in the selected package
+      final existingItem = _findItemInPackage(menuId, finalPackageName, addonIds);
+
+      if (existingItem != null) {
+        // Item exists in package, increase quantity instead
+        final newQuantity = existingItem.quantity + quantity;
+        // Note: Don't send addons when updating quantity - they're already set on the item
+        await updateCartItemQuantity(
+          existingItem.id,
+          quantity: newQuantity,
+          packageName: finalPackageName,
+        );
+        return;
       }
 
       // Set specific item being added
@@ -229,6 +225,58 @@ class CartController extends GetxController {
     }
   }
 
+  // Helper method to find item in a specific package with matching addons
+  CartItem? _findItemInPackage(int menuId, String packageName, List<int>? addonIds) {
+    try {
+      // Find the package
+      final package = _packages.firstWhere(
+        (p) => p.name == packageName,
+        orElse: () => throw Exception('Package not found'),
+      );
+
+      // Find item with matching menu ID in this package
+      final matchingItems = package.items.where((item) => item.purchasableId == menuId);
+
+      if (matchingItems.isEmpty) return null;
+
+      // If no addons specified, return first matching item
+      if (addonIds == null || addonIds.isEmpty) {
+        // Return item only if it has no addons
+        return matchingItems.firstWhere(
+          (item) => item.addons.isEmpty,
+          orElse: () => null as CartItem,
+        );
+      }
+
+      // Find item with exact matching addons
+      for (var item in matchingItems) {
+        if (_hasMatchingAddons(item, addonIds)) {
+          return item;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Helper method to check if cart item has matching addons
+  bool _hasMatchingAddons(CartItem item, List<int> addonIds) {
+    // Get addon IDs from cart item
+    final itemAddonIds = item.addons.map((a) => a.addonId).toList()..sort();
+    final requestedAddonIds = List<int>.from(addonIds)..sort();
+
+    // Check if addon lists match
+    if (itemAddonIds.length != requestedAddonIds.length) return false;
+
+    for (int i = 0; i < itemAddonIds.length; i++) {
+      if (itemAddonIds[i] != requestedAddonIds[i]) return false;
+    }
+
+    return true;
+  }
+
   // Show package selection dialog and add to cart
   Future<void> showPackageSelectionAndAddToCart(
     int menuId,
@@ -239,17 +287,11 @@ class CartController extends GetxController {
     final context = Get.context;
     if (context == null) return;
 
-    // If cart is empty, just add to Pack 1
-    if (isCartEmpty) {
-      await addToCart(menuId, quantity, addonIds: addonIds, packageName: 'Pack 1');
-      return;
-    }
-
-    // Show dialog to select package or create new one
+    // Always show dialog, even if cart is empty (to allow user to name the first package)
     final result = await Get.dialog<String>(
       PackageSelectionDialog(
-        existingPackages: _packageNames,
-        currentPackage: _selectedPackageName,
+        existingPackages: packageNames,
+        currentPackage: _selectedPackageName ?? (isCartEmpty ? 'Pack 1' : null),
       ),
     );
 
@@ -260,31 +302,106 @@ class CartController extends GetxController {
         quantity,
         addonIds: addonIds,
         packageName: result,
+        skipDialog: true, // Skip dialog since we already got the package name
       );
     }
   }
 
-  // Update cart item quantity
-  Future<void> updateCartItemQuantity(int itemId, int quantity) async {
+  // Update cart item (quantity and/or addons)
+  // Note: package_name is REQUIRED since every cart item is always in a package
+  // quantity is optional (only needed when updating quantity)
+  // addonIds is optional (only needed when updating addons)
+  Future<void> updateCartItemQuantity(int itemId, {dynamic quantity, List<int>? addonIds, String? packageName}) async {
     try {
       setUpdatingCartState(true);
 
-      dynamic data = {'quantity': quantity};
+      // Find the item to get its package if not provided
+      String? finalPackageName = packageName;
+
+      if (finalPackageName == null) {
+        // Find the item in packages to get its package name
+        bool found = false;
+        for (var package in _packages) {
+          for (var cartItem in package.items) {
+            if (cartItem.id == itemId) {
+              finalPackageName = package.name;
+              found = true;
+              break;
+            }
+          }
+          if (found) break;
+        }
+
+        if (finalPackageName == null) {
+          showToast(message: "Item not found in cart", isError: true);
+          return;
+        }
+      }
+
+      // Find the cart item to get the purchasable_id
+      CartItem? cartItem;
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (item.id == itemId) {
+            cartItem = item;
+            break;
+          }
+        }
+        if (cartItem != null) break;
+      }
+
+      if (cartItem == null) {
+        showToast(message: "Cart item not found", isError: true);
+        return;
+      }
+
+      Map<String, dynamic> data = {
+        'package_name': finalPackageName, // Always include package name (REQUIRED)
+      };
+
+      // Only add quantity if explicitly provided (optional)
+      if (quantity != null) {
+        // Parse to int if it's a string, otherwise use as is
+        data['quantity'] = quantity is int ? quantity : int.parse(quantity.toString());
+      }
+      // Only add addons if explicitly provided (optional)
+      if (addonIds != null) {
+        data['addons'] = addonIds;
+      }
 
       // Use the correct endpoint for updating cart item
+
+      customDebugPrint("cart item id: $itemId");
+      customDebugPrint("purchasable id: ${cartItem.purchasableId}");
+      customDebugPrint("Request route: /menu-cart/items/${cartItem.purchasableId}");
+      customDebugPrint("Request body: ${data.toString()}");
+
       APIResponse response = await cartService.updateMenuCart(
-        id: itemId,
+        id: cartItem.purchasableId, // Use purchasable ID instead of cart item ID
         data: data,
       );
+
+      customDebugPrint("Response status: ${response.status}");
+      customDebugPrint("Response message: ${response.message}");
+      customDebugPrint("Response data: ${response.data}");
 
       if (response.status.toLowerCase() == "success") {
         showToast(message: "Cart updated successfully", isError: false);
         // Refresh cart after updating
         await fetchCart();
       } else {
+        customDebugPrint("=== ERROR UPDATING CART ===");
+        customDebugPrint("Route called: /menu-cart/items/${cartItem.purchasableId}");
+        customDebugPrint("Request body sent: ${data.toString()}");
+        customDebugPrint("Error Status: ${response.status}");
+        customDebugPrint("Error Message: ${response.message}");
+        customDebugPrint("Error Data: ${response.data}");
+        customDebugPrint("=========================");
         showToast(message: response.message, isError: true);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      customDebugPrint("Exception updating cart: $e");
+      customDebugPrint("Stack trace: $stackTrace");
       showToast(message: "Failed to update cart: $e", isError: true);
     } finally {
       setUpdatingCartState(false);
@@ -295,7 +412,7 @@ class CartController extends GetxController {
   Future<void> decreaseQuantity(int menuId) async {
     CartItem? item = getCartItemByPurchasableId(menuId);
     if (item != null && item.quantity > 1) {
-      await updateCartItemQuantity(item.id, item.quantity - 1);
+      await updateCartItemQuantity(item.id, quantity: item.quantity - 1);
     } else if (item != null && item.quantity == 1) {
       // Remove item if quantity is 1
       await removeFromCart(item.id);
@@ -327,7 +444,7 @@ class CartController extends GetxController {
 
   // Clear entire cart
   Future<void> clearCart() async {
-    if (_cartItems.isEmpty) return;
+    if (isCartEmpty) return;
 
     try {
       setLoadingState(true);
@@ -350,9 +467,9 @@ class CartController extends GetxController {
 
   // Getters for cart calculations
   double get subtotal {
-    // Calculate subtotal from individual cart item totals
-    return _cartItems.fold(0.0, (sum, item) {
-      return sum + (double.tryParse(item.total) ?? 0.0);
+    // Calculate subtotal from all packages
+    return _packages.fold(0.0, (sum, package) {
+      return sum + (double.tryParse(package.cost) ?? 0.0);
     });
   }
 
@@ -361,15 +478,18 @@ class CartController extends GetxController {
   double get total => subtotal + deliveryFee + serviceCharge;
 
   int get itemCount {
-    return _cartItems.fold(0, (sum, item) => sum + item.quantity);
+    return _packages.fold(0, (sum, package) {
+      return sum + package.items.fold(0, (itemSum, item) => itemSum + item.quantity);
+    });
   }
 
   List<CartItem> get cartItems {
-    return _cartItems;
+    // Get all items from all packages
+    return _packages.expand((package) => package.items).toList();
   }
 
   bool get isCartEmpty {
-    return _cartItems.isEmpty;
+    return _packages.isEmpty;
   }
 
   void selectPaymentMethod(String method) {
@@ -537,9 +657,15 @@ class CartController extends GetxController {
   // Helper method to get cart item by purchasable ID
   CartItem? getCartItemByPurchasableId(int purchasableId) {
     try {
-      return _cartItems.firstWhere(
-        (item) => item.purchasableId == purchasableId,
-      );
+      // Search through all packages
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (item.purchasableId == purchasableId) {
+            return item;
+          }
+        }
+      }
+      return null;
     } catch (e) {
       return null;
     }
@@ -565,27 +691,40 @@ class CartController extends GetxController {
 
   // Get cart items by package
   List<CartItem> getItemsByPackage(String packageName) {
-    // Note: We need to enhance Cart model to store package info
-    // For now, filter by package name from packages list
-    return _cartItems.where((item) {
-      // This would work if API returns package info with items
-      // You may need to match packageId with package names
-      return true; // Placeholder - needs API structure clarification
-    }).toList();
+    try {
+      final package = _packages.firstWhere((p) => p.name == packageName);
+      return package.items;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Get package by name
+  CartPackage? getPackageByName(String packageName) {
+    try {
+      return _packages.firstWhere((p) => p.name == packageName);
+    } catch (e) {
+      return null;
+    }
   }
 
   // Get cart item by menu ID and optional package
   CartItem? getCartItemByMenuId(int menuId, {int? packageId}) {
     try {
-      if (packageId != null) {
-        return _cartItems.firstWhere(
-          (item) => item.purchasableId == menuId && item.packageId == packageId,
-        );
-      } else {
-        return _cartItems.firstWhere(
-          (item) => item.purchasableId == menuId,
-        );
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (packageId != null) {
+            if (item.purchasableId == menuId && item.cartPackageId == packageId) {
+              return item;
+            }
+          } else {
+            if (item.purchasableId == menuId) {
+              return item;
+            }
+          }
+        }
       }
+      return null;
     } catch (e) {
       return null;
     }
@@ -596,15 +735,22 @@ class CartController extends GetxController {
 
   bool isAddonInCart(int mainItemId, int addonId) {
     try {
-      // Find the main cart item
-      final mainItem = _cartItems.firstWhere(
-        (item) => item.purchasableId == mainItemId,
-      );
+      // Find the main cart item across all packages
+      CartItem? mainItem;
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (item.purchasableId == mainItemId) {
+            mainItem = item;
+            break;
+          }
+        }
+        if (mainItem != null) break;
+      }
+
+      if (mainItem == null) return false;
 
       // Check if addon exists in the addons array
-      return mainItem.addons.any((addon) =>
-        addon is Map && addon['id'] == addonId
-      );
+      return mainItem.addons.any((addon) => addon.addonId == addonId);
     } catch (e) {
       return false;
     }
@@ -612,22 +758,35 @@ class CartController extends GetxController {
 
   int getAddonQuantityInCart(int mainItemId, int addonId) {
     try {
-      // Find the main cart item
-      final mainItem = _cartItems.firstWhere(
-        (item) => item.purchasableId == mainItemId,
-      );
+      // Find the main cart item across all packages
+      CartItem? mainItem;
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (item.purchasableId == mainItemId) {
+            mainItem = item;
+            break;
+          }
+        }
+        if (mainItem != null) break;
+      }
+
+      if (mainItem == null) return 0;
 
       // Find the addon and get its quantity
       final addon = mainItem.addons.firstWhere(
-        (addon) => addon is Map && addon['id'] == addonId,
-        orElse: () => null,
+        (addon) => addon.addonId == addonId,
+        orElse: () => CartItemAddon(
+          id: 0,
+          cartItemId: 0,
+          addonId: 0,
+          quantity: 0,
+          price: "0.00",
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
       );
 
-      if (addon != null && addon is Map) {
-        return addon['quantity'] ?? 0;
-      }
-
-      return 0;
+      return addon.quantity;
     } catch (e) {
       return 0;
     }
@@ -639,10 +798,22 @@ class CartController extends GetxController {
     try {
       setUpdatingCartState(true);
 
-      // Find the cart item
-      final cartItem = _cartItems.firstWhere(
-        (item) => item.purchasableId == mainItemId,
-      );
+      // Find the cart item across all packages
+      CartItem? cartItem;
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (item.purchasableId == mainItemId) {
+            cartItem = item;
+            break;
+          }
+        }
+        if (cartItem != null) break;
+      }
+
+      if (cartItem == null) {
+        showToast(message: "Cart item not found", isError: true);
+        return;
+      }
 
       APIResponse response = await cartService.removeAddonFromCartItem(
         cartItemId: cartItem.id,
@@ -667,10 +838,22 @@ class CartController extends GetxController {
     try {
       setUpdatingCartState(true);
 
-      // Find the cart item
-      final cartItem = _cartItems.firstWhere(
-        (item) => item.purchasableId == mainItemId,
-      );
+      // Find the cart item across all packages
+      CartItem? cartItem;
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (item.purchasableId == mainItemId) {
+            cartItem = item;
+            break;
+          }
+        }
+        if (cartItem != null) break;
+      }
+
+      if (cartItem == null) {
+        showToast(message: "Cart item not found", isError: true);
+        return;
+      }
 
       // Get current addon quantity
       final currentQuantity = getAddonQuantityInCart(mainItemId, addonId);
@@ -700,10 +883,22 @@ class CartController extends GetxController {
     try {
       setUpdatingCartState(true);
 
-      // Find the cart item
-      final cartItem = _cartItems.firstWhere(
-        (item) => item.purchasableId == mainItemId,
-      );
+      // Find the cart item across all packages
+      CartItem? cartItem;
+      for (var package in _packages) {
+        for (var item in package.items) {
+          if (item.purchasableId == mainItemId) {
+            cartItem = item;
+            break;
+          }
+        }
+        if (cartItem != null) break;
+      }
+
+      if (cartItem == null) {
+        showToast(message: "Cart item not found", isError: true);
+        return;
+      }
 
       // Get current addon quantity
       final currentQuantity = getAddonQuantityInCart(mainItemId, addonId);
@@ -765,8 +960,24 @@ class CartController extends GetxController {
   // Increase quantity of a cart item (package-aware)
   Future<void> increaseItemQuantity(int cartItemId) async {
     try {
-      final item = _cartItems.firstWhere((item) => item.id == cartItemId);
-      await updateCartItemQuantity(cartItemId, item.quantity + 1);
+      // Find the item across all packages
+      CartItem? item;
+      for (var package in _packages) {
+        for (var cartItem in package.items) {
+          if (cartItem.id == cartItemId) {
+            item = cartItem;
+            break;
+          }
+        }
+        if (item != null) break;
+      }
+
+      if (item == null) {
+        debugPrint('Cart item not found: $cartItemId');
+        return;
+      }
+
+      await updateCartItemQuantity(cartItemId, quantity: item.quantity + 1);
     } catch (e) {
       debugPrint('Error increasing item quantity: $e');
     }
@@ -775,10 +986,25 @@ class CartController extends GetxController {
   // Decrease quantity of a cart item (package-aware)
   Future<void> decreaseItemQuantity(int cartItemId) async {
     try {
-      final item = _cartItems.firstWhere((item) => item.id == cartItemId);
+      // Find the item across all packages
+      CartItem? item;
+      for (var package in _packages) {
+        for (var cartItem in package.items) {
+          if (cartItem.id == cartItemId) {
+            item = cartItem;
+            break;
+          }
+        }
+        if (item != null) break;
+      }
+
+      if (item == null) {
+        debugPrint('Cart item not found: $cartItemId');
+        return;
+      }
 
       if (item.quantity > 1) {
-        await updateCartItemQuantity(cartItemId, item.quantity - 1);
+        await updateCartItemQuantity(cartItemId, quantity: item.quantity - 1);
       } else {
         // Remove item if quantity would be 0
         await removeFromCart(cartItemId);
@@ -791,5 +1017,27 @@ class CartController extends GetxController {
   // Remove entire cart item from package
   Future<void> removeCartItem(int cartItemId) async {
     await removeFromCart(cartItemId);
+  }
+
+  // Duplicate package - creates a copy of the package with all its items
+  Future<void> duplicatePackage(int packageId) async {
+    try {
+      setLoadingState(true);
+
+      APIResponse response = await cartService.duplicatePackage(packageId);
+
+      if (response.status.toLowerCase() == "success") {
+        showToast(message: "Package duplicated successfully", isError: false);
+        // Refresh cart to show the new package
+        await fetchCart();
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Failed to duplicate package: $e", isError: true);
+      debugPrint('Error duplicating package: $e');
+    } finally {
+      setLoadingState(false);
+    }
   }
 }

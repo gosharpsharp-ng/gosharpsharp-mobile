@@ -1,3 +1,4 @@
+import 'package:gosharpsharp/core/models/cart_model.dart';
 import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 import 'package:gosharpsharp/modules/cart/views/widgets/cart_item_widget.dart';
@@ -53,43 +54,18 @@ class CartScreen extends StatelessWidget {
                 ? _buildEmptyCart()
                 : Column(
                     children: [
-                      // Cart Items Header
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: customText(
-                            'Cart Items',
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.blackColor,
-                          ),
-                        ),
-                      ),
-
-                      // Cart Items List
+                      // Packages List - Grouped by package
                       Expanded(
                         child: ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w),
-                          itemCount: cartController.cartItems.length,
-                          itemBuilder: (context, index) {
-                            final item = cartController.cartItems[index];
-                            return CartItemWidget(
-                              item: item,
-                              onQuantityChanged: (quantity) {
-                                cartController.updateCartItemQuantity(
-                                  item.id,
-                                  quantity,
-                                );
-                              },
-                              onRemove: () {
-                                cartController.removeFromCart(item.id);
-                              },
-                              isUpdating: cartController.isUpdatingCart,
-                              isRemoving: cartController.isRemovingFromCart,
+                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                          itemCount: cartController.packages.length,
+                          itemBuilder: (context, packageIndex) {
+                            final package = cartController.packages[packageIndex];
+                            return _buildPackageSection(
+                              context,
+                              cartController,
+                              package,
+                              packageIndex,
                             );
                           },
                         ),
@@ -239,6 +215,164 @@ class CartScreen extends StatelessWidget {
     );
   }
 
+
+  Widget _buildPackageSection(
+    BuildContext context,
+    CartController cartController,
+    CartPackage package,
+    int packageIndex,
+  ) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      decoration: BoxDecoration(
+        color: AppColors.whiteColor,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Package Header
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: AppColors.lightGreyColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12.r),
+                topRight: Radius.circular(12.r),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 20.sp,
+                  color: AppColors.greyColor,
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: customText(
+                    package.name,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                ),
+                // Package cost
+                customText(
+                  formatToCurrency(double.tryParse(package.cost) ?? 0.0),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.blackColor,
+                ),
+              ],
+            ),
+          ),
+
+          // Package Actions
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      cartController.duplicatePackage(package.id);
+                    },
+                    icon: Icon(
+                      Icons.content_copy,
+                      size: 14.sp,
+                      color: AppColors.greyColor,
+                    ),
+                    label: customText(
+                      'Duplicate Pack',
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.greyColor,
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),
+                      backgroundColor: AppColors.lightGreyColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      // Set selected package and navigate to dashboard
+                      cartController.setSelectedPackage(package.name);
+                      Get.toNamed(Routes.DASHBOARD);
+                      showToast(
+                        message: "Select items to add to ${package.name}",
+                        isError: false,
+                      );
+                    },
+                    icon: Icon(
+                      Icons.add,
+                      size: 14.sp,
+                      color: AppColors.greyColor,
+                    ),
+                    label: customText(
+                      'Add Items',
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.greyColor,
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),
+                      backgroundColor: AppColors.lightGreyColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Divider(height: 1.h, thickness: 1, color: AppColors.lightGreyColor),
+
+          // Package Items
+          ListView.separated(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.all(12.w),
+            itemCount: package.items.length,
+            separatorBuilder: (context, index) => Divider(height: 16.h),
+            itemBuilder: (context, itemIndex) {
+              final item = package.items[itemIndex];
+              return CartItemWidget(
+                item: item,
+                onQuantityChanged: (quantity) {
+                  cartController.updateCartItemQuantity(
+                    item.id,
+                    quantity: int.parse(quantity.toString()),
+                    packageName: package.name,
+                  );
+                },
+                onRemove: () {
+                  cartController.removeFromCart(item.id);
+                },
+                isUpdating: cartController.isUpdatingCart,
+                isRemoving: cartController.isRemovingFromCart,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showClearCartDialog(
     BuildContext context,
