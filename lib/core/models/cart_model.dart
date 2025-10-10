@@ -1,8 +1,9 @@
 import 'package:gosharpsharp/core/models/categories_model.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
+import 'package:gosharpsharp/core/models/menu_item_model.dart';
 
 import 'item_file_model.dart';
-import 'order_model.dart';
+import 'order_model.dart' as order;
 
 class Cart {
   int id;
@@ -15,8 +16,7 @@ class Cart {
   String? deletedAt;
   DateTime createdAt;
   DateTime updatedAt;
-  List<CartItem> items;
-  List<dynamic> packages;
+  List<CartPackage> packages;
 
   Cart({
     required this.id,
@@ -29,7 +29,6 @@ class Cart {
     this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
-    required this.items,
     this.packages = const [],
   });
 
@@ -50,8 +49,7 @@ class Cart {
         updatedAt: json["updated_at"] != null
             ? DateTime.tryParse(json["updated_at"]) ?? DateTime.now()
             : DateTime.now(),
-        items: _parseCartItems(json["items"]),
-        packages: json["packages"] as List<dynamic>? ?? [],
+        packages: _parseCartPackages(json["packages"]),
       );
     } catch (e) {
       print("Error parsing Cart: $e");
@@ -66,31 +64,30 @@ class Cart {
         deletedAt: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        items: [],
         packages: [],
       );
     }
   }
 
-  static List<CartItem> _parseCartItems(dynamic itemsJson) {
+  static List<CartPackage> _parseCartPackages(dynamic packagesJson) {
     try {
-      if (itemsJson == null) return [];
-      if (itemsJson is! List) return [];
+      if (packagesJson == null) return [];
+      if (packagesJson is! List) return [];
 
-      final items = <CartItem>[];
-      for (final item in itemsJson) {
-        if (item is Map<String, dynamic>) {
+      final packages = <CartPackage>[];
+      for (final package in packagesJson) {
+        if (package is Map<String, dynamic>) {
           try {
-            items.add(CartItem.fromJson(item));
+            packages.add(CartPackage.fromJson(package));
           } catch (e) {
-            print("Error parsing CartItem: $e");
-            // Skip invalid items
+            print("Error parsing CartPackage: $e");
+            // Skip invalid packages
           }
         }
       }
-      return items;
+      return packages;
     } catch (e) {
-      print("Error parsing cart items list: $e");
+      print("Error parsing cart packages list: $e");
       return [];
     }
   }
@@ -106,8 +103,128 @@ class Cart {
     "deleted_at": deletedAt,
     "created_at": createdAt.toIso8601String(),
     "updated_at": updatedAt.toIso8601String(),
+    "packages": List<dynamic>.from(packages.map((x) => x.toJson())),
+  };
+
+  // Convenience getters
+  List<CartItem> get allItems {
+    return packages.expand((package) => package.items).toList();
+  }
+
+  int get totalItemCount {
+    return allItems.fold(0, (sum, item) => sum + item.quantity);
+  }
+}
+
+// CartPackage model
+class CartPackage {
+  int id;
+  int cartId;
+  String name;
+  String cost;
+  int sortOrder;
+  String? metadata;
+  DateTime createdAt;
+  DateTime updatedAt;
+  String? deletedAt;
+  List<CartItem> items;
+  List<CartItemAddon> addons;
+
+  CartPackage({
+    required this.id,
+    required this.cartId,
+    required this.name,
+    required this.cost,
+    required this.sortOrder,
+    this.metadata,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    this.items = const [],
+    this.addons = const [],
+  });
+
+  factory CartPackage.fromJson(Map<String, dynamic> json) {
+    try {
+      return CartPackage(
+        id: json["id"] ?? 0,
+        cartId: json["cart_id"] ?? 0,
+        name: json["name"]?.toString() ?? "",
+        cost: json["cost"]?.toString() ?? "0.00",
+        sortOrder: json["sort_order"] ?? 0,
+        metadata: json["metadata"]?.toString(),
+        createdAt: json["created_at"] != null
+            ? DateTime.tryParse(json["created_at"]) ?? DateTime.now()
+            : DateTime.now(),
+        updatedAt: json["updated_at"] != null
+            ? DateTime.tryParse(json["updated_at"]) ?? DateTime.now()
+            : DateTime.now(),
+        deletedAt: json["deleted_at"]?.toString(),
+        items: _parseCartItems(json["items"]),
+        addons: _parsePackageAddons(json["addons"]),
+      );
+    } catch (e) {
+      print("Error parsing CartPackage: $e");
+      rethrow;
+    }
+  }
+
+  static List<CartItem> _parseCartItems(dynamic itemsJson) {
+    try {
+      if (itemsJson == null) return [];
+      if (itemsJson is! List) return [];
+
+      final items = <CartItem>[];
+      for (final item in itemsJson) {
+        if (item is Map<String, dynamic>) {
+          try {
+            items.add(CartItem.fromJson(item));
+          } catch (e) {
+            print("Error parsing CartItem: $e");
+          }
+        }
+      }
+      return items;
+    } catch (e) {
+      print("Error parsing cart items list: $e");
+      return [];
+    }
+  }
+
+  static List<CartItemAddon> _parsePackageAddons(dynamic addonsJson) {
+    try {
+      if (addonsJson == null) return [];
+      if (addonsJson is! List) return [];
+
+      final addons = <CartItemAddon>[];
+      for (final addon in addonsJson) {
+        if (addon is Map<String, dynamic>) {
+          try {
+            addons.add(CartItemAddon.fromJson(addon));
+          } catch (e) {
+            print("Error parsing CartItemAddon: $e");
+          }
+        }
+      }
+      return addons;
+    } catch (e) {
+      print("Error parsing package addons list: $e");
+      return [];
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "cart_id": cartId,
+    "name": name,
+    "cost": cost,
+    "sort_order": sortOrder,
+    "metadata": metadata,
+    "created_at": createdAt.toIso8601String(),
+    "updated_at": updatedAt.toIso8601String(),
+    "deleted_at": deletedAt,
     "items": List<dynamic>.from(items.map((x) => x.toJson())),
-    "packages": packages,
+    "addons": List<dynamic>.from(addons.map((x) => x.toJson())),
   };
 }
 
@@ -117,7 +234,7 @@ class CartItem {
   String price;
   String total;
   String discount;
-  int? packageId;
+  int? cartPackageId;
   int quantity;
   dynamic options;
   String purchasableType;
@@ -126,7 +243,7 @@ class CartItem {
   String? createdAt;
   String? updatedAt;
   Purchasable purchasable;
-  List<dynamic> addons;
+  List<CartItemAddon> addons;
 
   CartItem({
     required this.id,
@@ -134,7 +251,7 @@ class CartItem {
     required this.price,
     required this.total,
     required this.discount,
-    this.packageId,
+    this.cartPackageId,
     required this.quantity,
     this.options,
     required this.purchasableType,
@@ -164,9 +281,9 @@ class CartItem {
         price: json["price"]?.toString() ?? "0.00",
         total: json["total"]?.toString() ?? "0.00",
         discount: json["discount"]?.toString() ?? "0.00",
-        packageId: json["package_id"] is int
-            ? json["package_id"]
-            : (json["package_id"] != null ? int.tryParse(json["package_id"].toString()) : null),
+        cartPackageId: json["cart_package_id"] is int
+            ? json["cart_package_id"]
+            : (json["cart_package_id"] != null ? int.tryParse(json["cart_package_id"].toString()) : null),
         quantity: json["quantity"] is int ? json["quantity"] : int.tryParse(json["quantity"]?.toString() ?? "1") ?? 1,
         options: json["options"],
         purchasableType: json["purchasable_type"]?.toString() ?? "",
@@ -185,11 +302,22 @@ class CartItem {
     }
   }
 
-  static List<dynamic> _parseAddons(dynamic addonsJson) {
+  static List<CartItemAddon> _parseAddons(dynamic addonsJson) {
     try {
       if (addonsJson == null) return [];
-      if (addonsJson is List) return addonsJson;
-      return [];
+      if (addonsJson is! List) return [];
+
+      final addons = <CartItemAddon>[];
+      for (final addon in addonsJson) {
+        if (addon is Map<String, dynamic>) {
+          try {
+            addons.add(CartItemAddon.fromJson(addon));
+          } catch (e) {
+            print("Error parsing CartItemAddon: $e");
+          }
+        }
+      }
+      return addons;
     } catch (e) {
       print("Error parsing addons: $e");
       return [];
@@ -202,7 +330,7 @@ class CartItem {
     "price": price,
     "total": total,
     "discount": discount,
-    "package_id": packageId,
+    "cart_package_id": cartPackageId,
     "quantity": quantity,
     "options": options,
     "purchasable_type": purchasableType,
@@ -211,18 +339,18 @@ class CartItem {
     "created_at": createdAt,
     "updated_at": updatedAt,
     "purchasable": purchasable.toJson(),
-    "addons": addons,
+    "addons": List<dynamic>.from(addons.map((x) => x.toJson())),
   };
 
   // Adapter method to create CartItem from OrderItemModel
-  static CartItem fromOrderItem(OrderItemModel orderItem, int cartId) {
+  static CartItem fromOrderItem(order.OrderItemModel orderItem, int cartId) {
     return CartItem(
       id: orderItem.id,
       cartId: cartId,
       price: orderItem.price.toString(),
       total: orderItem.total.toString(),
       discount: "0", // Orders typically don't have discounts at item level
-      packageId: null,
+      cartPackageId: null,
       quantity: orderItem.quantity,
       options: orderItem.options,
       purchasableType: orderItem.orderableType,
@@ -234,6 +362,76 @@ class CartItem {
       addons: [],
     );
   }
+}
+
+// CartItemAddon model - Simplified to use MenuItemModel
+class CartItemAddon {
+  int id;
+  int cartItemId;
+  int addonId;
+  int quantity;
+  String price;
+  DateTime createdAt;
+  DateTime updatedAt;
+  MenuItemModel? addonMenu;
+
+  CartItemAddon({
+    required this.id,
+    required this.cartItemId,
+    required this.addonId,
+    required this.quantity,
+    required this.price,
+    required this.createdAt,
+    required this.updatedAt,
+    this.addonMenu,
+  });
+
+  factory CartItemAddon.fromJson(Map<String, dynamic> json) {
+    try {
+      // Extract addon menu from nested structure
+      MenuItemModel? addonMenu;
+      try {
+        // The API returns addon -> addon_menu structure
+        if (json["addon"] != null && json["addon"]["addon_menu"] != null) {
+          addonMenu = MenuItemModel.fromJson(json["addon"]["addon_menu"] as Map<String, dynamic>);
+        } else if (json["addon_menu"] != null) {
+          addonMenu = MenuItemModel.fromJson(json["addon_menu"] as Map<String, dynamic>);
+        }
+      } catch (e) {
+        print("Error parsing addon menu: $e");
+        addonMenu = null;
+      }
+
+      return CartItemAddon(
+        id: json["id"] ?? 0,
+        cartItemId: json["cart_item_id"] ?? 0,
+        addonId: json["addon_id"] ?? 0,
+        quantity: json["quantity"] ?? 1,
+        price: json["price"]?.toString() ?? "0.00",
+        createdAt: json["created_at"] != null
+            ? DateTime.tryParse(json["created_at"]) ?? DateTime.now()
+            : DateTime.now(),
+        updatedAt: json["updated_at"] != null
+            ? DateTime.tryParse(json["updated_at"]) ?? DateTime.now()
+            : DateTime.now(),
+        addonMenu: addonMenu,
+      );
+    } catch (e) {
+      print("Error parsing CartItemAddon: $e");
+      rethrow;
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "cart_item_id": cartItemId,
+    "addon_id": addonId,
+    "quantity": quantity,
+    "price": price,
+    "created_at": createdAt.toIso8601String(),
+    "updated_at": updatedAt.toIso8601String(),
+    "addon_menu": addonMenu?.toJson(),
+  };
 }
 
 class Purchasable {

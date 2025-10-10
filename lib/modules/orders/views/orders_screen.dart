@@ -164,7 +164,7 @@ class CartScreen extends StatelessWidget {
                       onQuantityChanged: (quantity) {
                         cartController.updateCartItemQuantity(
                           item.id,
-                          quantity,
+                          quantity: int.parse(quantity.toString()),
                         );
                       },
                       onRemove: () {
