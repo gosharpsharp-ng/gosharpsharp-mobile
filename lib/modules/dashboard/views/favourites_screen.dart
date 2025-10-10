@@ -37,17 +37,18 @@ class FavouritesScreen extends StatelessWidget {
                     color: AppColors.blackColor,
                   ),
                   SizedBox(height: 15.h),
-                  ...List.generate(
-                    dashboardController.favoriteRestaurants.length,
-                        (i) => FavRestaurantContainer(
-                      favourite: dashboardController.favoriteRestaurants[i],
-                      onPressed: () {
-                        dashboardController.navigateToRestaurant(
-                            dashboardController.favoriteRestaurants[i].favoritable!
-                        );
-                      },
-                    ),
-                  ),
+                  ...dashboardController.favoriteRestaurants
+                      .where((fav) => fav.favoritable != null)
+                      .map((favourite) => FavRestaurantContainer(
+                            favourite: favourite,
+                            onPressed: () {
+                              if (favourite.favoritable != null) {
+                                dashboardController.navigateToRestaurant(
+                                    favourite.favoritable!);
+                              }
+                            },
+                          ))
+                      .toList(),
                 ],
               ),
             ),

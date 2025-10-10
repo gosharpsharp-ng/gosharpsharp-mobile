@@ -40,12 +40,102 @@ class CoreService extends GetConnect {
           if (token != null) {
             options.headers['Authorization'] = "Bearer $token";
           }
+
+          // Log API Request
+          log(
+            '\n╔══════════════════════════════════════════════════════════════════════════════╗',
+          );
+          log('║ 🚀 API REQUEST');
+          log(
+            '╠══════════════════════════════════════════════════════════════════════════════╣',
+          );
+          log('║ Method: ${options.method}');
+          log('║ URL: ${options.uri}');
+          log(
+            '╠══════════════════════════════════════════════════════════════════════════════╣',
+          );
+          log('║ Headers:');
+          options.headers.forEach((key, value) {
+            if (key.toLowerCase() != 'authorization') {
+              log('║   $key: $value');
+            } else {
+              log('║   $key: ${value.toString().substring(0, 20)}...');
+            }
+          });
+          if (options.queryParameters.isNotEmpty) {
+            log(
+              '╠══════════════════════════════════════════════════════════════════════════════╣',
+            );
+            log('║ Query Parameters:');
+            options.queryParameters.forEach((key, value) {
+              log('║   $key: $value');
+            });
+          }
+          if (options.data != null) {
+            log(
+              '╠══════════════════════════════════════════════════════════════════════════════╣',
+            );
+            log('║ Request Body:');
+            log('║ ${options.data}');
+          }
+          log(
+            '╚══════════════════════════════════════════════════════════════════════════════╝\n',
+          );
+
           return handler.next(options); // Continue with the request
         },
         onResponse: (response, handler) {
+          // Log API Response
+          log(
+            '\n╔══════════════════════════════════════════════════════════════════════════════╗',
+          );
+          log('║ ✅ API RESPONSE');
+          log(
+            '╠══════════════════════════════════════════════════════════════════════════════╣',
+          );
+          log('║ Method: ${response.requestOptions.method}');
+          log('║ URL: ${response.requestOptions.uri}');
+          log('║ Status Code: ${response.statusCode}');
+          log(
+            '╠══════════════════════════════════════════════════════════════════════════════╣',
+          );
+          log('║ Response Body:');
+          log('║ ${response.data}');
+          log(
+            '╚══════════════════════════════════════════════════════════════════════════════╝\n',
+          );
+
           return handler.next(response); // Handle the response
         },
         onError: (DioException error, handler) {
+          // Log API Error
+          log(
+            '\n╔══════════════════════════════════════════════════════════════════════════════╗',
+          );
+          log('║ ❌ API ERROR');
+          log(
+            '╠══════════════════════════════════════════════════════════════════════════════╣',
+          );
+          log('║ Method: ${error.requestOptions.method}');
+          log('║ URL: ${error.requestOptions.uri}');
+          log('║ Error Type: ${error.type}');
+          if (error.response != null) {
+            log('║ Status Code: ${error.response?.statusCode}');
+            log(
+              '╠══════════════════════════════════════════════════════════════════════════════╣',
+            );
+            log('║ Error Response:');
+            log('║ ${error.response?.data}');
+          } else {
+            log(
+              '╠══════════════════════════════════════════════════════════════════════════════╣',
+            );
+            log('║ Error Message: ${error.message}');
+          }
+          log(
+            '╚══════════════════════════════════════════════════════════════════════════════╝\n',
+          );
+
           if (error.type == DioExceptionType.connectionTimeout ||
               error.type == DioExceptionType.sendTimeout ||
               error.type == DioExceptionType.receiveTimeout) {
@@ -83,16 +173,14 @@ class CoreService extends GetConnect {
   void handleUnauthorizedAccess() {
     getStorage.remove('token'); // Clear token
     showToast(
-        isError: true,
-        message: "Your session has expired. Please log in again.");
+      isError: true,
+      message: "Your session has expired. Please log in again.",
+    );
     Get.offAllNamed(Routes.SIGN_IN);
   }
 
   // login post
-  Future<APIResponse> sendLogin(
-    String url,
-    payload,
-  ) async {
+  Future<APIResponse> sendLogin(String url, payload) async {
     try {
       final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
@@ -105,18 +193,21 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong ");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong ",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 
   // general post
-  Future<APIResponse> send(
-    String url,
-    payload,
-  ) async {
+  Future<APIResponse> send(String url, payload) async {
     try {
       final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
@@ -127,23 +218,27 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong ");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong ",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 
   // general upload
   Future<APIResponse> upload(String url, String path) async {
     try {
       dio_pack.MultipartFile file = await dio_pack.MultipartFile.fromFile(path);
-      dio_pack.FormData payload =
-          dio_pack.FormData.fromMap({'attach_file': file});
-      final res = await _dio.post(
-        url,
-        data: payload,
-      );
+      dio_pack.FormData payload = dio_pack.FormData.fromMap({
+        'attach_file': file,
+      });
+      final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
         return APIResponse.fromMap(res.data);
       }
@@ -152,11 +247,17 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 
   // general get
@@ -171,16 +272,24 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 
   // general get by params
   Future<APIResponse> fetchByParams(
-      String url, Map<String, dynamic> params) async {
+    String url,
+    Map<String, dynamic> params,
+  ) async {
     try {
       final res = await _dio.get(url, queryParameters: params);
       if (res.statusCode == 200 || res.statusCode == 201) {
@@ -191,11 +300,17 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 
   // general put
@@ -210,11 +325,17 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 
   // general patch
@@ -229,11 +350,17 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 
   // form put
@@ -249,8 +376,9 @@ class CoreService extends GetConnect {
         if (value != null) {
           // If the value is a file path, convert it to MultipartFile
           if (key == 'avatar' && value is File) {
-            formDataMap[key] =
-                await dio_pack.MultipartFile.fromFile(value.path);
+            formDataMap[key] = await dio_pack.MultipartFile.fromFile(
+              value.path,
+            );
           } else {
             formDataMap[key] = value;
           }
@@ -331,8 +459,9 @@ class CoreService extends GetConnect {
       for (var itemJson in data['items']) {
         // Check if there's an image file to upload
         if (itemJson.containsKey('image') && itemJson['image'] is File) {
-          itemJson['image'] =
-              await dio_pack.MultipartFile.fromFile(itemJson['image'].path);
+          itemJson['image'] = await dio_pack.MultipartFile.fromFile(
+            itemJson['image'].path,
+          );
         }
 
         itemsWithImages.add(itemJson);
@@ -378,10 +507,16 @@ class CoreService extends GetConnect {
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(
-            status: "error", data: "Error", message: "Something went wrong");
+          status: "error",
+          data: "Error",
+          message: "Something went wrong",
+        );
       }
     }
     return APIResponse(
-        status: "error", data: "Error", message: "Something went wrong");
+      status: "error",
+      data: "Error",
+      message: "Something went wrong",
+    );
   }
 }

@@ -196,8 +196,11 @@ class DashboardController extends GetxController {
               .map((json) {
                 try {
                   return FavouriteRestaurantModel.fromJson(json as Map<String, dynamic>);
-                } catch (e) {
-                  // Skip invalid favorites
+                } catch (e, stackTrace) {
+                  // Log parsing error for debugging
+                  debugPrint('❌ Error parsing favorite restaurant: $e');
+                  debugPrint('Stack trace: $stackTrace');
+                  debugPrint('JSON data: $json');
                   return null;
                 }
               })
@@ -205,11 +208,16 @@ class DashboardController extends GetxController {
               .cast<FavouriteRestaurantModel>()
               .toList();
 
-          // Update favorite IDs set
+          // Update favorite IDs set (use favoritableId which is the actual restaurant ID)
           _favoriteRestaurantIds.clear();
           for (var restaurant in favoriteRestaurants) {
-            _favoriteRestaurantIds.add(restaurant.id);
+            if (restaurant.favoritable != null) {
+              _favoriteRestaurantIds.add(restaurant.favoritable!.id);
+            }
           }
+
+          debugPrint('✅ Loaded ${favoriteRestaurants.length} favorite restaurants');
+          debugPrint('🔖 Favorite restaurant IDs: $_favoriteRestaurantIds');
         } else {
           favoriteRestaurants = [];
         }
