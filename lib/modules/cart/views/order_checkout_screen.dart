@@ -368,49 +368,185 @@ class OrderCheckoutScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              customText(
-                'Payment Method',
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blackColor,
+              Row(
+                children: [
+                  Icon(
+                    Icons.payment,
+                    size: 20.sp,
+                    color: AppColors.blackColor,
+                  ),
+                  SizedBox(width: 8.w),
+                  customText(
+                    'Payment Method',
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                ],
               ),
               SizedBox(height: 16.h),
 
-              // Payment Options
-              Row(
-                children: [
-                  // Go Wallet Option
-                  Expanded(
-                    child: _buildPaymentOptionWithBalance(
-                      title: 'Go Wallet',
-                      subtitle: 'Pay with wallet balance',
-                      icon: Icons.account_balance_wallet,
-                      onTap: () => _selectWalletPayment(cartController, walletController),
-                      isLoading: cartController.isLoading,
-                      isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'wallet',
-                      walletBalance: walletController.walletBalanceData?.balance,
-                      orderTotal: cartController.total,
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
+              // Go Wallet Option
+              _buildModernPaymentOption(
+                title: 'Go Wallet',
+                subtitle: walletController.walletBalanceData?.balance != null
+                    ? 'Balance: ${formatToCurrency(double.tryParse(walletController.walletBalanceData!.balance) ?? 0)}'
+                    : 'Loading balance...',
+                icon: SvgAssets.walletIcon,
+                iconColor: AppColors.primaryColor,
+                onTap: () => _selectWalletPayment(cartController, walletController),
+                isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'wallet',
+                hasWarning: _hasInsufficientWalletFunds(walletController, cartController),
+              ),
 
-                  // Paystack Option
-                  Expanded(
-                    child: _buildPaymentOption(
-                      title: 'Paystack',
-                      subtitle: 'Pay with card or bank',
-                      icon: Icons.credit_card,
-                      onTap: () => _selectPaymentMethod(cartController, 'paystack'),
-                      isLoading: cartController.isLoading,
-                      isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'paystack',
-                    ),
-                  ),
-                ],
+              SizedBox(height: 12.h),
+
+              // Paystack Option
+              _buildModernPaymentOption(
+                title: 'Card Payment',
+                subtitle: 'Pay with debit/credit card',
+                icon: SvgAssets.paystackIcon,
+                iconColor: AppColors.blackColor,
+                onTap: () => _selectPaymentMethod(cartController, 'paystack'),
+                isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'paystack',
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Cash on Delivery Option
+              _buildModernPaymentOption(
+                title: 'Cash on Delivery',
+                subtitle: 'Pay when your order arrives',
+                icon: null,
+                materialIcon: Icons.money,
+                iconColor: AppColors.secondaryColor,
+                onTap: () => _selectPaymentMethod(cartController, 'cash'),
+                isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'cash',
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  bool _hasInsufficientWalletFunds(WalletController walletController, CartController cartController) {
+    String? balanceStr = walletController.walletBalanceData?.balance;
+    if (balanceStr != null) {
+      double balance = double.tryParse(balanceStr) ?? 0.0;
+      return balance < cartController.total;
+    }
+    return false;
+  }
+
+  Widget _buildModernPaymentOption({
+    required String title,
+    required String subtitle,
+    String? icon,
+    IconData? materialIcon,
+    required Color iconColor,
+    required VoidCallback onTap,
+    required bool isSelected,
+    bool hasWarning = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? iconColor.withOpacity(0.08)
+              : AppColors.backgroundColor,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: isSelected
+                ? iconColor
+                : hasWarning
+                    ? Colors.red.withOpacity(0.3)
+                    : AppColors.greyColor.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Icon
+            Container(
+              padding: EdgeInsets.all(10.w),
+              decoration: BoxDecoration(
+                color: isSelected ? iconColor : iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: icon != null
+                  ? SvgPicture.asset(
+                      icon,
+                      height: 24.sp,
+                      width: 24.sp,
+                      colorFilter: ColorFilter.mode(
+                        isSelected ? AppColors.whiteColor : iconColor,
+                        BlendMode.srcIn,
+                      ),
+                    )
+                  : Icon(
+                      materialIcon,
+                      size: 24.sp,
+                      color: isSelected ? AppColors.whiteColor : iconColor,
+                    ),
+            ),
+
+            SizedBox(width: 12.w),
+
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText(
+                    title,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                  SizedBox(height: 2.h),
+                  customText(
+                    subtitle,
+                    fontSize: 12.sp,
+                    color: hasWarning ? Colors.red : AppColors.obscureTextColor,
+                    maxLines: 1,
+                  ),
+                ],
+              ),
+            ),
+
+            // Selection indicator
+            if (isSelected)
+              Container(
+                padding: EdgeInsets.all(4.w),
+                decoration: BoxDecoration(
+                  color: iconColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  size: 16.sp,
+                  color: AppColors.whiteColor,
+                ),
+              )
+            else
+              Container(
+                width: 24.w,
+                height: 24.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 

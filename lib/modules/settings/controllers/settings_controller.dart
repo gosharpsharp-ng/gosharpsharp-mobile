@@ -227,6 +227,27 @@ class SettingsController extends GetxController {
     }
   }
 
+  // Fetch unread notifications count for badge
+  getUnreadNotifications() async {
+    setLoadingNotificationState(true);
+    dynamic data = {
+      "page": 1,
+      "per_page": 50, // Get enough to show accurate count
+    };
+
+    APIResponse response = await profileService.getNotifications(data);
+    setLoadingNotificationState(false);
+
+    if (response.status == "success") {
+      notifications = (response.data['data'] as List)
+          .map((nf) => NotificationModel.fromJson(nf))
+          .toList();
+
+      debugPrint('🔔 Loaded ${notifications.length} notifications');
+      update();
+    }
+  }
+
   logout() async {
     GetStorage getStorage = GetStorage();
     getStorage.remove('token');
@@ -313,7 +334,8 @@ class SettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Load profile when the controller is initialized
+    // Load profile and notifications when the controller is initialized
     getProfile();
+    getUnreadNotifications();
   }
 }

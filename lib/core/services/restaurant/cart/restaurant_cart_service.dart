@@ -12,7 +12,7 @@ class RestaurantCartService extends CoreService {
   }
 
   Future<APIResponse> updateMenuCart({required int id, dynamic data}) async {
-    return await update("/menu-cart/items/$id", data);
+    return await update("/menu-cart/items/$id/update", data);
   }
 
   Future<APIResponse> clearCart() async {

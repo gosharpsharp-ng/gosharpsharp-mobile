@@ -4,6 +4,7 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/views/cart_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/landing_screen.dart';
 import 'package:gosharpsharp/modules/orders/views/orders_home_screen.dart';
+import 'package:gosharpsharp/modules/orders/views/orders_hub.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 
 class AppNavigationController extends GetxController {
@@ -34,8 +35,7 @@ class AppNavigationController extends GetxController {
 
   List<Widget> get screens => [
     homeScreen,
-    const CartScreen(),
-    const OrdersHomeScreen(),
+    const OrdersHub(),
     const SettingsHomeScreen(),
   ];
   @override

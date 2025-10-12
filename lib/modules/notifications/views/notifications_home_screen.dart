@@ -1,4 +1,5 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
 
 class NotificationsHomeScreen extends StatelessWidget {
   const NotificationsHomeScreen({super.key});
@@ -38,8 +39,8 @@ class NotificationsHomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: customText("Loading...."),
+                child: SingleChildScrollView(
+                  child: SkeletonLoaders.notificationItem(count: 8),
                 ),
               ),
               child: SingleChildScrollView(

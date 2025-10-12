@@ -839,11 +839,11 @@ class _CustomOutlinedRoundedInputFieldState
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(_effectiveBorderRadius),
-                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.3), width: 0.5),
+                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.5), width: 1.0),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(_effectiveBorderRadius),
-                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.3), width: 0.5),
+                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.5), width: 1.0),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(_effectiveBorderRadius),

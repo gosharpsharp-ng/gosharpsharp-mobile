@@ -526,4 +526,90 @@ class SkeletonLoaders {
       ),
     );
   }
+
+  /// Notification item skeleton loader
+  static Widget notificationItem({int count = 5}) {
+    return Skeletonizer(
+      enabled: true,
+      child: Column(
+        children: List.generate(count, (index) => Container(
+          margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icon placeholder
+              Container(
+                width: 45.w,
+                height: 45.w,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  shape: BoxShape.circle,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              // Notification content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    Container(
+                      height: 16.h,
+                      width: 0.6.sw,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    // Message line 1
+                    Container(
+                      height: 14.h,
+                      width: 0.75.sw,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    // Message line 2
+                    Container(
+                      height: 14.h,
+                      width: 0.5.sw,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    // Timestamp
+                    Container(
+                      height: 12.h,
+                      width: 80.w,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        )),
+      ),
+    );
+  }
 }

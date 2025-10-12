@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:upgrader/upgrader.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -42,7 +43,7 @@ class DashboardScreen extends StatelessWidget {
                         horizontal: 10.w,
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           GetBuilder<AppNavigationController>(
                             builder: (navController) {
@@ -56,176 +57,206 @@ class DashboardScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          GetBuilder<SettingsController>(
-                            builder: (settingsController) {
-                              return Container(
-                                margin: EdgeInsets.symmetric(horizontal: 5.sp),
-                                color: AppColors.transparent,
-                                child: Row(
-                                  children: [
-                                    Visibility(
-                                      visible:
-                                          settingsController
-                                              .userProfile
-                                              ?.avatar !=
-                                          null,
-                                      replacement: CircleAvatar(
-                                        radius: 22.r,
-                                        backgroundColor:
-                                            AppColors.backgroundColor,
-                                        child: customText(
-                                          "${settingsController.userProfile?.fname.substring(0, 1) ?? ""}${settingsController.userProfile?.lname.substring(0, 1) ?? ""}",
-                                          fontSize: 14.sp,
+                          Expanded(
+                            child: GetBuilder<SettingsController>(
+                              builder: (settingsController) {
+                                return Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 5.sp),
+                                  color: AppColors.transparent,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Visibility(
+                                        visible:
+                                            settingsController
+                                                .userProfile
+                                                ?.avatar !=
+                                            null,
+                                        replacement: CircleAvatar(
+                                          radius: 22.r,
+                                          backgroundColor:
+                                              AppColors.backgroundColor,
+                                          child: customText(
+                                            "${settingsController.userProfile?.fname.substring(0, 1) ?? ""}${settingsController.userProfile?.lname.substring(0, 1) ?? ""}",
+                                            fontSize: 14.sp,
+                                          ),
+                                        ),
+                                        child: CircleAvatar(
+                                          backgroundImage:
+                                              CachedNetworkImageProvider(
+                                                settingsController
+                                                        .userProfile
+                                                        ?.avatar ??
+                                                    '',
+                                              ),
+                                          radius: 22.r,
                                         ),
                                       ),
-                                      child: CircleAvatar(
-                                        backgroundImage:
-                                            CachedNetworkImageProvider(
-                                              settingsController
-                                                      .userProfile
-                                                      ?.avatar ??
-                                                  '',
-                                            ),
-                                        radius: 22.r,
+                                      // SizedBox(width: 8.sp),
+                                      customText(
+                                        "Hi ${settingsController.userProfile?.fname ?? ''}",
+                                        fontSize: 20.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          Expanded(
+                            child: GetBuilder<SettingsController>(
+                              builder: (settingsController) {
+                                return Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    InkWell(
+                                      splashColor: AppColors.transparent,
+                                      highlightColor: AppColors.transparent,
+                                      onTap: () {
+                                        Get.toNamed(Routes.NOTIFICATIONS_HOME);
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 5.sp,
+                                        ),
+                                        child: settingsController
+                                                .isLoadingNotification
+                                            ? Skeletonizer(
+                                                enabled: true,
+                                                child: Badge(
+                                                  textColor: AppColors.whiteColor,
+                                                  backgroundColor:
+                                                      AppColors.redColor,
+                                                  isLabelVisible: true,
+                                                  label: customText(
+                                                    '0',
+                                                    fontSize: 12.sp,
+                                                  ),
+                                                  child: SvgPicture.asset(
+                                                    SvgAssets.notificationIcon,
+                                                    color: AppColors
+                                                        .obscureTextColor,
+                                                    height: 20.sp,
+                                                    width: 20.sp,
+                                                  ),
+                                                ),
+                                              )
+                                            : Badge(
+                                                textColor: AppColors.whiteColor,
+                                                backgroundColor: AppColors.redColor,
+                                                isLabelVisible: settingsController
+                                                    .notifications.isNotEmpty,
+                                                label: customText(
+                                                  settingsController.notifications
+                                                              .length >
+                                                          10
+                                                      ? '10+'
+                                                      : settingsController
+                                                          .notifications.length
+                                                          .toString(),
+                                                  fontSize: 12.sp,
+                                                ),
+                                                child: SvgPicture.asset(
+                                                  SvgAssets.notificationIcon,
+                                                  color:
+                                                      AppColors.obscureTextColor,
+                                                  height: 20.sp,
+                                                  width: 20.sp,
+                                                ),
+                                              ),
                                       ),
                                     ),
-                                    SizedBox(width: 8.sp),
-                                    customText(
-                                      "Hi ${settingsController.userProfile?.fname ?? ''}",
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.w600,
+                                    SizedBox(width: 12.w),
+                                    InkWell(
+                                      splashColor: AppColors.transparent,
+                                      highlightColor: AppColors.transparent,
+                                      onTap: () {
+                                        dashboardController
+                                            .toggleWalkingDistanceFilter();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryColor,
+                                          borderRadius: BorderRadius.circular(
+                                            20.r,
+                                          ),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 1.sp,
+                                          vertical: 5.h,
+                                        ),
+                                        margin: EdgeInsets.only(
+                                          left: 5.w,
+
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    dashboardController
+                                                        .isWalkingDistanceFilter
+                                                        .value
+                                                    ? AppColors.primaryColor
+                                                    : AppColors.secondaryColor,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              padding: EdgeInsets.all(5.sp),
+                                              margin: EdgeInsets.symmetric(
+                                                horizontal: 3.w,
+                                              ),
+                                              child: SvgPicture.asset(
+                                                SvgAssets.bikeIcon,
+                                                height: 20.sp,
+                                                width: 20.sp,
+                                                colorFilter: ColorFilter.mode(
+                                                  dashboardController
+                                                          .isWalkingDistanceFilter
+                                                          .value
+                                                      ? AppColors.whiteColor
+                                                      : AppColors.blackColor,
+                                                  BlendMode.srcIn,
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    dashboardController
+                                                        .isWalkingDistanceFilter
+                                                        .value
+                                                    ? AppColors.secondaryColor
+                                                    : AppColors.primaryColor,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              padding: EdgeInsets.all(5.sp),
+                                              margin: EdgeInsets.symmetric(
+                                                horizontal: 3.w,
+                                              ),
+                                              child: SvgPicture.asset(
+                                                SvgAssets.walkIcon,
+                                                height: 20.sp,
+                                                width: 20.sp,
+                                                colorFilter: ColorFilter.mode(
+                                                  dashboardController
+                                                          .isWalkingDistanceFilter
+                                                          .value
+                                                      ? AppColors.blackColor
+                                                      : AppColors.whiteColor,
+                                                  BlendMode.srcIn,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ],
-                                ),
-                              );
-                            },
-                          ),
-                          GetBuilder<SettingsController>(
-                            builder: (settingsController) {
-                              return Row(
-                                children: [
-                                  InkWell(
-                                    splashColor: AppColors.transparent,
-                                    highlightColor: AppColors.transparent,
-                                    onTap: () {
-                                      Get.toNamed(Routes.NOTIFICATIONS_HOME);
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 5.sp,
-                                      ),
-                                      child: Badge(
-                                        textColor: AppColors.whiteColor,
-                                        backgroundColor: AppColors.redColor,
-                                        isLabelVisible: true,
-                                        label: customText(
-                                          settingsController
-                                                  .isLoadingNotification
-                                              ? ''
-                                              : settingsController
-                                                        .notifications
-                                                        .length >
-                                                    10
-                                              ? '10+'
-                                              : settingsController
-                                                    .notifications
-                                                    .length
-                                                    .toString(),
-                                          fontSize: 12.sp,
-                                        ),
-                                        child: SvgPicture.asset(
-                                          SvgAssets.notificationIcon,
-                                          color: AppColors.obscureTextColor,
-                                          height: 20.sp,
-                                          width: 20.sp,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 5.w),
-                                  InkWell(
-                                    splashColor: AppColors.transparent,
-                                    highlightColor: AppColors.transparent,
-                                    onTap: () {
-                                      dashboardController
-                                          .toggleWalkingDistanceFilter();
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primaryColor,
-                                        borderRadius: BorderRadius.circular(
-                                          20.r,
-                                        ),
-                                      ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 1.sp,
-                                        vertical: 5.h,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  dashboardController
-                                                      .isWalkingDistanceFilter
-                                                      .value
-                                                  ? AppColors.primaryColor
-                                                  : AppColors.secondaryColor,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            padding: EdgeInsets.all(5.sp),
-                                            margin: EdgeInsets.symmetric(
-                                              horizontal: 3.w,
-                                            ),
-                                            child: SvgPicture.asset(
-                                              SvgAssets.bikeIcon,
-                                              height: 20.sp,
-                                              width: 20.sp,
-                                              colorFilter: ColorFilter.mode(
-                                                dashboardController
-                                                        .isWalkingDistanceFilter
-                                                        .value
-                                                    ? AppColors.whiteColor
-                                                    : AppColors.blackColor,
-                                                BlendMode.srcIn,
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  dashboardController
-                                                      .isWalkingDistanceFilter
-                                                      .value
-                                                  ? AppColors.secondaryColor
-                                                  : AppColors.primaryColor,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            padding: EdgeInsets.all(5.sp),
-                                            margin: EdgeInsets.symmetric(
-                                              horizontal: 3.w,
-                                            ),
-                                            child: SvgPicture.asset(
-                                              SvgAssets.walkIcon,
-                                              height: 20.sp,
-                                              width: 20.sp,
-                                              colorFilter: ColorFilter.mode(
-                                                dashboardController
-                                                        .isWalkingDistanceFilter
-                                                        .value
-                                                    ? AppColors.blackColor
-                                                    : AppColors.whiteColor,
-                                                BlendMode.srcIn,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
