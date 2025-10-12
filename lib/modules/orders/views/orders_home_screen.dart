@@ -13,7 +13,7 @@ class OrdersHomeScreen extends GetView<OrdersController> {
         return Scaffold(
           appBar: defaultAppBar(
             bgColor: AppColors.backgroundColor,
-            implyLeading: false,
+            implyLeading: true,
             centerTitle: true,
             title: "Orders",
           ),

@@ -63,6 +63,7 @@ abstract class Routes {
   static const ORDER_DETAILS_SCREEN = '/order_details_screen';
   static const CART_SCREEN = '/cart_screen';
   static const CHECKOUT_SCREEN = '/checkout_screen';
+  static const ORDER_SUCCESS_SCREEN = '/order_success_screen';
 
 //   Restaurant
 

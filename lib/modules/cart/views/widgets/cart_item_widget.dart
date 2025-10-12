@@ -67,7 +67,7 @@ class CartItemWidget extends StatelessWidget {
 
                 // Price information
                 customText(
-                  "₦${item.price} each",
+                  "${formatToCurrency(double.tryParse(item.price) ?? 0)} each",
                   fontSize: 13.sp,
                   color: AppColors.obscureTextColor,
                 ),
@@ -130,7 +130,7 @@ class CartItemWidget extends StatelessWidget {
                                   ),
                                 ),
                                 customText(
-                                  '₦${(addonPrice * addon.quantity).toStringAsFixed(2)}',
+                                  formatToCurrency(addonPrice * addon.quantity),
                                   fontSize: 11.sp,
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.obscureTextColor,
@@ -150,7 +150,7 @@ class CartItemWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     customText(
-                      "₦${item.total}",
+                      formatToCurrency(double.tryParse(item.total) ?? 0),
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w500,
                       color: AppColors.blackColor,

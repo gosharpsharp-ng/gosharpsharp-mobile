@@ -17,7 +17,7 @@ class CartScreen extends StatelessWidget {
           appBar: defaultAppBar(
             bgColor: AppColors.backgroundColor,
             title: 'My Cart',
-            implyLeading: false,
+            implyLeading: true,
             centerTitle: true,
             actionItem: Row(
               children: [
@@ -326,7 +326,7 @@ class CartScreen extends StatelessWidget {
                       'Add Items',
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.greyColor,
+                      color: AppColors.blackColor,
                     ),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),

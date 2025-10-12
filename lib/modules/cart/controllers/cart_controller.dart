@@ -142,6 +142,35 @@ class CartController extends GetxController {
     }
   }
 
+  // Fetch cart silently without showing loading state (for background updates)
+  Future<void> _fetchCartSilently() async {
+    try {
+      APIResponse response = await cartService.getMenuCart();
+
+      if (response.status.toLowerCase() == "success") {
+        if (response.data != null) {
+          // Parse the Cart object from response
+          final Cart cart = Cart.fromJson(response.data as Map<String, dynamic>);
+
+          // Extract packages
+          _packages = cart.packages;
+
+          // Set default package if cart is not empty and no package selected
+          if (_packages.isNotEmpty && _selectedPackageName == null) {
+            _selectedPackageName = _packages.first.name;
+          }
+        } else {
+          _packages = [];
+          _selectedPackageName = null;
+        }
+        update(); // Trigger UI update
+      }
+    } catch (e) {
+      debugPrint("Silent cart fetch failed: $e");
+      // Don't show toast on silent fetch failure
+    }
+  }
+
   // Add item to cart with package and addons support
   Future<void> addToCart(
     int menuId,
@@ -355,6 +384,16 @@ class CartController extends GetxController {
         return;
       }
 
+      // Store old quantity for rollback if needed
+      final oldQuantity = cartItem.quantity;
+
+      // Optimistic update - update UI immediately
+      if (quantity != null) {
+        final newQuantity = quantity is int ? quantity : int.parse(quantity.toString());
+        cartItem.quantity = newQuantity;
+        update(); // Update UI immediately
+      }
+
       Map<String, dynamic> data = {
         'package_name': finalPackageName, // Always include package name (REQUIRED)
       };
@@ -377,7 +416,7 @@ class CartController extends GetxController {
       customDebugPrint("Request body: ${data.toString()}");
 
       APIResponse response = await cartService.updateMenuCart(
-        id: cartItem.cartId, // Use purchasable ID instead of cart item ID
+        id: cartItem.id, // Use purchasable ID instead of cart item ID
         data: data,
       );
 
@@ -387,8 +426,8 @@ class CartController extends GetxController {
 
       if (response.status.toLowerCase() == "success") {
         showToast(message: "Cart updated successfully", isError: false);
-        // Refresh cart after updating
-        await fetchCart();
+        // Silently refresh cart in background without showing loader
+        await _fetchCartSilently();
       } else {
         customDebugPrint("=== ERROR UPDATING CART ===");
         customDebugPrint("Route called: /menu-cart/items/${cartItem.purchasableId}");
@@ -531,11 +570,24 @@ class CartController extends GetxController {
         orderPlaced.value = true;
         showToast(message: "Order placed successfully", isError: false);
 
+        // Extract order details from response
+        final orderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
+        final orderId = response.data['id'];
+
         // Refresh the cart after successful order
         await refreshCart();
 
-        // Navigate to checkout success
-        Get.to(() => CheckoutScreen());
+        // Navigate to success screen, clearing entire stack
+        Get.offAllNamed(
+          Routes.ORDER_SUCCESS_SCREEN,
+          arguments: {
+            'orderId': orderId,
+            'orderNumber': orderNumber,
+            'totalAmount': total,
+            'paymentMethod': 'cash',
+            'deliveryAddress': currentLocation.value,
+          },
+        );
       } else {
         showToast(message: response.message, isError: true);
       }
@@ -575,11 +627,24 @@ class CartController extends GetxController {
           isError: false,
         );
 
+        // Extract order details from response
+        final orderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
+        final orderId = response.data['id'];
+
         // Refresh the cart after successful order
         await refreshCart();
 
-        // Navigate to checkout success
-        Get.to(() => CheckoutScreen());
+        // Navigate to success screen, clearing entire stack
+        Get.offAllNamed(
+          Routes.ORDER_SUCCESS_SCREEN,
+          arguments: {
+            'orderId': orderId,
+            'orderNumber': orderNumber,
+            'totalAmount': total,
+            'paymentMethod': 'wallet',
+            'deliveryAddress': currentLocation.value,
+          },
+        );
       } else {
         showToast(message: response.message, isError: true);
       }
@@ -627,11 +692,24 @@ class CartController extends GetxController {
           isError: false,
         );
 
+        // Extract order details from response
+        final orderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
+        final orderId = response.data['id'];
+
         // Refresh the cart after successful order
         await refreshCart();
 
-        // Navigate to checkout success
-        Get.to(() => CheckoutScreen());
+        // Navigate to success screen, clearing entire stack
+        Get.offAllNamed(
+          Routes.ORDER_SUCCESS_SCREEN,
+          arguments: {
+            'orderId': orderId,
+            'orderNumber': orderNumber,
+            'totalAmount': total,
+            'paymentMethod': 'paystack',
+            'deliveryAddress': currentLocation.value,
+          },
+        );
       } else {
         showToast(message: response.message, isError: true);
       }
