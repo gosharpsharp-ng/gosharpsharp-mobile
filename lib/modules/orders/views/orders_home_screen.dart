@@ -11,13 +11,17 @@ class OrdersHomeScreen extends GetView<OrdersController> {
     return GetBuilder<OrdersController>(
       builder: (ordersController) {
         return Scaffold(
-          appBar: defaultAppBar(
-            bgColor: AppColors.backgroundColor,
-            implyLeading: true,
-            centerTitle: true,
-            title: "Orders",
-          ),
-          backgroundColor: AppColors.backgroundColor,
+            appBar: defaultAppBar(
+              bgColor: AppColors.backgroundColor,
+              implyLeading: true,
+              centerTitle: true,
+              title: "Orders",
+              onPop: () {
+                // Navigate back to APP_NAVIGATION to avoid controller errors
+                Get.offAllNamed(Routes.APP_NAVIGATION);
+              },
+            ),
+            backgroundColor: AppColors.backgroundColor,
           body: Container(
             padding: EdgeInsets.symmetric(horizontal: 22.sp),
             height: 1.sh,
