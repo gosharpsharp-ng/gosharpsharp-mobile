@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../../../core/utils/exports.dart';
+
 // TODO: When the user clicks on an item in the list, it should hide the landing screen and show the selected screen; say dashboard screen
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
@@ -11,25 +12,27 @@ class LandingScreen extends StatelessWidget {
       extendBodyBehindAppBar: true,
       extendBody: true,
       backgroundColor: AppColors.whiteColor,
-      appBar: AppBar(
-        backgroundColor: AppColors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        systemOverlayStyle: SystemUiOverlayStyle.dark, // For light status bar text
+      appBar: flatEmptyAppBar(
+        topColor: AppColors.transparent,
+        navigationColor: AppColors.whiteColor,
+        // For light status bar text
       ),
       body: Container(
         height: 1.sh,
-        padding: EdgeInsets.symmetric(horizontal:15.w,vertical: 70.h),
+        padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 70.h),
         width: 1.sw,
         decoration: BoxDecoration(
           image: DecorationImage(
-              image: AssetImage(PngAssets.lightWatermark,),fit: BoxFit.cover
+            image: AssetImage(PngAssets.lightWatermark),
+            fit: BoxFit.cover,
           ),
         ),
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 12.w,vertical: 20.h),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 20.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               // Location display
               LocationDisplayWidget(
@@ -40,17 +43,20 @@ class LandingScreen extends StatelessWidget {
 
               SizedBox(height: 24.h),
 
-              customText("What do you want to get Sharp Sharp?",fontWeight: FontWeight.w500,fontSize: 24.sp,overflow: TextOverflow.visible),
+              customText(
+                "What do you want to get Sharp Sharp?",
+                fontWeight: FontWeight.w500,
+                fontSize: 24.sp,
+                overflow: TextOverflow.visible,
+              ),
               // SizedBox(height: 15.h,),
               // customText("Let's know what you want to do today?",fontWeight: FontWeight.w500,fontSize: 18.sp,),
               //
-              SizedBox(height: 45.h,),
-              Center(
-                child: Container(
-                  width: 450.w,
-                  height: 500.h,
-                  child: CircularMenu(),
-                ),
+              SizedBox(height: 8.h),
+              Container(
+                width: 1.sw,
+                height: 1.sh * 0.50,
+                child: CircularMenu(),
               ),
             ],
           ),
@@ -67,7 +73,8 @@ class CircularMenu extends StatefulWidget {
   State<CircularMenu> createState() => _CircularMenuState();
 }
 
-class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderStateMixin {
+class _CircularMenuState extends State<CircularMenu>
+    with SingleTickerProviderStateMixin {
   late AnimationController _rotationController;
   double _currentRotation = 0.0;
   double _lastRotation = 0.0;
@@ -89,7 +96,7 @@ class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderSt
 
   // Surrounding menu items (excluding food delivery)
   List<MenuItem> get menuItems => [
-   MenuItem(
+    MenuItem(
       title: "Parcel\nDelivery",
       icon: PngAssets.rider,
       color: AppColors.primaryColor,
@@ -102,19 +109,19 @@ class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderSt
       title: "Pharmacy &\nBeauty",
       icon: PngAssets.pharmacy,
       color: AppColors.primaryColor,
-      isAvailable: false
+      isAvailable: false,
     ),
     MenuItem(
       title: "Groceries",
       icon: PngAssets.grocery,
       color: AppColors.primaryColor,
-      isAvailable: false
+      isAvailable: false,
     ),
     MenuItem(
       title: "Shopping",
       icon: PngAssets.shopping,
       color: AppColors.secondaryColor,
-      isAvailable: false
+      isAvailable: false,
     ),
   ];
 
@@ -150,7 +157,10 @@ class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderSt
 
   void _handlePanUpdate(DragUpdateDetails details) {
     // Calculate rotation based on drag delta
-    final center = Offset(225.w, 250.h); // Approximate center of the circular menu
+    final center = Offset(
+      225.w,
+      250.h,
+    ); // Approximate center of the circular menu
     final angle = math.atan2(
       details.localPosition.dy - center.dy,
       details.localPosition.dx - center.dx,
@@ -158,7 +168,8 @@ class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderSt
 
     setState(() {
       _currentRotation = angle;
-      _rotationVelocity = details.delta.dx + details.delta.dy; // Combined velocity
+      _rotationVelocity =
+          details.delta.dx + details.delta.dy; // Combined velocity
     });
   }
 
@@ -199,7 +210,8 @@ class _CircularMenuState extends State<CircularMenu> with SingleTickerProviderSt
         children: [
           // Surrounding orbital menu items
           ...List.generate(menuItems.length, (index) {
-            final angle = (index * angleStep) + _currentRotation - (math.pi / 2);
+            final angle =
+                (index * angleStep) + _currentRotation - (math.pi / 2);
             final x = radius * math.cos(angle);
             final y = radius * math.sin(angle);
 
@@ -236,7 +248,7 @@ class MenuItem {
     required this.icon,
     required this.color,
     this.onTap,
-    this.isAvailable = true
+    this.isAvailable = true,
   });
 }
 
@@ -270,20 +282,16 @@ class MenuItemWidget extends StatelessWidget {
                 ? LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      item.color,
-                      item.color.withOpacity(0.8),
-                    ],
+                    colors: [item.color, item.color.withOpacity(0.8)],
                   )
                 : LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Colors.grey.shade300,
-                      Colors.grey.shade400,
-                    ],
+                    colors: [Colors.grey.shade300, Colors.grey.shade400],
                   ),
-            shadowColor: item.isAvailable ? item.color.withOpacity(0.4) : Colors.black.withOpacity(0.1),
+            shadowColor: item.isAvailable
+                ? item.color.withOpacity(0.4)
+                : Colors.black.withOpacity(0.1),
             borderColor: Colors.white.withOpacity(0.3),
             isCenter: isCenter,
           ),
@@ -318,8 +326,8 @@ class MenuItemWidget extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: item.isAvailable
                           ? (item.color == AppColors.primaryColor
-                              ? AppColors.whiteColor
-                              : AppColors.blackColor)
+                                ? AppColors.whiteColor
+                                : AppColors.blackColor)
                           : Colors.grey.shade600,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -328,15 +336,15 @@ class MenuItemWidget extends StatelessWidget {
                 ),
 
                 // Coming Soon overlay with dotted border
-                if (!item.isAvailable)
-                  CustomPaint(
-                    size: Size(120.w, 120.h),
-                    painter: DottedCircleBorder(
-                      color: Colors.white.withOpacity(0.6),
-                      strokeWidth: 3,
-                      gap: 8,
-                    ),
-                  ),
+                // if (!item.isAvailable)
+                //   CustomPaint(
+                //     size: Size(120.w, 120.h),
+                //     painter: DottedCircleBorder(
+                //       color: Colors.white.withOpacity(0.6),
+                //       strokeWidth: 3,
+                //       gap: 8,
+                //     ),
+                //   ),
               ],
             ),
           ),
@@ -368,15 +376,18 @@ class AmoebicShapePainter extends CustomPainter {
     // Create organic blob path using perlin-like noise
     final path = Path();
     const int points = 36; // Number of points around the perimeter
-    final random = math.Random(42); // Fixed seed for consistent shape per widget
+    final random = math.Random(
+      42,
+    ); // Fixed seed for consistent shape per widget
 
     // Generate organic offsets for each point
     List<double> offsets = [];
     for (int i = 0; i < points; i++) {
       // Create smooth variation using sine waves with different frequencies
-      final variation = (math.sin(i * 0.5) * 0.08) +
-                       (math.sin(i * 0.3) * 0.05) +
-                       (math.sin(i * 0.7) * 0.03);
+      final variation =
+          (math.sin(i * 0.5) * 0.08) +
+          (math.sin(i * 0.3) * 0.05) +
+          (math.sin(i * 0.7) * 0.03);
       offsets.add(1.0 + variation);
     }
 
@@ -385,7 +396,8 @@ class AmoebicShapePainter extends CustomPainter {
     for (int i = 0; i <= points; i++) {
       final angle = (i / points) * 2 * math.pi;
       final radiusOffset = offsets[i % points];
-      final radius = baseRadius * radiusOffset * 0.92; // Slightly smaller for organic feel
+      final radius =
+          baseRadius * radiusOffset * 0.92; // Slightly smaller for organic feel
 
       final x = center.dx + radius * math.cos(angle);
       final y = center.dy + radius * math.sin(angle);
@@ -458,10 +470,7 @@ class AmoebicShapePainter extends CustomPainter {
     // Add inner glow effect
     final glowPaint = Paint()
       ..shader = RadialGradient(
-        colors: [
-          Colors.white.withOpacity(0.2),
-          Colors.transparent,
-        ],
+        colors: [Colors.white.withOpacity(0.2), Colors.transparent],
         center: Alignment.topLeft,
         radius: 1.5,
       ).createShader(rect)
@@ -473,8 +482,8 @@ class AmoebicShapePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant AmoebicShapePainter oldDelegate) {
     return gradient != oldDelegate.gradient ||
-           shadowColor != oldDelegate.shadowColor ||
-           borderColor != oldDelegate.borderColor;
+        shadowColor != oldDelegate.shadowColor ||
+        borderColor != oldDelegate.borderColor;
   }
 }
 
