@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import '../../../core/utils/exports.dart';
+import '../../../core/services/recently_visited_restaurants_service.dart';
+import '../../../core/models/restaurant_model.dart';
 
 // TODO: When the user clicks on an item in the list, it should hide the landing screen and show the selected screen; say dashboard screen
 class LandingScreen extends StatelessWidget {
@@ -82,6 +84,9 @@ class _CircularMenuState extends State<CircularMenu>
   bool _isUserInteracting = false;
   bool _hasUserInteracted = false;
 
+  final RecentlyVisitedRestaurantsService _recentRestaurantsService =
+      RecentlyVisitedRestaurantsService();
+
   // Food delivery item for center
   MenuItem get centerItem => MenuItem(
     title: "Food",
@@ -94,36 +99,104 @@ class _CircularMenuState extends State<CircularMenu>
     },
   );
 
-  // Surrounding menu items (excluding food delivery)
-  List<MenuItem> get menuItems => [
-    MenuItem(
-      title: "Parcel\nDelivery",
-      icon: PngAssets.rider,
-      color: AppColors.primaryColor,
-      onTap: () {
-        // Navigate to parcel delivery flow
-        Get.toNamed(Routes.INITIATE_DELIVERY_SCREEN);
-      },
-    ),
-    MenuItem(
-      title: "Pharmacy &\nBeauty",
-      icon: PngAssets.pharmacy,
-      color: AppColors.primaryColor,
-      isAvailable: false,
-    ),
-    MenuItem(
-      title: "Groceries",
-      icon: PngAssets.grocery,
-      color: AppColors.primaryColor,
-      isAvailable: false,
-    ),
-    MenuItem(
-      title: "Shopping",
-      icon: PngAssets.shopping,
-      color: AppColors.secondaryColor,
-      isAvailable: false,
-    ),
-  ];
+  // Dynamically build menu items including recent restaurants
+  List<MenuItem> get menuItems {
+    List<MenuItem> items = [];
+
+    // Add recent restaurants first (max 2)
+    final recentRestaurants = _recentRestaurantsService.getRecentRestaurants();
+    for (var restaurant in recentRestaurants) {
+      items.add(
+        MenuItem(
+          title: _truncateRestaurantName(restaurant['name'] ?? 'Restaurant'),
+          icon: PngAssets.food, // Fallback icon
+          color: AppColors.secondaryColor,
+          isRecent: true,
+          restaurantId: restaurant['id'],
+          restaurantBanner: restaurant['banner'],
+          onTap: () => _navigateToRecentRestaurant(restaurant['id']),
+        ),
+      );
+    }
+
+    // Add static menu items
+    items.addAll([
+      MenuItem(
+        title: "Parcel\nDelivery",
+        icon: PngAssets.rider,
+        color: AppColors.primaryColor,
+        onTap: () {
+          // Navigate to parcel delivery flow
+          Get.toNamed(Routes.INITIATE_DELIVERY_SCREEN);
+        },
+      ),
+      MenuItem(
+        title: "Pharmacy &\nBeauty",
+        icon: PngAssets.pharmacy,
+        color: AppColors.primaryColor,
+        isAvailable: false,
+      ),
+      MenuItem(
+        title: "Groceries",
+        icon: PngAssets.grocery,
+        color: AppColors.primaryColor,
+        isAvailable: false,
+      ),
+      MenuItem(
+        title: "Shopping",
+        icon: PngAssets.shopping,
+        color: AppColors.secondaryColor,
+        isAvailable: false,
+      ),
+    ]);
+
+    return items;
+  }
+
+  // Truncate restaurant name to fit in the circular menu
+  String _truncateRestaurantName(String name) {
+    if (name.length <= 12) return name;
+    // Split into words and try to fit
+    final words = name.split(' ');
+    if (words.length > 1 && words[0].length <= 10) {
+      return '${words[0]}\n${words[1].substring(0, math.min(10, words[1].length))}...';
+    }
+    return '${name.substring(0, 10)}...';
+  }
+
+  // Navigate to a recent restaurant
+  Future<void> _navigateToRecentRestaurant(int restaurantId) async {
+    try {
+      final dashboardController = Get.find<DashboardController>();
+
+      // Try to find restaurant in current list
+      RestaurantModel? restaurant;
+      try {
+        restaurant = dashboardController.restaurants.firstWhere(
+          (r) => r.id == restaurantId,
+        );
+      } catch (e) {
+        // Restaurant not found in current list
+        restaurant = null;
+      }
+
+      if (restaurant == null) {
+        // Fetch restaurant from API if not in current list
+        restaurant = await dashboardController.getRestaurantById(restaurantId);
+      }
+
+      if (restaurant != null) {
+        // Set selected restaurant and navigate
+        dashboardController.setSelectedRestaurant(restaurant);
+        Get.toNamed(Routes.RESTAURANT_DETAILS_SCREEN);
+      } else {
+        showToast(message: 'Restaurant not found', isError: true);
+      }
+    } catch (e) {
+      debugPrint('Error navigating to recent restaurant: $e');
+      showToast(message: 'Unable to load restaurant', isError: true);
+    }
+  }
 
   @override
   void initState() {
@@ -242,6 +315,9 @@ class MenuItem {
   final Color color;
   final bool isAvailable;
   final VoidCallback? onTap;
+  final bool isRecent;
+  final int? restaurantId;
+  final String? restaurantBanner;
 
   MenuItem({
     required this.title,
@@ -249,6 +325,9 @@ class MenuItem {
     required this.color,
     this.onTap,
     this.isAvailable = true,
+    this.isRecent = false,
+    this.restaurantId,
+    this.restaurantBanner,
   });
 }
 
@@ -304,19 +383,51 @@ class MenuItemWidget extends StatelessWidget {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Icon with subtle shadow
+                    // Icon/Image with subtle shadow
                     Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: Image.asset(
-                        item.icon,
-                        height: iconSize.h,
-                        width: iconSize.w,
-                        color: item.isAvailable ? null : Colors.grey.shade600,
-                      ),
+                      child: item.isRecent && item.restaurantBanner != null
+                          ? ClipOval(
+                              child: Image.network(
+                                item.restaurantBanner!,
+                                height: iconSize.h,
+                                width: iconSize.w,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  // Fallback to default icon if image fails to load
+                                  return Image.asset(
+                                    item.icon,
+                                    height: iconSize.h,
+                                    width: iconSize.w,
+                                  );
+                                },
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return SizedBox(
+                                    height: iconSize.h,
+                                    width: iconSize.w,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          AppColors.whiteColor,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : Image.asset(
+                              item.icon,
+                              height: iconSize.h,
+                              width: iconSize.w,
+                              color: item.isAvailable ? null : Colors.grey.shade600,
+                            ),
                     ),
                     SizedBox(height: 6.h),
                     customText(

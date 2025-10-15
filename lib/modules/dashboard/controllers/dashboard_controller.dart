@@ -3,12 +3,14 @@ import 'package:gosharpsharp/core/models/menu_item_model.dart';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/services/restaurant/restaurant_service.dart';
 import 'package:gosharpsharp/core/services/location/location_service.dart';
+import 'package:gosharpsharp/core/services/recently_visited_restaurants_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
 import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart';
 
 class DashboardController extends GetxController {
   final restaurantService = serviceLocator<RestaurantService>();
+  final recentRestaurantsService = RecentlyVisitedRestaurantsService();
 
   LocationService get locationService {
     try {
@@ -104,6 +106,12 @@ class DashboardController extends GetxController {
   // Set selected restaurant
   setSelectedRestaurant(RestaurantModel restaurant) {
     selectedRestaurant = restaurant;
+    // Track this restaurant as recently visited
+    recentRestaurantsService.addRecentRestaurant(
+      id: restaurant.id,
+      name: restaurant.name,
+      banner: restaurant.banner,
+    );
     // Fetch menu items for this restaurant
     fetchRestaurantMenus(restaurant.id.toString());
     WidgetsBinding.instance.addPostFrameCallback((_) {
