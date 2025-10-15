@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class FavouriteRestaurantModel {
   final int id;
   final int userId;
@@ -144,6 +146,142 @@ class RestaurantModel {
       'updated_at': updatedAt,
       'schedules': schedules?.map((s) => s.toJson()).toList(),
     };
+  }
+
+  /// Check if the restaurant is currently open based on schedules
+  bool isOpen() {
+    if (schedules == null || schedules!.isEmpty) {
+      // If no schedules, assume open (or you can return false to be strict)
+      return true;
+    }
+
+    final now = DateTime.now();
+    final currentDayOfWeek = _getDayOfWeekString(now.weekday);
+    final currentTime = TimeOfDay(hour: now.hour, minute: now.minute);
+
+    // Find today's schedule
+    final todaySchedule = schedules!.firstWhere(
+      (schedule) => schedule.dayOfWeek.toLowerCase() == currentDayOfWeek.toLowerCase(),
+      orElse: () => Schedule(
+        id: 0,
+        restaurantId: id,
+        dayOfWeek: '',
+        openTime: '',
+        closeTime: '',
+        createdAt: '',
+        updatedAt: '',
+      ),
+    );
+
+    // If no schedule for today, restaurant is closed
+    if (todaySchedule.dayOfWeek.isEmpty) {
+      return false;
+    }
+
+    // Parse open and close times
+    final openTime = _parseTimeOfDay(todaySchedule.openTime);
+    final closeTime = _parseTimeOfDay(todaySchedule.closeTime);
+
+    if (openTime == null || closeTime == null) {
+      // If times can't be parsed, assume open to avoid blocking
+      return true;
+    }
+
+    // Convert TimeOfDay to minutes for comparison
+    final currentMinutes = currentTime.hour * 60 + currentTime.minute;
+    final openMinutes = openTime.hour * 60 + openTime.minute;
+    final closeMinutes = closeTime.hour * 60 + closeTime.minute;
+
+    // Handle cases where closing time is past midnight
+    if (closeMinutes < openMinutes) {
+      // Restaurant is open past midnight
+      return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+    } else {
+      // Normal case: open and close on same day
+      return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+    }
+  }
+
+  /// Get operating hours text for display
+  String getOperatingHoursText() {
+    if (schedules == null || schedules!.isEmpty) {
+      return 'Hours not available';
+    }
+
+    final now = DateTime.now();
+    final currentDayOfWeek = _getDayOfWeekString(now.weekday);
+
+    final todaySchedule = schedules!.firstWhere(
+      (schedule) => schedule.dayOfWeek.toLowerCase() == currentDayOfWeek.toLowerCase(),
+      orElse: () => Schedule(
+        id: 0,
+        restaurantId: id,
+        dayOfWeek: '',
+        openTime: '',
+        closeTime: '',
+        createdAt: '',
+        updatedAt: '',
+      ),
+    );
+
+    if (todaySchedule.dayOfWeek.isEmpty) {
+      return 'Closed today';
+    }
+
+    final openTime = _formatTime(todaySchedule.openTime);
+    final closeTime = _formatTime(todaySchedule.closeTime);
+
+    return '$openTime - $closeTime';
+  }
+
+  /// Helper to get day of week string from weekday number
+  String _getDayOfWeekString(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return 'Monday';
+      case DateTime.tuesday:
+        return 'Tuesday';
+      case DateTime.wednesday:
+        return 'Wednesday';
+      case DateTime.thursday:
+        return 'Thursday';
+      case DateTime.friday:
+        return 'Friday';
+      case DateTime.saturday:
+        return 'Saturday';
+      case DateTime.sunday:
+        return 'Sunday';
+      default:
+        return '';
+    }
+  }
+
+  /// Helper to parse time string (HH:mm:ss or HH:mm) to TimeOfDay
+  TimeOfDay? _parseTimeOfDay(String timeString) {
+    try {
+      final parts = timeString.split(':');
+      if (parts.length >= 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return TimeOfDay(hour: hour, minute: minute);
+      }
+    } catch (e) {
+      // Return null if parsing fails
+    }
+    return null;
+  }
+
+  /// Helper to format time string for display
+  String _formatTime(String timeString) {
+    final timeOfDay = _parseTimeOfDay(timeString);
+    if (timeOfDay == null) return timeString;
+
+    final hour = timeOfDay.hour;
+    final minute = timeOfDay.minute;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+
+    return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
   }
 }
 

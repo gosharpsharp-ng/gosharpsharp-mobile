@@ -1,4 +1,5 @@
 import 'package:gosharpsharp/core/models/cart_model.dart';
+import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/services/restaurant/cart/restaurant_cart_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/views/checkout_screen.dart';
@@ -71,9 +72,9 @@ class CartController extends GetxController {
   bool get isOrderSummaryExpanded => _isOrderSummaryExpanded;
 
   // Delivery info
-  RxString currentLocation = '20 Soho loop street birmingham'.obs;
-  double _selectedLatitude = 43.6532;
-  double _selectedLongitude = 79.3832;
+  RxString currentLocation = ''.obs;
+  double _selectedLatitude = 9.8965; // Default to Jos, Nigeria
+  double _selectedLongitude = 8.8583;
   RxString deliveryPersonName = 'James Williams'.obs;
   RxString deliveryPersonPhone = '+234 806 000 0000'.obs;
   RxDouble deliveryPersonRating = 4.6.obs;
@@ -98,7 +99,33 @@ class CartController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _loadSavedLocation();
     fetchCart();
+  }
+
+  // Load the customer's saved location from storage
+  void _loadSavedLocation() {
+    try {
+      final storage = GetStorage();
+      final savedLocation = storage.read('selected_location');
+      final lat = storage.read('location_lat');
+      final lng = storage.read('location_lng');
+
+      if (savedLocation != null &&
+          savedLocation.isNotEmpty &&
+          savedLocation != 'Choose Location to continue' &&
+          lat != null &&
+          lng != null) {
+        currentLocation.value = savedLocation;
+        _selectedLatitude = double.parse(lat);
+        _selectedLongitude = double.parse(lng);
+        debugPrint('📍 CartController: Loaded saved location: $savedLocation');
+      } else {
+        debugPrint('📍 CartController: No saved location found, using default');
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading saved location in CartController: $e');
+    }
   }
 
   // Fetch cart from API
@@ -179,11 +206,22 @@ class CartController extends GetxController {
     List<int>? addonIds,
     String? packageName,
     bool skipDialog = false, // New parameter to skip dialog when explicitly providing packageName
+    RestaurantModel? restaurant, // Restaurant to validate operating hours
   }) async {
     try {
+      // Check if restaurant is open before adding to cart
+      if (restaurant != null && !restaurant.isOpen()) {
+        final hours = restaurant.getOperatingHoursText();
+        showToast(
+          message: '${restaurant.name} is currently closed. Operating hours: $hours',
+          isError: true,
+        );
+        return;
+      }
+
       // If packageName is not explicitly provided and skipDialog is false, show package selection dialog
       if (packageName == null && !skipDialog) {
-        await showPackageSelectionAndAddToCart(menuId, quantity, addonIds: addonIds);
+        await showPackageSelectionAndAddToCart(menuId, quantity, addonIds: addonIds, restaurant: restaurant);
         return;
       }
 
@@ -311,6 +349,7 @@ class CartController extends GetxController {
     int menuId,
     int quantity, {
     List<int>? addonIds,
+    RestaurantModel? restaurant,
   }) async {
     // Get context for showing dialog
     final context = Get.context;
@@ -332,6 +371,7 @@ class CartController extends GetxController {
         addonIds: addonIds,
         packageName: result,
         skipDialog: true, // Skip dialog since we already got the package name
+        restaurant: restaurant,
       );
     }
   }

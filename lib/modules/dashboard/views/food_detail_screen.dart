@@ -60,7 +60,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     final menuItem = dashboardController.selectedMenuItem;
     if (menuItem == null) return;
 
-    await cartController.addToCart(menuItem.id, quantity);
+    await cartController.addToCart(
+      menuItem.id,
+      quantity,
+      restaurant: dashboardController.selectedRestaurant,
+    );
 
     // Show success bottom sheet instead of dialog
     Get.bottomSheet(
