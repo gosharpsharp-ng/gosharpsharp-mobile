@@ -10,9 +10,11 @@ class SplashScreen extends StatelessWidget {
     return GetBuilder<SplashController>(
         builder: (splashController){
         return Scaffold(
+          extendBodyBehindAppBar: true,
+          extendBody: true,
           backgroundColor: AppColors.fadedPrimaryColor,
-          appBar: flatAppBar(
-              bgColor: AppColors.fadedPrimaryColor,
+          appBar: flatEmptyAppBar(
+              topColor: AppColors.transparent,
               navigationColor: AppColors.fadedPrimaryColor),
           body: Container(
             decoration: BoxDecoration(
