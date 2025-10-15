@@ -17,7 +17,9 @@ class DeliveriesController extends GetxController {
   final deliveryRatingFormKey = GlobalKey<FormState>();
   final deliveryDisputeFormKey = GlobalKey<FormState>();
   final paymentMethodFormKey = GlobalKey<FormState>();
-  final settingController = Get.find<SettingsController>();
+
+  // Lazy getter for SettingsController to avoid initialization order issues
+  SettingsController get settingController => Get.find<SettingsController>();
 
   Set<String> shownStatusToasts = {};
 

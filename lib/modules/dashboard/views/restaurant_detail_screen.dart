@@ -831,7 +831,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         controller.navigateToFoodDetail(menuItem);
       } else {
         // No addons, add directly to cart
-        await cartController.addToCart(menuItem.id, 1);
+        final controller = Get.find<DashboardController>();
+        await cartController.addToCart(
+          menuItem.id,
+          1,
+          restaurant: controller.selectedRestaurant,
+        );
       }
     } catch (e) {
       debugPrint('Error adding to cart: $e');

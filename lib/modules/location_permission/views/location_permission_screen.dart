@@ -83,43 +83,62 @@ class LocationPermissionScreen extends StatelessWidget {
               ),
 
               // Buttons
-              Column(
+              Obx(() => Column(
                 children: [
-                  // Enable Location button
-                  CustomButton(
-                    title: "Enable Location",
-                    onPressed: () => controller.requestLocationPermission(),
-                    width: double.infinity,
-                    height: 50.h,
-                  ),
+                  // Enable Location button with loading state
+                  if (controller.isLoading.value)
+                    CustomButton(
+                      title: "Getting your location...",
+                      onPressed: () {},
+                      width: double.infinity,
+                      height: 50.h,
+                      isBusy: true,
+                    )
+                  else
+                    CustomButton(
+                      title: "Enable Location",
+                      onPressed: () => controller.requestLocationPermission(),
+                      width: double.infinity,
+                      height: 50.h,
+                    ),
 
                   SizedBox(height: 12.h),
 
                   // Manual selection button
                   CustomButton(
                     title: "Select Location Manually",
-                    onPressed: () => controller.selectLocationManually(),
+                    onPressed: controller.isLoading.value
+                        ? () {}
+                        : () => controller.selectLocationManually(),
                     width: double.infinity,
                     height: 50.h,
                     backgroundColor: AppColors.whiteColor,
-                    fontColor: AppColors.primaryColor,
-                    borderColor: AppColors.primaryColor,
+                    fontColor: controller.isLoading.value
+                        ? AppColors.primaryColor.withOpacity(0.5)
+                        : AppColors.primaryColor,
+                    borderColor: controller.isLoading.value
+                        ? AppColors.primaryColor.withOpacity(0.5)
+                        : AppColors.primaryColor,
                   ),
 
                   SizedBox(height: 12.h),
 
                   // Skip button
                   TextButton(
-                    onPressed: () => controller.skipForNow(),
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : () => controller.skipForNow(),
                     child: customText(
                       "Skip for now",
                       fontSize: 14.sp,
-                      color: AppColors.obscureTextColor,
+                      color: controller.isLoading.value
+                          ? AppColors.obscureTextColor.withOpacity(0.5)
+                          : AppColors.obscureTextColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
-              ),
+              )),
             ],
           ),
         ),
