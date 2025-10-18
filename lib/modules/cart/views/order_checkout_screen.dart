@@ -40,6 +40,11 @@ class OrderCheckoutScreen extends StatelessWidget {
 
                             SizedBox(height: 16.h),
 
+                            // Send to Someone Else Section
+                            _buildSendToSomeoneElseSection(cartController),
+
+                            SizedBox(height: 16.h),
+
                             // Order Summary Section
                             _buildOrderSummarySection(cartController),
 
@@ -121,7 +126,9 @@ class OrderCheckoutScreen extends StatelessWidget {
       child: Stack(
         children: [
           GoogleMap(
-            key: ValueKey('${lat}_${lng}'), // Force rebuild when location changes
+            key: ValueKey(
+              '${lat}_${lng}',
+            ), // Force rebuild when location changes
             initialCameraPosition: CameraPosition(
               target: LatLng(lat, lng),
               zoom: 15,
@@ -130,7 +137,9 @@ class OrderCheckoutScreen extends StatelessWidget {
               Marker(
                 markerId: MarkerId('delivery_location'),
                 position: LatLng(lat, lng),
-                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueRed,
+                ),
               ),
             },
             zoomControlsEnabled: false,
@@ -240,19 +249,165 @@ class OrderCheckoutScreen extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: AppColors.blackColor,
                         maxLines: 2,
-                        overflow: TextOverflow.visible
+                        overflow: TextOverflow.visible,
                       ),
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.edit,
-                  size: 16.sp,
-                  color: AppColors.blackColor,
-                ),
+                Icon(Icons.edit, size: 16.sp, color: AppColors.blackColor),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSendToSomeoneElseSection(CartController cartController) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.whiteColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: AppColors.greyColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              customText(
+                'Send to Someone Else',
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.blackColor,
+              ),
+              Switch(
+                value: cartController.isSendingToSomeoneElse,
+                onChanged: (value) {
+                  cartController.toggleSendToSomeoneElse(value);
+                },
+                activeColor: AppColors.primaryColor,
+              ),
+            ],
+          ),
+
+          if (cartController.isSendingToSomeoneElse) ...[
+            SizedBox(height: 16.h),
+
+            customText(
+              'Recipient Details',
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: AppColors.greyColor,
+            ),
+
+            SizedBox(height: 12.h),
+
+            // Recipient Name Field
+            TextField(
+              controller: cartController.recipientNameController,
+              decoration: InputDecoration(
+                labelText: 'Recipient Name',
+                hintText: 'Enter recipient\'s full name',
+                prefixIcon: Icon(Icons.person_outline, size: 20.sp),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                  borderSide: BorderSide(
+                    color: AppColors.primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
+                ),
+              ),
+            ),
+
+            SizedBox(height: 12.h),
+
+            // Recipient Phone Field
+            TextField(
+              controller: cartController.recipientPhoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: 'Recipient Phone',
+                hintText: 'Enter recipient\'s phone number',
+                prefixIcon: Icon(Icons.phone_outlined, size: 20.sp),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                  borderSide: BorderSide(
+                    color: AppColors.primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
+                ),
+              ),
+            ),
+
+            SizedBox(height: 8.h),
+
+            // Info text
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16.sp,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: customText(
+                      'The order will be delivered to the location you selected above, but we\'ll notify the recipient.',
+                      fontSize: 12.sp,
+                      color: AppColors.blackColor,
+                      overflow: TextOverflow.visible,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -332,11 +487,7 @@ class OrderCheckoutScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        customText(
-          label,
-          fontSize: 14.sp,
-          color: AppColors.greyColor,
-        ),
+        customText(label, fontSize: 14.sp, color: AppColors.greyColor),
         customText(
           formatToCurrency(amount),
           fontSize: 14.sp,
@@ -370,11 +521,7 @@ class OrderCheckoutScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.payment,
-                    size: 20.sp,
-                    color: AppColors.blackColor,
-                  ),
+                  Icon(Icons.payment, size: 20.sp, color: AppColors.blackColor),
                   SizedBox(width: 8.w),
                   customText(
                     'Payment Method',
@@ -394,9 +541,15 @@ class OrderCheckoutScreen extends StatelessWidget {
                     : 'Loading balance...',
                 icon: SvgAssets.walletIcon,
                 iconColor: AppColors.primaryColor,
-                onTap: () => _selectWalletPayment(cartController, walletController),
-                isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'wallet',
-                hasWarning: _hasInsufficientWalletFunds(walletController, cartController),
+                onTap: () =>
+                    _selectWalletPayment(cartController, walletController),
+                isSelected:
+                    cartController.selectedPaymentMethod.value.toLowerCase() ==
+                    'wallet',
+                hasWarning: _hasInsufficientWalletFunds(
+                  walletController,
+                  cartController,
+                ),
               ),
 
               SizedBox(height: 12.h),
@@ -408,7 +561,9 @@ class OrderCheckoutScreen extends StatelessWidget {
                 icon: SvgAssets.paystackIcon,
                 iconColor: AppColors.blackColor,
                 onTap: () => _selectPaymentMethod(cartController, 'paystack'),
-                isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'paystack',
+                isSelected:
+                    cartController.selectedPaymentMethod.value.toLowerCase() ==
+                    'paystack',
               ),
 
               SizedBox(height: 12.h),
@@ -421,7 +576,9 @@ class OrderCheckoutScreen extends StatelessWidget {
                 materialIcon: Icons.money,
                 iconColor: AppColors.secondaryColor,
                 onTap: () => _selectPaymentMethod(cartController, 'cash'),
-                isSelected: cartController.selectedPaymentMethod.value.toLowerCase() == 'cash',
+                isSelected:
+                    cartController.selectedPaymentMethod.value.toLowerCase() ==
+                    'cash',
               ),
             ],
           ),
@@ -430,7 +587,10 @@ class OrderCheckoutScreen extends StatelessWidget {
     );
   }
 
-  bool _hasInsufficientWalletFunds(WalletController walletController, CartController cartController) {
+  bool _hasInsufficientWalletFunds(
+    WalletController walletController,
+    CartController cartController,
+  ) {
     String? balanceStr = walletController.walletBalanceData?.balance;
     if (balanceStr != null) {
       double balance = double.tryParse(balanceStr) ?? 0.0;
@@ -463,8 +623,8 @@ class OrderCheckoutScreen extends StatelessWidget {
             color: isSelected
                 ? iconColor
                 : hasWarning
-                    ? Colors.red.withOpacity(0.3)
-                    : AppColors.greyColor.withOpacity(0.2),
+                ? Colors.red.withOpacity(0.3)
+                : AppColors.greyColor.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -604,7 +764,10 @@ class OrderCheckoutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomActionBar(CartController cartController, BuildContext context) {
+  Widget _buildBottomActionBar(
+    CartController cartController,
+    BuildContext context,
+  ) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -623,10 +786,18 @@ class OrderCheckoutScreen extends StatelessWidget {
           backgroundColor: AppColors.primaryColor,
           title: 'Place Order - ${formatToCurrency(cartController.total)}',
           onPressed: () {
-            if (!cartController.isLoading && cartController.selectedPaymentMethod.value.isNotEmpty) {
-              _processPayment(cartController, cartController.selectedPaymentMethod.value.toLowerCase(), context);
+            if (!cartController.isLoading &&
+                cartController.selectedPaymentMethod.value.isNotEmpty) {
+              _processPayment(
+                cartController,
+                cartController.selectedPaymentMethod.value.toLowerCase(),
+                context,
+              );
             } else if (cartController.selectedPaymentMethod.value.isEmpty) {
-              showToast(message: "Please select a payment method", isError: true);
+              showToast(
+                message: "Please select a payment method",
+                isError: true,
+              );
             }
           },
           isBusy: cartController.isLoading,
@@ -702,7 +873,9 @@ class OrderCheckoutScreen extends StatelessWidget {
     required String? walletBalance,
     required double orderTotal,
   }) {
-    double? balance = walletBalance != null ? double.tryParse(walletBalance) : null;
+    double? balance = walletBalance != null
+        ? double.tryParse(walletBalance)
+        : null;
     bool hasInsufficientFunds = balance != null && balance < orderTotal;
 
     return InkWell(
@@ -775,11 +948,17 @@ class OrderCheckoutScreen extends StatelessWidget {
     );
   }
 
-  void _selectPaymentMethod(CartController cartController, String paymentMethod) {
+  void _selectPaymentMethod(
+    CartController cartController,
+    String paymentMethod,
+  ) {
     cartController.selectPaymentMethod(paymentMethod);
   }
 
-  void _selectWalletPayment(CartController cartController, WalletController walletController) {
+  void _selectWalletPayment(
+    CartController cartController,
+    WalletController walletController,
+  ) {
     String? balanceStr = walletController.walletBalanceData?.balance;
     if (balanceStr != null) {
       double balance = double.tryParse(balanceStr) ?? 0.0;
@@ -787,7 +966,8 @@ class OrderCheckoutScreen extends StatelessWidget {
 
       if (balance < orderTotal) {
         showToast(
-          message: "Insufficient wallet balance. Please top up your wallet or use Paystack.",
+          message:
+              "Insufficient wallet balance. Please top up your wallet or use Paystack.",
           isError: true,
         );
         return;
@@ -797,7 +977,11 @@ class OrderCheckoutScreen extends StatelessWidget {
     cartController.selectPaymentMethod('wallet');
   }
 
-  void _processPayment(CartController cartController, String paymentMethod, BuildContext context) {
+  void _processPayment(
+    CartController cartController,
+    String paymentMethod,
+    BuildContext context,
+  ) {
     if (paymentMethod == 'wallet') {
       cartController.placeOrderWithWallet(cartController.instructions.value);
     } else if (paymentMethod == 'paystack') {
@@ -805,8 +989,13 @@ class OrderCheckoutScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _processPaystackPayment(CartController cartController, BuildContext context) async {
-    await cartController.placeOrderWithPaystack(cartController.instructions.value);
+  Future<void> _processPaystackPayment(
+    CartController cartController,
+    BuildContext context,
+  ) async {
+    await cartController.placeOrderWithPaystack(
+      cartController.instructions.value,
+    );
     if (cartController.payStackAuthorizationData != null) {
       WebViewController collectionsWebViewController = createWebViewController(
         successCallback: () {
@@ -837,7 +1026,10 @@ class OrderCheckoutScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _showAddressEditingDialog(CartController cartController, ItemLocation location) async {
+  Future<void> _showAddressEditingDialog(
+    CartController cartController,
+    ItemLocation location,
+  ) async {
     final TextEditingController addressController = TextEditingController(
       text: location.formattedAddress ?? '',
     );

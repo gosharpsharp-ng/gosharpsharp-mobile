@@ -96,6 +96,23 @@ class CartController extends GetxController {
     update();
   }
 
+  // Send to Someone Else feature
+  bool _isSendingToSomeoneElse = false;
+  final TextEditingController recipientNameController = TextEditingController();
+  final TextEditingController recipientPhoneController = TextEditingController();
+
+  bool get isSendingToSomeoneElse => _isSendingToSomeoneElse;
+
+  void toggleSendToSomeoneElse(bool value) {
+    _isSendingToSomeoneElse = value;
+    if (!value) {
+      // Clear recipient details when toggled off
+      recipientNameController.clear();
+      recipientPhoneController.clear();
+    }
+    update();
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -1157,5 +1174,13 @@ class CartController extends GetxController {
     } finally {
       setLoadingState(false);
     }
+  }
+
+  @override
+  void onClose() {
+    // Dispose text editing controllers
+    recipientNameController.dispose();
+    recipientPhoneController.dispose();
+    super.onClose();
   }
 }
