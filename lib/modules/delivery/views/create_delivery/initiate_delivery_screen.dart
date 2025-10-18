@@ -1,7 +1,5 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/utils/widgets/base64_image.dart';
-import 'package:gosharpsharp/modules/delivery/views/widgets/bike_and_payment_selection_bottomsheet.dart';
-import 'package:gosharpsharp/modules/delivery/views/widgets/delivery_instructions_bottom_sheet.dart';
 import 'package:intl_phone_field/phone_number.dart';
 
 class InitiateDeliveryScreen extends StatelessWidget {
@@ -29,7 +27,10 @@ class InitiateDeliveryScreen extends StatelessWidget {
                   children: [
                     // Sender Details Section
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.sp,
+                        vertical: 8.sp,
+                      ),
                       child: Row(
                         children: [
                           Icon(
@@ -126,16 +127,25 @@ class InitiateDeliveryScreen extends StatelessWidget {
                                 final ItemLocation result = await Get.toNamed(
                                   Routes.SELECT_LOCATION_SCREEN,
                                 );
-                                ordersController.setDeliverySenderLocation(result);
-                                if (ordersController.deliveryReceiverLocation != null) {
-                                  await ordersController.getRideEstimatedDistance();
+                                ordersController.setDeliverySenderLocation(
+                                  result,
+                                );
+                                if (ordersController.deliveryReceiverLocation !=
+                                    null) {
+                                  await ordersController
+                                      .getRideEstimatedDistance();
                                 }
                               },
                               child: Container(
                                 width: double.infinity,
-                                padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 16.sp),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.sp,
+                                  vertical: 16.sp,
+                                ),
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.greyColor.withOpacity(0.3)),
+                                  border: Border.all(
+                                    color: AppColors.greyColor.withOpacity(0.3),
+                                  ),
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
                                 child: Row(
@@ -148,24 +158,43 @@ class InitiateDeliveryScreen extends StatelessWidget {
                                     SizedBox(width: 12.w),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           customText(
-                                            ordersController.senderAddressController.text.isEmpty
+                                            ordersController
+                                                    .senderAddressController
+                                                    .text
+                                                    .isEmpty
                                                 ? "Tap to select location on map"
-                                                : ordersController.senderAddressController.text,
-                                            color: ordersController.senderAddressController.text.isEmpty
+                                                : ordersController
+                                                      .senderAddressController
+                                                      .text,
+                                            color:
+                                                ordersController
+                                                    .senderAddressController
+                                                    .text
+                                                    .isEmpty
                                                 ? AppColors.greyColor
                                                 : AppColors.blackColor,
                                             fontSize: 14.sp,
-                                            fontWeight: ordersController.senderAddressController.text.isEmpty
+                                            fontWeight:
+                                                ordersController
+                                                    .senderAddressController
+                                                    .text
+                                                    .isEmpty
                                                 ? FontWeight.normal
                                                 : FontWeight.w500,
-                                              overflow: TextOverflow.visible,
+                                            overflow: TextOverflow.visible,
                                           ),
-                                          if (ordersController.senderAddressController.text.isNotEmpty)
+                                          if (ordersController
+                                              .senderAddressController
+                                              .text
+                                              .isNotEmpty)
                                             Padding(
-                                              padding: EdgeInsets.only(top: 4.h),
+                                              padding: EdgeInsets.only(
+                                                top: 4.h,
+                                              ),
                                               child: customText(
                                                 "Tap to change location",
                                                 color: AppColors.primaryColor,
@@ -191,7 +220,10 @@ class InitiateDeliveryScreen extends StatelessWidget {
                     ),
                     // Receiver Details Section
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.sp,
+                        vertical: 8.sp,
+                      ),
                       child: Row(
                         children: [
                           Icon(
@@ -224,10 +256,17 @@ class InitiateDeliveryScreen extends StatelessWidget {
                           label: "7061032122",
                           onChanged: (PhoneNumber phone) {
                             // Remove all spaces and leading zero
-                            String cleanedNumber = phone.number.replaceAll(' ', '');
+                            String cleanedNumber = phone.number.replaceAll(
+                              ' ',
+                              '',
+                            );
 
-                            if (cleanedNumber.isNotEmpty && cleanedNumber.startsWith('0')) {
-                              cleanedNumber = cleanedNumber.replaceFirst(RegExp(r'^0'), '');
+                            if (cleanedNumber.isNotEmpty &&
+                                cleanedNumber.startsWith('0')) {
+                              cleanedNumber = cleanedNumber.replaceFirst(
+                                RegExp(r'^0'),
+                                '',
+                              );
                             }
 
                             if (cleanedNumber != phone.number) {
@@ -360,16 +399,25 @@ class InitiateDeliveryScreen extends StatelessWidget {
                                 final ItemLocation result = await Get.toNamed(
                                   Routes.SELECT_LOCATION_SCREEN,
                                 );
-                                ordersController.setDeliveryReceiverLocation(result);
-                                if (ordersController.deliverySenderLocation != null) {
-                                  await ordersController.getRideEstimatedDistance();
+                                ordersController.setDeliveryReceiverLocation(
+                                  result,
+                                );
+                                if (ordersController.deliverySenderLocation !=
+                                    null) {
+                                  await ordersController
+                                      .getRideEstimatedDistance();
                                 }
                               },
                               child: Container(
                                 width: double.infinity,
-                                padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 16.sp),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.sp,
+                                  vertical: 16.sp,
+                                ),
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.greyColor.withOpacity(0.3)),
+                                  border: Border.all(
+                                    color: AppColors.greyColor.withOpacity(0.3),
+                                  ),
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
                                 child: Row(
@@ -382,24 +430,43 @@ class InitiateDeliveryScreen extends StatelessWidget {
                                     SizedBox(width: 12.w),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           customText(
-                                            ordersController.receiverAddressController.text.isEmpty
+                                            ordersController
+                                                    .receiverAddressController
+                                                    .text
+                                                    .isEmpty
                                                 ? "Tap to select location on map"
-                                                : ordersController.receiverAddressController.text,
-                                            color: ordersController.receiverAddressController.text.isEmpty
+                                                : ordersController
+                                                      .receiverAddressController
+                                                      .text,
+                                            color:
+                                                ordersController
+                                                    .receiverAddressController
+                                                    .text
+                                                    .isEmpty
                                                 ? AppColors.greyColor
                                                 : AppColors.blackColor,
                                             fontSize: 14.sp,
-                                            fontWeight: ordersController.receiverAddressController.text.isEmpty
+                                            fontWeight:
+                                                ordersController
+                                                    .receiverAddressController
+                                                    .text
+                                                    .isEmpty
                                                 ? FontWeight.normal
                                                 : FontWeight.w500,
-                                            overflow: TextOverflow.visible
+                                            overflow: TextOverflow.visible,
                                           ),
-                                          if (ordersController.receiverAddressController.text.isNotEmpty)
+                                          if (ordersController
+                                              .receiverAddressController
+                                              .text
+                                              .isNotEmpty)
                                             Padding(
-                                              padding: EdgeInsets.only(top: 4.h),
+                                              padding: EdgeInsets.only(
+                                                top: 4.h,
+                                              ),
                                               child: customText(
                                                 "Tap to change location",
                                                 color: AppColors.primaryColor,
@@ -572,22 +639,13 @@ class InitiateDeliveryScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: CustomButton(
                         onPressed: () {
-                          // Validate all fields including parcel image
+                          // Validate all fields
                           if (ordersController.sendingInfoFormKey.currentState!
                                   .validate() &&
                               ordersController
                                   .receiverPhoneController
                                   .text
                                   .isNotEmpty) {
-                            // Check if parcel image is uploaded
-                            if (ordersController.parcelImage == null) {
-                              showToast(
-                                message: "Please upload a parcel image",
-                                isError: true,
-                              );
-                              return;
-                            }
-
                             // Check if item name is filled
                             if (ordersController
                                 .deliveryItemNameController
@@ -600,30 +658,17 @@ class InitiateDeliveryScreen extends StatelessWidget {
                               return;
                             }
 
-                            // Show bike and payment selection bottomsheet
-                            showAnyBottomSheet(
-                              child: BikeAndPaymentSelectionBottomsheet(
-                                onProceed: () {
-                                  // Show delivery instructions bottomsheet after bike selection
-                                  showAnyBottomSheet(
-                                    child: DeliveryInstructionsBottomSheet(
-                                      onContinue: () {
-                                        // TODO: Submit the delivery
-                                        showToast(
-                                          message:
-                                              "Delivery submitted successfully!",
-                                          isError: false,
-                                        );
-                                        Get.back(); // Return to landing/dashboard
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
+                            // Create the parcel delivery - sends item data directly from form fields
+                            ordersController.callDeliveryEndpoint(context);
+
+                            // The bottomsheet will be shown automatically in callDeliveryEndpoint
+                            // after successful delivery creation (navigates to RIDE_SELECTION_SCREEN)
                           }
                         },
-                        title: "Proceed",
+                        title: ordersController.submittingDelivery
+                            ? "Creating delivery..."
+                            : "Proceed",
+                        isBusy: ordersController.submittingDelivery,
                         width: 1.sw,
                         backgroundColor: AppColors.primaryColor,
                         fontColor: AppColors.whiteColor,

@@ -1,4 +1,3 @@
-
 import 'package:gosharpsharp/core/models/order_model.dart';
 import 'package:gosharpsharp/core/services/restaurant/orders/orders_service.dart';
 import '../../../core/utils/exports.dart';
@@ -30,7 +29,14 @@ class OrdersController extends GetxController {
 
   // Order status filter - Updated to match API statuses
   String selectedOrderStatus = 'paid';
-  List<String> orderStatuses = ['paid', 'pending', 'preparing', 'ready', 'in_transit', 'completed'];
+  List<String> orderStatuses = [
+    'paid',
+    'pending',
+    'preparing',
+    'ready',
+    'in_transit',
+    'completed',
+  ];
 
   setSelectedOrderStatus(String status) {
     selectedOrderStatus = status;
@@ -47,7 +53,10 @@ class OrdersController extends GetxController {
   // Filter orders by status
   void filterOrdersByStatus() {
     filteredOrders = allOrders
-        .where((order) => order.status.toLowerCase() == selectedOrderStatus.toLowerCase())
+        .where(
+          (order) =>
+              order.status.toLowerCase() == selectedOrderStatus.toLowerCase(),
+        )
         .toList();
   }
 
@@ -56,17 +65,15 @@ class OrdersController extends GetxController {
     setOrdersLoadingState(true);
 
     try {
-      final response = await _ordersService.getAllOrders({
-        'page': 'page=1',
-        'per_page': 50,
-      });
+      final response = await _ordersService.getAllOrders();
 
-      if (response.status=="success" && response.data != null) {
-
+      if (response.status == "success" && response.data != null) {
         // customDebugPrint(response.data);
-        final List<dynamic> ordersData = response.data['data'] ?? [];
+        final List<dynamic> ordersData = response.data['orders'] ?? [];
 
-        allOrders = ordersData.map((json) => OrderModel.fromJson(json)).toList();
+        allOrders = ordersData
+            .map((json) => OrderModel.fromJson(json))
+            .toList();
         filterOrdersByStatus();
       } else {
         // Keep existing sample data as fallback
@@ -75,10 +82,7 @@ class OrdersController extends GetxController {
         }
 
         if (response.message.isNotEmpty && response.message.isNotEmpty) {
-          showToast(
-            message: response.message,
-            isError: true,
-          );
+          showToast(message: response.message, isError: true);
         }
       }
     } catch (e) {
@@ -95,8 +99,6 @@ class OrdersController extends GetxController {
     }
   }
 
-
-
   // Update order status - UPDATED WITH API INTEGRATION
   updateOrderStatus(int orderId, String newStatus) async {
     setLoadingState(true);
@@ -110,7 +112,7 @@ class OrdersController extends GetxController {
       // Call the API
       final response = await _ordersService.updateOrder(statusData, orderId);
 
-      if (response.status=="success") {
+      if (response.status == "success") {
         // Update in local list
         int index = allOrders.indexWhere((order) => order.id == orderId);
         if (index != -1) {
@@ -120,13 +122,19 @@ class OrdersController extends GetxController {
             status: newStatus,
             updatedAt: now,
             // Set status-specific timestamps based on the new status
-            confirmedAt: newStatus.toLowerCase() == 'preparing' && allOrders[index].confirmedAt == null
+            confirmedAt:
+                newStatus.toLowerCase() == 'preparing' &&
+                    allOrders[index].confirmedAt == null
                 ? now
                 : allOrders[index].confirmedAt,
-            completedAt: newStatus.toLowerCase() == 'completed' && allOrders[index].completedAt == null
+            completedAt:
+                newStatus.toLowerCase() == 'completed' &&
+                    allOrders[index].completedAt == null
                 ? now
                 : allOrders[index].completedAt,
-            cancelledAt: newStatus.toLowerCase() == 'cancelled' && allOrders[index].cancelledAt == null
+            cancelledAt:
+                newStatus.toLowerCase() == 'cancelled' &&
+                    allOrders[index].cancelledAt == null
                 ? now
                 : allOrders[index].cancelledAt,
           );
@@ -139,7 +147,8 @@ class OrdersController extends GetxController {
 
         filterOrdersByStatus();
         showToast(
-          message: "Order status updated to ${_getStatusDisplayText(newStatus)}",
+          message:
+              "Order status updated to ${_getStatusDisplayText(newStatus)}",
           isError: false,
         );
       } else {
@@ -208,14 +217,21 @@ class OrdersController extends GetxController {
 
       // Validate status transition (optional - customize based on your business logic)
       if (!_isValidStatusTransition(currentStatus, targetStatus)) {
-        showToast(message: "Invalid status transition from $currentStatus to $targetStatus", isError: true);
+        showToast(
+          message:
+              "Invalid status transition from $currentStatus to $targetStatus",
+          isError: true,
+        );
         return;
       }
 
       // Call the regular update method
       await updateOrderStatus(orderId, newStatus);
     } catch (e) {
-      showToast(message: "Error updating order status: ${e.toString()}", isError: true);
+      showToast(
+        message: "Error updating order status: ${e.toString()}",
+        isError: true,
+      );
     } finally {
       setLoadingState(false);
     }
@@ -280,7 +296,7 @@ class OrdersController extends GetxController {
     try {
       final response = await _ordersService.getOrderById({'id': orderId});
 
-      if (response.status=="success" && response.data != null) {
+      if (response.status == "success" && response.data != null) {
         final orderData = response.data;
         final order = OrderModel.fromJson(orderData);
 
@@ -312,7 +328,9 @@ class OrdersController extends GetxController {
 
   // Get order count by status
   int getOrderCountByStatus(String status) {
-    return allOrders.where((order) => order.status.toLowerCase() == status.toLowerCase()).length;
+    return allOrders
+        .where((order) => order.status.toLowerCase() == status.toLowerCase())
+        .length;
   }
 
   // Format order time

@@ -11,17 +11,13 @@ class APIResponse {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'success': status,
-      'message': message,
-      'data': data,
-    };
+    return {'success': status, 'message': message, 'data': data};
   }
 
   factory APIResponse.fromMap(Map<String, dynamic> map) {
     return APIResponse(
-      status: map['status'] ??"" ,
-      message: map['message']?? map['error']??"",
+      status: map['status'] ?? "",
+      message: map['message'] ?? map['error'] ?? "",
       data: map['data'] ?? "",
     );
   }

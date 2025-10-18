@@ -1,36 +1,23 @@
 import 'package:gosharpsharp/core/models/payment_method_model.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'delivery_response_model.dart';
 
-part 'delivery_model.g.dart';
-
-@JsonSerializable()
 class DeliveryModel {
   final int id;
-  @JsonKey(name: 'user_id')
   final int userId;
-  @JsonKey(name: 'tracking_id')
   final String trackingId;
   final String? status;
   final String? cost;
-  @JsonKey(name: 'origin_location')
-  final ShipmentLocation originLocation;
-  @JsonKey(name: 'destination_location')
+  final ShipmentLocation pickUpLocation;
   final ShipmentLocation destinationLocation;
   final Receiver receiver;
   final Sender? sender;
   final Rider? rider;
   final List<Item> items;
-  @JsonKey(fromJson: _parseDistance)
   final String distance;
-  @JsonKey(name: 'courier_type_prices')
   final List<CourierTypePrice>? courierTypePrices;
-  @JsonKey(name: 'payment_methods')
   final List<PaymentMethodModel>? paymentMethods;
-  @JsonKey(name: 'created_at')
   final String createdAt;
-  @JsonKey(name: 'updated_at')
   final String updatedAt;
-  @JsonKey(name: 'timestamp', defaultValue: "")
   final String? timestamp;
   final Rating? rating;
 
@@ -38,130 +25,114 @@ class DeliveryModel {
     required this.id,
     required this.userId,
     required this.trackingId,
-    required this.cost,
     this.status,
-    required this.originLocation,
+    this.cost,
+    required this.pickUpLocation,
     required this.destinationLocation,
     required this.receiver,
-    required this.sender,
-    required this.rider,
+    this.sender,
+    this.rider,
     required this.items,
     required this.distance,
-    required this.courierTypePrices,
-    required this.paymentMethods,
+    this.courierTypePrices,
+    this.paymentMethods,
     required this.createdAt,
     required this.updatedAt,
-    required this.rating,
-    required this.timestamp,
+    this.timestamp,
+    this.rating,
   });
 
-  factory DeliveryModel.fromJson(Map<String, dynamic> json) =>
-      _$DeliveryModelFromJson(json);
-  Map<String, dynamic> toJson() => _$DeliveryModelToJson(this);
-  // Custom deserialization for distance
+  factory DeliveryModel.fromJson(Map<String, dynamic> json) {
+    return DeliveryModel(
+      id: json['id'],
+      userId: json['user_id'],
+      trackingId: json['tracking_id'],
+      status: json['status'] ?? "",
+      cost: json['cost']?.toString(),
+      pickUpLocation: ShipmentLocation.fromJson(json['pickup_location']),
+      destinationLocation: ShipmentLocation.fromJson(
+        json['destination_location'],
+      ),
+      receiver: Receiver.fromJson(json['receiver']),
+      sender: json['sender'] != null ? Sender.fromJson(json['sender']) : null,
+      rider: json['rider'] != null ? Rider.fromJson(json['rider']) : null,
+      items: (json['items'] as List<dynamic>)
+          .map((e) => Item.fromJson(e))
+          .toList(),
+      distance: _parseDistance(json['distance']),
+      courierTypePrices: json['courier_type_prices'] != null
+          ? (json['courier_type_prices'] as List)
+                .map((e) => CourierTypePrice.fromJson(e))
+                .toList()
+          : null,
+      paymentMethods: json['payment_methods'] != null
+          ? (json['payment_methods'] as List)
+                .map((e) => PaymentMethodModel.fromJson(e))
+                .toList()
+          : null,
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      timestamp: json['timestamp'],
+      rating: json['rating'] != null ? Rating.fromJson(json['rating']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'tracking_id': trackingId,
+      'status': status,
+      'cost': cost,
+      'origin_location': pickUpLocation.toJson(),
+      'destination_location': destinationLocation.toJson(),
+      'receiver': receiver.toJson(),
+      'sender': sender?.toJson(),
+      'rider': rider?.toJson(),
+      'items': items.map((e) => e.toJson()).toList(),
+      'distance': distance,
+      'courier_type_prices': courierTypePrices?.map((e) => e.toJson()).toList(),
+      'payment_methods': paymentMethods?.map((e) => e.toJson()).toList(),
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+      'timestamp': timestamp,
+      'rating': rating?.toJson(),
+    };
+  }
+
   static String _parseDistance(dynamic value) {
     if (value is String) {
       return value;
     } else if (value is double || value is int) {
       return value.toString();
     } else {
-      return "0"; // Default to "0" for unexpected values
+      return "0";
     }
   }
 }
 
-@JsonSerializable()
-class ShipmentLocation {
-  final int id;
-  final String name;
-  final String latitude;
-  final String longitude;
-  @JsonKey(name: 'locationable_type')
-  final String locationableType;
-  @JsonKey(name: 'locationable_id')
-  final int locationableId;
-  @JsonKey(name: 'created_at')
-  final String createdAt;
-  @JsonKey(name: 'updated_at')
-  final String updatedAt;
-
-  ShipmentLocation({
-    required this.id,
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    required this.locationableType,
-    required this.locationableId,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory ShipmentLocation.fromJson(Map<String, dynamic> json) =>
-      _$ShipmentLocationFromJson(json);
-  Map<String, dynamic> toJson() => _$ShipmentLocationToJson(this);
-}
-
-@JsonSerializable()
-class Receiver {
-  final int id;
-  final String name;
-  final String address;
-  final String phone;
-  final String? email;
-  @JsonKey(name: 'shipment_id')
-  final int shipmentId;
-  @JsonKey(name: 'created_at')
-  final String createdAt;
-  @JsonKey(name: 'updated_at')
-  final String updatedAt;
-
-  Receiver({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.phone,
-    required this.email,
-    required this.shipmentId,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Receiver.fromJson(Map<String, dynamic> json) =>
-      _$ReceiverFromJson(json);
-  Map<String, dynamic> toJson() => _$ReceiverToJson(this);
-}
-
-@JsonSerializable()
 class Sender {
   final int id;
   final String? avatar;
-  @JsonKey(name: 'fname')
   final String? firstName;
-  @JsonKey(name: 'lname')
   final String? lastName;
   final String phone;
   final String? dob;
   final String email;
   final String role;
   final String status;
-  @JsonKey(name: 'referral_code')
   final String referralCode;
-  @JsonKey(name: 'referred_by')
   final String? referredBy;
-  @JsonKey(name: 'last_login_at')
   final String? lastLoginAt;
-  @JsonKey(name: 'failed_login_attempts')
   final int failedLoginAttempts;
-  @JsonKey(name: 'created_at')
   final String createdAt;
-  @JsonKey(name: 'updated_at')
   final String updatedAt;
 
   Sender({
     required this.id,
-    required this.avatar,
-    required this.firstName,
-    required this.lastName,
+    this.avatar,
+    this.firstName,
+    this.lastName,
     required this.phone,
     this.dob,
     required this.email,
@@ -175,41 +146,69 @@ class Sender {
     required this.updatedAt,
   });
 
-  factory Sender.fromJson(Map<String, dynamic> json) => _$SenderFromJson(json);
-  Map<String, dynamic> toJson() => _$SenderToJson(this);
+  factory Sender.fromJson(Map<String, dynamic> json) {
+    return Sender(
+      id: json['id'],
+      avatar: json['avatar'],
+      firstName: json['fname'],
+      lastName: json['lname'],
+      phone: json['phone'],
+      dob: json['dob'],
+      email: json['email'],
+      role: json['role'],
+      status: json['status'],
+      referralCode: json['referral_code'],
+      referredBy: json['referred_by'],
+      lastLoginAt: json['last_login_at'],
+      failedLoginAttempts: json['failed_login_attempts'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'avatar': avatar,
+      'fname': firstName,
+      'lname': lastName,
+      'phone': phone,
+      'dob': dob,
+      'email': email,
+      'role': role,
+      'status': status,
+      'referral_code': referralCode,
+      'referred_by': referredBy,
+      'last_login_at': lastLoginAt,
+      'failed_login_attempts': failedLoginAttempts,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
+  }
 }
 
-@JsonSerializable()
 class Rider {
   final int id;
   final String? avatar;
-  @JsonKey(name: 'fname')
   final String? firstName;
-  @JsonKey(name: 'lname')
   final String? lastName;
   final String phone;
   final String? dob;
   final String email;
   final String role;
   final String status;
-  @JsonKey(name: 'referral_code')
   final String referralCode;
-  @JsonKey(name: 'referred_by')
   final String? referredBy;
-  @JsonKey(name: 'last_login_at')
   final String? lastLoginAt;
-  @JsonKey(name: 'failed_login_attempts')
   final int failedLoginAttempts;
-  @JsonKey(name: 'created_at')
   final String createdAt;
-  @JsonKey(name: 'updated_at')
   final String updatedAt;
 
   Rider({
     required this.id,
-    required this.avatar,
-    required this.firstName,
-    required this.lastName,
+    this.avatar,
+    this.firstName,
+    this.lastName,
     required this.phone,
     this.dob,
     required this.email,
@@ -223,49 +222,49 @@ class Rider {
     required this.updatedAt,
   });
 
-  factory Rider.fromJson(Map<String, dynamic> json) => _$RiderFromJson(json);
-  Map<String, dynamic> toJson() => _$RiderToJson(this);
+  factory Rider.fromJson(Map<String, dynamic> json) {
+    return Rider(
+      id: json['id'],
+      avatar: json['avatar'],
+      firstName: json['fname'],
+      lastName: json['lname'],
+      phone: json['phone'],
+      dob: json['dob'],
+      email: json['email'],
+      role: json['role'],
+      status: json['status'],
+      referralCode: json['referral_code'],
+      referredBy: json['referred_by'],
+      lastLoginAt: json['last_login_at'],
+      failedLoginAttempts: json['failed_login_attempts'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'avatar': avatar,
+      'fname': firstName,
+      'lname': lastName,
+      'phone': phone,
+      'dob': dob,
+      'email': email,
+      'role': role,
+      'status': status,
+      'referral_code': referralCode,
+      'referred_by': referredBy,
+      'last_login_at': lastLoginAt,
+      'failed_login_attempts': failedLoginAttempts,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
+  }
 }
 
-@JsonSerializable()
-class Item {
-  final int id;
-  final String name;
-  @JsonKey(name: 'description', defaultValue: "")
-  final String? description;
-  final String category;
-  final String weight;
-  final int quantity;
-  @JsonKey(name: 'shipment_id')
-  final int shipmentId;
-  @JsonKey(name: 'created_at')
-  final String createdAt;
-  final String image;
-  @JsonKey(name: 'updated_at')
-  final String updatedAt;
-
-  Item({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.category,
-    required this.weight,
-    required this.quantity,
-    required this.image,
-    required this.shipmentId,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Item.fromJson(Map<String, dynamic> json) => _$ItemFromJson(json);
-  Map<String, dynamic> toJson() => _$ItemToJson(this);
-}
-
-@JsonSerializable()
 class CourierTypePrice {
-  @JsonKey(name: 'courier_type_id')
   final int courierTypeId;
-  @JsonKey(name: 'courier_type')
   final String courierType;
   final double price;
 
@@ -275,19 +274,28 @@ class CourierTypePrice {
     required this.price,
   });
 
-  factory CourierTypePrice.fromJson(Map<String, dynamic> json) =>
-      _$CourierTypePriceFromJson(json);
-  Map<String, dynamic> toJson() => _$CourierTypePriceToJson(this);
+  factory CourierTypePrice.fromJson(Map<String, dynamic> json) {
+    return CourierTypePrice(
+      courierTypeId: json['courier_type_id'],
+      courierType: json['courier_type'],
+      price: (json['price'] as num).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'courier_type_id': courierTypeId,
+      'courier_type': courierType,
+      'price': price,
+    };
+  }
 }
 
-@JsonSerializable()
 class Rating {
   final int id;
   final num points;
   final String review;
-  @JsonKey(name: "shipment_id")
   final int shipmentId;
-  @JsonKey(name: "user_id")
   final int userId;
 
   Rating({
@@ -298,6 +306,23 @@ class Rating {
     required this.userId,
   });
 
-  factory Rating.fromJson(Map<String, dynamic> json) => _$RatingFromJson(json);
-  Map<String, dynamic> toJson() => _$RatingToJson(this);
+  factory Rating.fromJson(Map<String, dynamic> json) {
+    return Rating(
+      id: json['id'],
+      points: json['points'],
+      review: json['review'],
+      shipmentId: json['shipment_id'],
+      userId: json['user_id'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'points': points,
+      'review': review,
+      'shipment_id': shipmentId,
+      'user_id': userId,
+    };
+  }
 }

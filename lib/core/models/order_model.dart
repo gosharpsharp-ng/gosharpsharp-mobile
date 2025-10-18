@@ -69,6 +69,7 @@ class OrderModel {
   final double discountAmount;
   final int? paymentMethodId;
   final PaymentMethodModel? paymentMethod;
+  final String? paymentMethodString; // For when API returns payment_method as a string
   final String paymentReference;
   final double total;
   final DateTime? confirmedAt;
@@ -79,6 +80,7 @@ class OrderModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<OrderItemModel> items;
+  final List<OrderPackageModel> packages;
   final RestaurantModel? orderable;
   final DeliveryLocationModel deliveryLocation;
   final dynamic discount;
@@ -98,6 +100,7 @@ class OrderModel {
     required this.discountAmount,
     this.paymentMethodId,
     this.paymentMethod,
+    this.paymentMethodString,
     required this.paymentReference,
     required this.total,
     this.confirmedAt,
@@ -108,6 +111,7 @@ class OrderModel {
     required this.createdAt,
     required this.updatedAt,
     required this.items,
+    this.packages = const [],
     this.orderable,
     required this.deliveryLocation,
     this.discount,
@@ -128,9 +132,10 @@ class OrderModel {
       discountId: json['discount_id'],
       discountAmount: double.tryParse(json['discount_amount']?.toString() ?? '0') ?? 0.0,
       paymentMethodId: json['payment_method_id'],
-      paymentMethod: json['payment_method'] != null
+      paymentMethod: json['payment_method'] != null && json['payment_method'] is Map<String, dynamic>
           ? PaymentMethodModel.fromJson(json['payment_method'])
           : null,
+      paymentMethodString: json['payment_method'] is String ? json['payment_method'] : null,
       paymentReference: json['payment_reference'] ?? '',
       total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
       confirmedAt: json['confirmed_at'] != null
@@ -152,6 +157,9 @@ class OrderModel {
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
       items: (json['items'] as List<dynamic>?)
           ?.map((item) => OrderItemModel.fromJson(item))
+          .toList() ?? [],
+      packages: (json['packages'] as List<dynamic>?)
+          ?.map((package) => OrderPackageModel.fromJson(package))
           .toList() ?? [],
       orderable: json['orderable'] != null
           ? RestaurantModel.fromJson(json['orderable'])
@@ -176,7 +184,7 @@ class OrderModel {
       'discount_id': discountId,
       'discount_amount': discountAmount.toString(),
       'payment_method_id': paymentMethodId,
-      'payment_method': paymentMethod?.toJson(),
+      'payment_method': paymentMethod?.toJson() ?? paymentMethodString,
       'payment_reference': paymentReference,
       'total': total.toString(),
       'confirmed_at': confirmedAt?.toIso8601String(),
@@ -187,6 +195,7 @@ class OrderModel {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
+      'packages': packages.map((package) => package.toJson()).toList(),
       'orderable': orderable?.toJson(),
       'delivery_location': deliveryLocation.toJson(),
       'discount': discount,
@@ -208,6 +217,7 @@ class OrderModel {
     double? discountAmount,
     int? paymentMethodId,
     PaymentMethodModel? paymentMethod,
+    String? paymentMethodString,
     String? paymentReference,
     double? total,
     DateTime? confirmedAt,
@@ -218,6 +228,7 @@ class OrderModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<OrderItemModel>? items,
+    List<OrderPackageModel>? packages,
     RestaurantModel? orderable,
     DeliveryLocationModel? deliveryLocation,
     dynamic discount,
@@ -237,6 +248,7 @@ class OrderModel {
       discountAmount: discountAmount ?? this.discountAmount,
       paymentMethodId: paymentMethodId ?? this.paymentMethodId,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentMethodString: paymentMethodString ?? this.paymentMethodString,
       paymentReference: paymentReference ?? this.paymentReference,
       total: total ?? this.total,
       confirmedAt: confirmedAt ?? this.confirmedAt,
@@ -247,6 +259,7 @@ class OrderModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       items: items ?? this.items,
+      packages: packages ?? this.packages,
       orderable: orderable ?? this.orderable,
       deliveryLocation: deliveryLocation ?? this.deliveryLocation,
       discount: discount ?? this.discount,
@@ -259,13 +272,99 @@ class OrderModel {
   String get deliveryAddress => deliveryLocation.name;
   DateTime get orderDate => createdAt;
   String get estimatedDeliveryTime => "25-30 mins"; // You can calculate this based on your logic
-  int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);
+
+  // Get all items from both direct items list and package items
+  List<OrderItemModel> get allItems {
+    final List<OrderItemModel> combined = [];
+
+    // Add direct items if any
+    combined.addAll(items);
+
+    // Add items from all packages
+    for (final package in packages) {
+      combined.addAll(package.items);
+    }
+
+    return combined;
+  }
+
+  // Calculate total item count from both sources
+  int get totalItems {
+    int count = items.fold(0, (sum, item) => sum + item.quantity);
+    for (final package in packages) {
+      count += package.items.fold(0, (sum, item) => sum + item.quantity);
+    }
+    return count;
+  }
+
   String get ref => orderNumber; // For backward compatibility
+
+  // Get payment method name (handles both string and object)
+  String get paymentMethodName => paymentMethodString ?? paymentMethod?.name ?? 'Unknown';
 
   // Customer info should be retrieved from current user profile, not from order
   // These getters are kept for backward compatibility but should use ProfileController
   String get customerName => ""; // Use ProfileController.getFullName() instead
   String get customerPhone => ""; // Use ProfileController.getPhone() instead
+}
+
+// Order Package Model - Similar to CartPackage
+class OrderPackageModel {
+  final int id;
+  final int orderId;
+  final String name;
+  final int quantity;
+  final double price;
+  final double total;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final List<OrderItemModel> items;
+
+  OrderPackageModel({
+    required this.id,
+    required this.orderId,
+    required this.name,
+    required this.quantity,
+    required this.price,
+    required this.total,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.items,
+  });
+
+  factory OrderPackageModel.fromJson(Map<String, dynamic> json) {
+    return OrderPackageModel(
+      id: json['id'] ?? 0,
+      orderId: json['order_id'] ?? 0,
+      name: json['name'] ?? '',
+      quantity: json['quantity'] ?? 1,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
+      notes: json['notes'],
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
+      items: (json['items'] as List<dynamic>?)
+          ?.map((item) => OrderItemModel.fromJson(item))
+          .toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'order_id': orderId,
+      'name': name,
+      'quantity': quantity,
+      'price': price.toString(),
+      'total': total.toString(),
+      'notes': notes,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'items': items.map((item) => item.toJson()).toList(),
+    };
+  }
 }
 
 // Order Item Model - Updated to match cart item structure
@@ -275,6 +374,7 @@ class OrderItemModel {
   final String orderableType;
   final int orderableId;
   final Map<String, dynamic>? options;
+  final int? packageId;
   final int quantity;
   final double price;
   final double total;
@@ -288,6 +388,7 @@ class OrderItemModel {
     required this.orderableType,
     required this.orderableId,
     this.options,
+    this.packageId,
     required this.quantity,
     required this.price,
     required this.total,
@@ -303,6 +404,7 @@ class OrderItemModel {
       orderableType: json['orderable_type'] ?? '',
       orderableId: json['orderable_id'] ?? 0,
       options: json['options'],
+      packageId: json['package_id'],
       quantity: json['quantity'] ?? 1,
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
       total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
@@ -319,6 +421,7 @@ class OrderItemModel {
       'orderable_type': orderableType,
       'orderable_id': orderableId,
       'options': options,
+      'package_id': packageId,
       'quantity': quantity,
       'price': price.toString(),
       'total': total.toString(),
@@ -334,6 +437,7 @@ class OrderItemModel {
     String? orderableType,
     int? orderableId,
     Map<String, dynamic>? options,
+    int? packageId,
     int? quantity,
     double? price,
     double? total,
@@ -347,6 +451,7 @@ class OrderItemModel {
       orderableType: orderableType ?? this.orderableType,
       orderableId: orderableId ?? this.orderableId,
       options: options ?? this.options,
+      packageId: packageId ?? this.packageId,
       quantity: quantity ?? this.quantity,
       price: price ?? this.price,
       total: total ?? this.total,

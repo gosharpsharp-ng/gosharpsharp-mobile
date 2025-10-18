@@ -1,3 +1,4 @@
+import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
 import 'package:gosharpsharp/modules/support/controllers/support_controller.dart';
 import 'package:gosharpsharp/modules/support/views/widgets/faq_category_chip.dart';
 
@@ -48,13 +49,7 @@ class FaqScreen extends StatelessWidget {
                               : MainAxisAlignment.center),
                     children: [
                       if (supportController.fetchingFaqs)
-                        const Center(
-                          child: Text(
-                            "Loading FAQs...",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        )
+                        SkeletonLoaders.faqItem(count: 6)
                       else if (supportController.faqs.isEmpty)
                         const Center(
                           child: Text(

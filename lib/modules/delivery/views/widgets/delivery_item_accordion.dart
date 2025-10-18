@@ -39,8 +39,11 @@ class DeliveryItemAccordion extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  customText(shipmentItemData.name,
-                      fontWeight: FontWeight.w500, fontSize: 14.sp),
+                  customText(
+                    shipmentItemData.name,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14.sp,
+                  ),
                 ],
               ),
             ),
@@ -51,8 +54,9 @@ class DeliveryItemAccordion extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.r),
                   image: DecorationImage(
-                      image: base64ToMemoryImage(shipmentItemData.image,),
-                      fit: BoxFit.cover),
+                    image: base64ToMemoryImage(shipmentItemData.image),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               SizedBox(
@@ -60,28 +64,30 @@ class DeliveryItemAccordion extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: 5.h,
+                    SizedBox(height: 5.h),
+                    DeliverySummaryDetailItem(
+                      isVertical: false,
+                      title: "Category",
+                      value: shipmentItemData.category,
                     ),
                     DeliverySummaryDetailItem(
-                        isVertical: false,
-                        title: "Category",
-                        value: shipmentItemData.category),
-                    DeliverySummaryDetailItem(
-                        isVertical: false,
-                        title: "Quantity",
-                        value: shipmentItemData.quantity.toString()),
+                      isVertical: false,
+                      title: "Quantity",
+                      value: shipmentItemData.quantity.toString(),
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        EditIcon(onPressed: () {
-                          Get.back();
-                        }),
+                        EditIcon(
+                          onPressed: () {
+                            Get.back();
+                          },
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -89,7 +95,6 @@ class DeliveryItemAccordion extends StatelessWidget {
     );
   }
 }
-
 
 class OrderItemSummaryAccordion extends StatelessWidget {
   final Item shipmentItemData;
@@ -109,9 +114,9 @@ class OrderItemSummaryAccordion extends StatelessWidget {
           data: Theme.of(context).copyWith(
             expansionTileTheme: const ExpansionTileThemeData(
               backgroundColor:
-              AppColors.whiteColor, // Blue background for expanded state
+                  AppColors.whiteColor, // Blue background for expanded state
               collapsedBackgroundColor:
-              AppColors.whiteColor, // Blue background for collapsed state
+                  AppColors.whiteColor, // Blue background for collapsed state
               iconColor: AppColors.blackColor, // Icon color for contrast
               collapsedIconColor: AppColors.blackColor,
             ),
@@ -129,8 +134,11 @@ class OrderItemSummaryAccordion extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  customText(shipmentItemData.name,
-                      fontWeight: FontWeight.w500, fontSize: 14.sp),
+                  customText(
+                    shipmentItemData.name,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14.sp,
+                  ),
                 ],
               ),
             ),
@@ -141,8 +149,9 @@ class OrderItemSummaryAccordion extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.r),
                   image: DecorationImage(
-                      image: base64ToMemoryImage(shipmentItemData.image,),
-                      fit: BoxFit.cover),
+                    image: base64ToMemoryImage(shipmentItemData.files[0]),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               SizedBox(
@@ -150,26 +159,24 @@ class OrderItemSummaryAccordion extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: 5.h,
+                    SizedBox(height: 5.h),
+                    DeliverySummaryDetailItem(
+                      isVertical: false,
+                      title: "Category",
+                      value: shipmentItemData.category,
                     ),
                     DeliverySummaryDetailItem(
-                        isVertical: false,
-                        title: "Category",
-                        value: shipmentItemData.category),
-                    DeliverySummaryDetailItem(
-                        isVertical: false,
-                        title: "Quantity",
-                        value: shipmentItemData.quantity.toString()),
+                      isVertical: false,
+                      title: "Quantity",
+                      value: shipmentItemData.quantity.toString(),
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        EditIcon(onPressed: () {}),
-                      ],
-                    )
+                      children: [EditIcon(onPressed: () {})],
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
