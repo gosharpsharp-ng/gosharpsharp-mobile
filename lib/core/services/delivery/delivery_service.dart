@@ -9,6 +9,18 @@ class DeliveryService extends CoreService {
     return await send("/shipments", data);
   }
 
+  Future<APIResponse> createParcelDelivery(dynamic data) async {
+    return await send("/customers/deliveries", data);
+  }
+
+  Future<APIResponse> getAllParcelDeliveries({int page = 1, int perPage = 15}) async {
+    return await fetch("/customers/deliveries?page=$page&per_page=$perPage");
+  }
+
+  Future<APIResponse> getParcelDelivery(int id) async {
+    return await fetch("/customers/deliveries/$id");
+  }
+
   Future<APIResponse> confirmDelivery(dynamic data) async {
     return await send(
         "/shipments/${data['tracking_id']}?courier_id=${data['courier_id']}&action=${data['action']}&payment_method_id=${data['payment_method_id']}",

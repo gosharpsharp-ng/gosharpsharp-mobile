@@ -57,11 +57,15 @@ class DashboardScreen extends StatelessWidget {
                               );
                             },
                           ),
+
                           Expanded(
+                            flex: 2,
                             child: GetBuilder<SettingsController>(
                               builder: (settingsController) {
                                 return Container(
-                                  margin: EdgeInsets.symmetric(horizontal: 5.sp),
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: 5.sp,
+                                  ),
                                   color: AppColors.transparent,
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -92,6 +96,7 @@ class DashboardScreen extends StatelessWidget {
                                           radius: 22.r,
                                         ),
                                       ),
+                                      SizedBox(width: 5.w),
                                       // SizedBox(width: 8.sp),
                                       customText(
                                         "Hi ${settingsController.userProfile?.fname ?? ''}",
@@ -105,6 +110,7 @@ class DashboardScreen extends StatelessWidget {
                             ),
                           ),
                           Expanded(
+                            flex: 2,
                             child: GetBuilder<SettingsController>(
                               builder: (settingsController) {
                                 return Row(
@@ -115,18 +121,26 @@ class DashboardScreen extends StatelessWidget {
                                       splashColor: AppColors.transparent,
                                       highlightColor: AppColors.transparent,
                                       onTap: () {
+                                        // Get or create NotificationsController and fetch notifications
+                                        final notificationsController = Get.put(
+                                          NotificationsController(),
+                                        );
+                                        notificationsController
+                                            .getNotifications();
                                         Get.toNamed(Routes.NOTIFICATIONS_HOME);
                                       },
                                       child: Container(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 5.sp,
                                         ),
-                                        child: settingsController
+                                        child:
+                                            settingsController
                                                 .isLoadingNotification
                                             ? Skeletonizer(
                                                 enabled: true,
                                                 child: Badge(
-                                                  textColor: AppColors.whiteColor,
+                                                  textColor:
+                                                      AppColors.whiteColor,
                                                   backgroundColor:
                                                       AppColors.redColor,
                                                   isLabelVisible: true,
@@ -145,23 +159,28 @@ class DashboardScreen extends StatelessWidget {
                                               )
                                             : Badge(
                                                 textColor: AppColors.whiteColor,
-                                                backgroundColor: AppColors.redColor,
-                                                isLabelVisible: settingsController
-                                                    .notifications.isNotEmpty,
+                                                backgroundColor:
+                                                    AppColors.redColor,
+                                                isLabelVisible:
+                                                    settingsController
+                                                        .notifications
+                                                        .isNotEmpty,
                                                 label: customText(
-                                                  settingsController.notifications
+                                                  settingsController
+                                                              .notifications
                                                               .length >
                                                           10
                                                       ? '10+'
                                                       : settingsController
-                                                          .notifications.length
-                                                          .toString(),
+                                                            .notifications
+                                                            .length
+                                                            .toString(),
                                                   fontSize: 12.sp,
                                                 ),
                                                 child: SvgPicture.asset(
                                                   SvgAssets.notificationIcon,
-                                                  color:
-                                                      AppColors.obscureTextColor,
+                                                  color: AppColors
+                                                      .obscureTextColor,
                                                   height: 20.sp,
                                                   width: 20.sp,
                                                 ),
@@ -187,10 +206,7 @@ class DashboardScreen extends StatelessWidget {
                                           horizontal: 1.sp,
                                           vertical: 5.h,
                                         ),
-                                        margin: EdgeInsets.only(
-                                          left: 5.w,
-
-                                        ),
+                                        margin: EdgeInsets.only(left: 5.w),
                                         child: Row(
                                           children: [
                                             Container(
@@ -307,130 +323,45 @@ class DashboardScreen extends StatelessWidget {
                       // Scrollable content
                       Expanded(
                         child: RefreshIndicator(
-                    backgroundColor: AppColors.primaryColor,
-                    color: AppColors.whiteColor,
-                    onRefresh: () async {
-                      await Future.wait<void>([
-                        // ordersController.fetchDeliveries(),
-                        // Get.find<WalletController>().getWalletBalance(),
-                        // Get.find<WalletController>().getTransactions(),
-                        // Get.find<SettingsController>().getProfile(),
-                        // Get.find<NotificationsController>().getNotifications(),
-                        dashboardController.refreshData(),
-                      ]);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 5.sp,
-                        horizontal: 10.sp,
-                      ),
-                      color: AppColors.backgroundColor,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            SizedBox(height: 15.h),
-
-                            // // Categories Section
-                            Container(
-                              width: 1.sw,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: dashboardController.categories
-                                      .map(
-                                        (category) => CategoryContainer(
-                                          name: category,
-                                          onPressed: () {
-                                            dashboardController
-                                                .updateSelectedCategory(
-                                                  category,
-                                                );
-                                          },
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                              ),
+                          backgroundColor: AppColors.primaryColor,
+                          color: AppColors.whiteColor,
+                          onRefresh: () async {
+                            await Future.wait<void>([
+                              // ordersController.fetchDeliveries(),
+                              // Get.find<WalletController>().getWalletBalance(),
+                              // Get.find<WalletController>().getTransactions(),
+                              // Get.find<SettingsController>().getProfile(),
+                              // Get.find<NotificationsController>().getNotifications(),
+                              dashboardController.refreshData(),
+                            ]);
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 5.sp,
+                              horizontal: 10.sp,
                             ),
-                            SizedBox(height: 15.h),
+                            color: AppColors.backgroundColor,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 15.h),
 
-                            // Popular Brands Section
-                            dashboardController.restaurants
-                                    .where(
-                                      (restaurant) =>
-                                          restaurant.isFeatured == 1,
-                                    )
-                                    .isNotEmpty
-                                ? const SectionHeader(title: "Popular Brands")
-                                : SizedBox.shrink(),
-
-                            SizedBox(height: 10.h),
-                            dashboardController.isLoadingRestaurants
-                                ? Container(
-                                    height: 120.h,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children: List.generate(
-                                          4,
-                                          (index) => Container(
-                                            width: 100.w,
-                                            margin: EdgeInsets.only(
-                                              right: 10.w,
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                Container(
-                                                  width: 80.sp,
-                                                  height: 80.sp,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: AppColors
-                                                        .backgroundColor,
-                                                  ),
-                                                ),
-                                                SizedBox(height: 8.h),
-                                                Container(
-                                                  height: 12.h,
-                                                  width: 70.w,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          4.r,
-                                                        ),
-                                                    color: AppColors
-                                                        .backgroundColor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Container(
+                                  // // Categories Section
+                                  Container(
                                     width: 1.sw,
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.start,
-                                        children: dashboardController
-                                            .restaurants
-                                            .where(
-                                              (restaurant) =>
-                                                  restaurant.isFeatured == 1,
-                                            )
-                                            .take(6)
+                                        children: dashboardController.categories
                                             .map(
-                                              (restaurant) => BrandsContainer(
-                                                restaurant: restaurant,
+                                              (category) => CategoryContainer(
+                                                name: category,
                                                 onPressed: () {
                                                   dashboardController
-                                                      .navigateToRestaurant(
-                                                        restaurant,
+                                                      .updateSelectedCategory(
+                                                        category,
                                                       );
                                                 },
                                               ),
@@ -439,190 +370,288 @@ class DashboardScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                            SizedBox(height: 5.h),
+                                  SizedBox(height: 15.h),
 
-                            // Top Restaurants Section
-                            SectionHeader(title: "Top Restaurants"),
-                            SizedBox(height: 10.h),
-                            // Loading state for top restaurants
-                            dashboardController.isLoadingRestaurants
-                                ? Container(
-                                    height: 280.h,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 5.w,
-                                      ),
-                                      child: Row(
-                                        children: List.generate(
-                                          3,
-                                          (index) => Container(
-                                            width: 1.sw * 0.85,
-                                            margin: EdgeInsets.only(
-                                              right: 10.w,
-                                            ),
-                                            child:
-                                                SkeletonLoaders.restaurantCard(
-                                                  count: 1,
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : dashboardController.restaurants.isEmpty
-                                ? _buildEmptyRestaurantsState(
-                                    dashboardController,
-                                  )
-                                : Container(
-                                    width: 1.sw,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          ...List.generate(
-                                            dashboardController.restaurants
-                                                .take(5)
-                                                .length,
-                                            (i) => RestaurantContainer(
-                                              key: ValueKey(
-                                                'top_restaurant_${dashboardController.restaurants[i].id}',
-                                              ),
-                                              restaurant: dashboardController
-                                                  .restaurants[i],
-                                              onPressed: () {
-                                                dashboardController
-                                                    .navigateToRestaurant(
-                                                      dashboardController
-                                                          .restaurants[i],
-                                                    );
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                  // Popular Brands Section
+                                  dashboardController.restaurants
+                                          .where(
+                                            (restaurant) =>
+                                                restaurant.isFeatured == 1,
+                                          )
+                                          .isNotEmpty
+                                      ? const SectionHeader(
+                                          title: "Popular Brands",
+                                        )
+                                      : SizedBox.shrink(),
 
-                            SizedBox(height: 25.h),
-
-                            // Favourites Section - Only show if loading or has favourites
-                            if (dashboardController.isLoadingFavorites ||
-                                dashboardController
-                                    .favoriteRestaurants
-                                    .isNotEmpty) ...[
-                              SizedBox(height: 25.h),
-
-                              // Favourites Header
-                              SectionHeader(title: "Favourites"),
-                              SizedBox(height: 10.h),
-
-                              // Loading state or favourite restaurants list
-                              dashboardController.isLoadingFavorites
-                                  ? Container(
-                                      height: 280.h,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 5.w,
-                                        ),
-                                        child: Row(
-                                          children: List.generate(
-                                            3,
-                                            (index) => Container(
-                                              width: 1.sw * 0.85,
-                                              margin: EdgeInsets.only(
-                                                right: 10.w,
-                                              ),
-                                              child:
-                                                  SkeletonLoaders.restaurantCard(
-                                                    count: 1,
+                                  SizedBox(height: 10.h),
+                                  dashboardController.isLoadingRestaurants
+                                      ? Container(
+                                          height: 120.h,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              children: List.generate(
+                                                4,
+                                                (index) => Container(
+                                                  width: 100.w,
+                                                  margin: EdgeInsets.only(
+                                                    right: 10.w,
                                                   ),
+                                                  child: Column(
+                                                    children: [
+                                                      Container(
+                                                        width: 80.sp,
+                                                        height: 80.sp,
+                                                        decoration: BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color: AppColors
+                                                              .backgroundColor,
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 8.h),
+                                                      Container(
+                                                        height: 12.h,
+                                                        width: 70.w,
+                                                        decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                4.r,
+                                                              ),
+                                                          color: AppColors
+                                                              .backgroundColor,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : Container(
+                                          width: 1.sw,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: dashboardController
+                                                  .restaurants
+                                                  .where(
+                                                    (restaurant) =>
+                                                        restaurant.isFeatured ==
+                                                        1,
+                                                  )
+                                                  .take(6)
+                                                  .map(
+                                                    (
+                                                      restaurant,
+                                                    ) => BrandsContainer(
+                                                      restaurant: restaurant,
+                                                      onPressed: () {
+                                                        dashboardController
+                                                            .navigateToRestaurant(
+                                                              restaurant,
+                                                            );
+                                                      },
+                                                    ),
+                                                  )
+                                                  .toList(),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    )
-                                  : Container(
-                                      width: 1.sw,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            ...List.generate(
-                                              dashboardController
-                                                  .favoriteRestaurants
-                                                  .take(5)
-                                                  .length,
-                                              (i) => FavRestaurantContainer(
-                                                favourite: dashboardController
-                                                    .favoriteRestaurants[i],
-                                                onPressed: () {
-                                                  dashboardController
-                                                      .navigateToRestaurant(
-                                                        dashboardController
-                                                            .favoriteRestaurants[i]
-                                                            .favoritable!,
-                                                      );
-                                                },
+                                  SizedBox(height: 5.h),
+
+                                  // Top Restaurants Section
+                                  SectionHeader(title: "Top Restaurants"),
+                                  SizedBox(height: 10.h),
+                                  // Loading state for top restaurants
+                                  dashboardController.isLoadingRestaurants
+                                      ? Container(
+                                          height: 280.h,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 5.w,
+                                            ),
+                                            child: Row(
+                                              children: List.generate(
+                                                3,
+                                                (index) => Container(
+                                                  width: 1.sw * 0.85,
+                                                  margin: EdgeInsets.only(
+                                                    right: 10.w,
+                                                  ),
+                                                  child:
+                                                      SkeletonLoaders.restaurantCard(
+                                                        count: 1,
+                                                      ),
+                                                ),
                                               ),
                                             ),
-                                          ],
+                                          ),
+                                        )
+                                      : dashboardController.restaurants.isEmpty
+                                      ? _buildEmptyRestaurantsState(
+                                          dashboardController,
+                                        )
+                                      : Container(
+                                          width: 1.sw,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                ...List.generate(
+                                                  dashboardController
+                                                      .restaurants
+                                                      .take(5)
+                                                      .length,
+                                                  (i) => RestaurantContainer(
+                                                    key: ValueKey(
+                                                      'top_restaurant_${dashboardController.restaurants[i].id}',
+                                                    ),
+                                                    restaurant:
+                                                        dashboardController
+                                                            .restaurants[i],
+                                                    onPressed: () {
+                                                      dashboardController
+                                                          .navigateToRestaurant(
+                                                            dashboardController
+                                                                .restaurants[i],
+                                                          );
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                            ],
-                            SizedBox(height: 25.h),
-                            // All Restaurants Section
-                            // SectionHeader(title: "All Restaurants"),
-                            // SizedBox(height: 15.h),
 
-                            // Loading state for all restaurants
-                            Builder(
-                              builder: (context) {
-                                if (dashboardController.isLoadingRestaurants) {
-                                  return SkeletonLoaders.restaurantCard(
-                                    count: 3,
-                                  );
-                                }
+                                  SizedBox(height: 25.h),
 
-                                final filteredRestaurants = dashboardController
-                                    .getFilteredRestaurants();
-                                if (filteredRestaurants.isEmpty) {
-                                  return _buildEmptyRestaurantsState(
-                                    dashboardController,
-                                  );
-                                }
+                                  // Favourites Section - Only show if loading or has favourites
+                                  if (dashboardController.isLoadingFavorites ||
+                                      dashboardController
+                                          .favoriteRestaurants
+                                          .isNotEmpty) ...[
+                                    SizedBox(height: 25.h),
 
-                                return Column(
-                                  children: List.generate(
-                                    filteredRestaurants.length,
-                                    (i) => RestaurantContainer(
-                                      key: ValueKey(
-                                        'restaurant_${filteredRestaurants[i].id}',
-                                      ),
-                                      restaurant: filteredRestaurants[i],
-                                      onPressed: () {
-                                        dashboardController
-                                            .navigateToRestaurant(
-                                              filteredRestaurants[i],
-                                            );
-                                      },
-                                    ),
+                                    // Favourites Header
+                                    SectionHeader(title: "Favourites"),
+                                    SizedBox(height: 10.h),
+
+                                    // Loading state or favourite restaurants list
+                                    dashboardController.isLoadingFavorites
+                                        ? Container(
+                                            height: 280.h,
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 5.w,
+                                              ),
+                                              child: Row(
+                                                children: List.generate(
+                                                  3,
+                                                  (index) => Container(
+                                                    width: 1.sw * 0.85,
+                                                    margin: EdgeInsets.only(
+                                                      right: 10.w,
+                                                    ),
+                                                    child:
+                                                        SkeletonLoaders.restaurantCard(
+                                                          count: 1,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                        : Container(
+                                            width: 1.sw,
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  ...List.generate(
+                                                    dashboardController
+                                                        .favoriteRestaurants
+                                                        .take(5)
+                                                        .length,
+                                                    (
+                                                      i,
+                                                    ) => FavRestaurantContainer(
+                                                      favourite: dashboardController
+                                                          .favoriteRestaurants[i],
+                                                      onPressed: () {
+                                                        dashboardController
+                                                            .navigateToRestaurant(
+                                                              dashboardController
+                                                                  .favoriteRestaurants[i]
+                                                                  .favoritable!,
+                                                            );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                  ],
+                                  SizedBox(height: 25.h),
+                                  // All Restaurants Section
+                                  // SectionHeader(title: "All Restaurants"),
+                                  // SizedBox(height: 15.h),
+
+                                  // Loading state for all restaurants
+                                  Builder(
+                                    builder: (context) {
+                                      if (dashboardController
+                                          .isLoadingRestaurants) {
+                                        return SkeletonLoaders.restaurantCard(
+                                          count: 3,
+                                        );
+                                      }
+
+                                      final filteredRestaurants =
+                                          dashboardController
+                                              .getFilteredRestaurants();
+                                      if (filteredRestaurants.isEmpty) {
+                                        return _buildEmptyRestaurantsState(
+                                          dashboardController,
+                                        );
+                                      }
+
+                                      return Column(
+                                        children: List.generate(
+                                          filteredRestaurants.length,
+                                          (i) => RestaurantContainer(
+                                            key: ValueKey(
+                                              'restaurant_${filteredRestaurants[i].id}',
+                                            ),
+                                            restaurant: filteredRestaurants[i],
+                                            onPressed: () {
+                                              dashboardController
+                                                  .navigateToRestaurant(
+                                                    filteredRestaurants[i],
+                                                  );
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
+                                  SizedBox(height: 30.h),
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 30.h),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // child:Container(),
+                          ),
+                          // child:Container(),
                         ),
                       ),
                     ],
@@ -946,7 +975,7 @@ class RestaurantContainer extends StatelessWidget {
     return GetBuilder<DashboardController>(
       builder: (controller) {
         return InkWell(
-          onTap:  onPressed,
+          onTap: onPressed,
           // onTap: restaurantOpen ? onPressed : null,
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),

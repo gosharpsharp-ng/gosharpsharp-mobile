@@ -97,6 +97,61 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                     children: [
                       SizedBox(height: 24.h),
 
+                      // Status Message Card
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(16.sp),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(order.status).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: _getStatusColor(order.status).withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(8.sp),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(order.status).withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _getStatusIcon(order.status),
+                                color: _getStatusColor(order.status),
+                                size: 20.sp,
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  customText(
+                                    _getStatusDisplayText(order.status),
+                                    color: _getStatusColor(order.status),
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  customText(
+                                    _getCustomerFriendlyMessage(order.status),
+                                    color: AppColors.blackColor.withOpacity(0.7),
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.normal,
+                                    maxLines: 3,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: 20.h),
+
                   // Order Items Section
                   Container(
                     padding: EdgeInsets.symmetric(vertical:16.sp,horizontal: 12.w),
@@ -117,7 +172,7 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                               fontWeight: FontWeight.w600,
                             ),
                             customText(
-                              "${order.items.length} item${order.items.length > 1 ? 's' : ''}",
+                              "${order.allItems.length} item${order.allItems.length > 1 ? 's' : ''}",
                               color: AppColors.greyColor,
                               fontSize: 12.sp,
                               fontWeight: FontWeight.normal,
@@ -131,11 +186,11 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: order.items.length,
+                          itemCount: order.allItems.length,
                           separatorBuilder: (context, index) =>
                               Divider(height: 24.h,color: AppColors.greyColor,thickness: 0.2,),
                           itemBuilder: (context, index) {
-                            final item = order.items[index];
+                            final item = order.allItems[index];
                             return _buildOrderItem(item);
                           },
                         ),
@@ -200,25 +255,18 @@ class OrderDetailsScreen extends GetView<OrdersController> {
 
                   SizedBox(height: 20.h),
 
-                  // Customer Information Section
+                  // Restaurant Information Section
                   Container(
                     padding: EdgeInsets.all(16.sp),
                     decoration: BoxDecoration(
                       color: AppColors.whiteColor,
                       borderRadius: BorderRadius.circular(12.r),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.black.withOpacity(0.05),
-                      //     blurRadius: 10,
-                      //     offset: const Offset(0, 2),
-                      //   ),
-                      // ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         customText(
-                          "Customer Information",
+                          "Restaurant Information",
                           color: AppColors.blackColor,
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
@@ -229,20 +277,28 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                         Row(
                           children: [
                             Container(
-                              width: 40.w,
-                              height: 40.h,
+                              width: 50.w,
+                              height: 50.h,
                               decoration: BoxDecoration(
                                 color: AppColors.primaryColor.withOpacity(0.1),
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(12.r),
+                                image: _hasRestaurantLogo(order)
+                                    ? DecorationImage(
+                                        image: NetworkImage(order.orderable!.logo!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
                               ),
-                              child: Center(
-                                child: customText(
-                                  _getCustomerInitial(order),
-                                  color: AppColors.primaryColor,
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              child: !_hasRestaurantLogo(order)
+                                  ? Center(
+                                      child: customText(
+                                        _getRestaurantInitial(order),
+                                        color: AppColors.primaryColor,
+                                        fontSize: 18.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    )
+                                  : null,
                             ),
                             SizedBox(width: 12.w),
                             Expanded(
@@ -250,31 +306,40 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   customText(
-                                    _getCustomerName(order),
+                                    _getRestaurantName(order),
                                     color: AppColors.blackColor,
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.w500,
                                   ),
                                   SizedBox(height: 2.h),
-                                  customText(
-                                    _getCustomerPhone(order),
-                                    color: AppColors.greyColor,
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                  if (_getCustomerEmail(order).isNotEmpty) ...[
+                                  if (_getRestaurantPhone(order).isNotEmpty)
+                                    customText(
+                                      _getRestaurantPhone(order),
+                                      color: AppColors.greyColor,
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  if (_getRestaurantEmail(order).isNotEmpty) ...[
                                     SizedBox(height: 2.h),
                                     customText(
-                                      _getCustomerEmail(order),
+                                      _getRestaurantEmail(order),
                                       color: AppColors.greyColor,
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ],
+                                  if (_getRestaurantCuisine(order).isNotEmpty) ...[
+                                    SizedBox(height: 2.h),
+                                    customText(
+                                      _getRestaurantCuisine(order),
+                                      color: AppColors.primaryColor,
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
-
                           ],
                         ),
                       ],
@@ -726,29 +791,38 @@ class OrderDetailsScreen extends GetView<OrdersController> {
     showToast(message: "Calling $phoneNumber", isError: false);
   }
 
-  // Helper methods for safe property access
-  String _getCustomerName(OrderModel order) {
-    final settingsController = Get.find<SettingsController>();
-    final profile = settingsController.userProfile;
-    return profile != null ? "${profile.fname} ${profile.lname}".trim() : "Customer";
+  // Helper methods to get restaurant info from order
+  String _getRestaurantName(OrderModel order) {
+    return order.orderable?.name ?? "Restaurant";
   }
 
+  String _getRestaurantPhone(OrderModel order) {
+    return order.orderable?.phone ?? "";
+  }
+
+  String _getRestaurantEmail(OrderModel order) {
+    return order.orderable?.email ?? "";
+  }
+
+  String _getRestaurantCuisine(OrderModel order) {
+    return order.orderable?.cuisineType ?? "";
+  }
+
+  String _getRestaurantInitial(OrderModel order) {
+    final name = order.orderable?.name ?? 'R';
+    return name.isNotEmpty ? name[0].toUpperCase() : 'R';
+  }
+
+  bool _hasRestaurantLogo(OrderModel order) {
+    final logo = order.orderable?.logo;
+    return logo != null && logo.isNotEmpty;
+  }
+
+  // Helper method for customer phone (still needed for calling)
   String _getCustomerPhone(OrderModel order) {
     final settingsController = Get.find<SettingsController>();
     final profile = settingsController.userProfile;
     return profile?.phone ?? "Phone not available";
-  }
-
-  String _getCustomerEmail(OrderModel order) {
-    final settingsController = Get.find<SettingsController>();
-    final profile = settingsController.userProfile;
-    return profile?.email ?? "";
-  }
-
-  String _getCustomerInitial(OrderModel order) {
-    final settingsController = Get.find<SettingsController>();
-    final profile = settingsController.userProfile;
-    return (profile?.fname.isNotEmpty == true ? profile!.fname[0] : 'U').toUpperCase();
   }
 
   Color _getStatusColor(String status) {
@@ -811,6 +885,27 @@ class OrderDetailsScreen extends GetView<OrdersController> {
         return Icons.cancel;
       default:
         return Icons.receipt;
+    }
+  }
+
+  String _getCustomerFriendlyMessage(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Thank you for your payment! Your order is being processed.';
+      case 'pending':
+        return 'We\'re waiting to confirm your order. Please complete payment if you haven\'t already.';
+      case 'preparing':
+        return 'Great news! The kitchen is preparing your delicious meal right now.';
+      case 'ready':
+        return 'Your order is ready! The delivery person will pick it up soon.';
+      case 'in_transit':
+        return 'Your order is on its way! You\'ll receive it shortly.';
+      case 'completed':
+        return 'Order delivered! We hope you enjoyed your meal. Thank you for ordering with us!';
+      case 'cancelled':
+        return 'This order has been cancelled. If you have any questions, please contact support.';
+      default:
+        return 'Your order is being processed. We\'ll keep you updated!';
     }
   }
 }

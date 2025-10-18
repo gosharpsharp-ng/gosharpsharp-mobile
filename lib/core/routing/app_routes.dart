@@ -65,6 +65,10 @@ abstract class Routes {
   static const CHECKOUT_SCREEN = '/checkout_screen';
   static const ORDER_SUCCESS_SCREEN = '/order_success_screen';
 
+  // Parcel Deliveries
+  static const PARCEL_DELIVERIES_HOME_SCREEN = '/parcel_deliveries_home_screen';
+  static const PARCEL_DELIVERY_DETAILS_SCREEN = '/parcel_delivery_details_screen';
+
 //   Restaurant
 
   static const RESTAURANT_DETAILS_SCREEN = '/restaurant_details_screen';

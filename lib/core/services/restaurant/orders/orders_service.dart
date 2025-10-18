@@ -3,7 +3,7 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 class OrdersService extends CoreService {
   Future<OrdersService> init() async => this;
 
-  Future<APIResponse> getAllOrders(dynamic data) async {
+  Future<APIResponse> getAllOrders() async {
     return await fetch("/customers/orders/menu");
   }
 

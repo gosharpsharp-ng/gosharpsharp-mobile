@@ -17,50 +17,70 @@ class OrdersHub extends StatelessWidget {
       builder: (cartController) {
         return GetBuilder<OrdersController>(
           builder: (ordersController) {
-            return Scaffold(
-              backgroundColor: AppColors.backgroundColor,
-              appBar: defaultAppBar(
-                bgColor: AppColors.backgroundColor,
-                title: 'My Orders',
-                implyLeading: false,
-                centerTitle: true,
-              ),
-              body: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-                child: Column(
-                  children: [
-                    // My Cart Card
-                    _buildOrderCard(
-                      icon: SvgAssets.cartIcon,
-                      accentColor: AppColors.primaryColor,
-                      title: 'My Cart',
-                      subtitle: cartController.itemCount > 0
-                          ? '${cartController.itemCount} ${cartController.itemCount == 1 ? 'item' : 'items'} in cart'
-                          : 'Your cart is empty',
-                      count: cartController.itemCount,
-                      onTap: () {
-                        Get.toNamed(Routes.CART_SCREEN);
-                      },
-                    ),
+            return GetBuilder<DeliveriesController>(
+              builder: (deliveriesController) {
+                return Scaffold(
+                  backgroundColor: AppColors.backgroundColor,
+                  appBar: defaultAppBar(
+                    bgColor: AppColors.backgroundColor,
+                    title: 'My Orders',
+                    implyLeading: false,
+                    centerTitle: true,
+                  ),
+                  body: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                    child: Column(
+                      children: [
+                        // My Cart Card
+                        _buildOrderCard(
+                          icon: SvgAssets.cartIcon,
+                          accentColor: AppColors.primaryColor,
+                          title: 'My Cart',
+                          subtitle: cartController.itemCount > 0
+                              ? '${cartController.itemCount} ${cartController.itemCount == 1 ? 'item' : 'items'} in cart'
+                              : 'Your cart is empty',
+                          count: cartController.itemCount,
+                          onTap: () {
+                            Get.toNamed(Routes.CART_SCREEN);
+                          },
+                        ),
 
-                    SizedBox(height: 20.h),
+                        SizedBox(height: 20.h),
 
-                    // Order History Card
-                    _buildOrderCard(
-                      icon: SvgAssets.ordersIcon,
-                      accentColor: AppColors.secondaryColor,
-                      title: 'Order History',
-                      subtitle: ordersController.allOrders.isNotEmpty
-                          ? '${ordersController.allOrders.length} ${ordersController.allOrders.length == 1 ? 'order' : 'orders'}'
-                          : 'No orders yet',
-                      count: ordersController.allOrders.length,
-                      onTap: () {
-                        Get.to(() => OrdersHomeScreen());
-                      },
+                        // Order History Card
+                        _buildOrderCard(
+                          icon: SvgAssets.ordersIcon,
+                          accentColor: AppColors.secondaryColor,
+                          title: 'Order History',
+                          subtitle: ordersController.allOrders.isNotEmpty
+                              ? '${ordersController.allOrders.length} ${ordersController.allOrders.length == 1 ? 'order' : 'orders'}'
+                              : 'No orders yet',
+                          count: ordersController.allOrders.length,
+                          onTap: () {
+                            Get.to(() => OrdersHomeScreen());
+                          },
+                        ),
+
+                        SizedBox(height: 20.h),
+
+                        // Parcel Deliveries Card
+                        _buildOrderCard(
+                          icon: SvgAssets.parcelIcon,
+                          accentColor: Color(0xFF7C4DFF),
+                          title: 'Parcel Deliveries',
+                          subtitle: deliveriesController.allParcelDeliveries.isNotEmpty
+                              ? '${deliveriesController.allParcelDeliveries.length} ${deliveriesController.allParcelDeliveries.length == 1 ? 'delivery' : 'deliveries'}'
+                              : 'No parcel deliveries yet',
+                          count: deliveriesController.allParcelDeliveries.length,
+                          onTap: () {
+                            Get.toNamed(Routes.PARCEL_DELIVERIES_HOME_SCREEN);
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
         );

@@ -612,4 +612,55 @@ class SkeletonLoaders {
       ),
     );
   }
+
+  /// FAQ item skeleton loader
+  static Widget faqItem({int count = 5}) {
+    return Skeletonizer(
+      enabled: true,
+      child: Column(
+        children: List.generate(count, (index) => Container(
+          margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: Colors.grey.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Question
+                  Expanded(
+                    child: Container(
+                      height: 16.h,
+                      width: 0.7.sw,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                  ),
+                  // Icon
+                  Container(
+                    width: 20.w,
+                    height: 20.w,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        )),
+      ),
+    );
+  }
 }

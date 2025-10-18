@@ -350,7 +350,7 @@ class OrderCard extends StatelessWidget {
 
               SizedBox(height: 12.h),
 
-              // Customer info section
+              // Restaurant info section
               Row(
                 children: [
                   Container(
@@ -359,15 +359,23 @@ class OrderCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: _getStatusColor(order.status).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12.r),
+                      image: _hasRestaurantLogo()
+                          ? DecorationImage(
+                              image: NetworkImage(order.orderable!.logo!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    child: Center(
-                      child: customText(
-                        _getCustomerInitial(),
-                        color: _getStatusColor(order.status),
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    child: !_hasRestaurantLogo()
+                        ? Center(
+                            child: customText(
+                              _getRestaurantInitial(),
+                              color: _getStatusColor(order.status),
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          )
+                        : null,
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
@@ -375,7 +383,7 @@ class OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         customText(
-                          _getCustomerName(),
+                          _getRestaurantName(),
                           color: AppColors.blackColor,
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
@@ -383,9 +391,9 @@ class OrderCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 2.h),
-                        if (order.items.isNotEmpty)
+                        if (order.allItems.isNotEmpty)
                           customText(
-                            "${order.items.length} item${order.items.length > 1 ? 's' : ''} • ${order.items.map((e) => e.quantity).reduce((a, b) => a + b)} qty",
+                            _getOrderSummary(),
                             color: AppColors.greyColor,
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w500,
@@ -397,7 +405,7 @@ class OrderCard extends StatelessWidget {
               ),
 
               // Items preview
-              if (order.items.isNotEmpty) ...[
+              if (order.allItems.isNotEmpty) ...[
                 SizedBox(height: 12.h),
                 Container(
                   padding: EdgeInsets.all(12.sp),
@@ -415,8 +423,8 @@ class OrderCard extends StatelessWidget {
                       SizedBox(width: 8.w),
                       Expanded(
                         child: customText(
-                          order.items.first.orderable.name +
-                          (order.items.length > 1 ? " + ${order.items.length - 1} more" : ""),
+                          order.allItems.first.orderable.name +
+                          (order.allItems.length > 1 ? " + ${order.allItems.length - 1} more" : ""),
                           color: AppColors.blackColor,
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w500,
@@ -547,16 +555,31 @@ class OrderCard extends StatelessWidget {
     }
   }
 
-  // Helper methods to get customer info from current user profile
-  String _getCustomerName() {
-    final settingsController = Get.find<SettingsController>();
-    final profile = settingsController.userProfile;
-    return profile != null ? "${profile.fname} ${profile.lname}".trim() : "Customer";
+  // Helper methods to get restaurant info from order
+  String _getRestaurantName() {
+    return order.orderable?.name ?? "Restaurant";
   }
 
-  String _getCustomerInitial() {
-    final settingsController = Get.find<SettingsController>();
-    final profile = settingsController.userProfile;
-    return (profile?.fname.isNotEmpty == true ? profile!.fname[0] : 'U').toUpperCase();
+  String _getRestaurantInitial() {
+    final name = order.orderable?.name ?? 'R';
+    return name.isNotEmpty ? name[0].toUpperCase() : 'R';
+  }
+
+  bool _hasRestaurantLogo() {
+    final logo = order.orderable?.logo;
+    return logo != null && logo.isNotEmpty;
+  }
+
+  String _getOrderSummary() {
+    final totalItems = order.allItems.length;
+    final totalPackages = order.packages.length;
+
+    if (totalPackages > 0 && totalItems > 0) {
+      return "$totalPackages package${totalPackages > 1 ? 's' : ''} • $totalItems item${totalItems > 1 ? 's' : ''}";
+    } else if (totalPackages > 0) {
+      return "$totalPackages package${totalPackages > 1 ? 's' : ''}";
+    } else {
+      return "$totalItems item${totalItems > 1 ? 's' : ''}";
+    }
   }
 }

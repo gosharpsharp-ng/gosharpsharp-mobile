@@ -209,12 +209,24 @@ class CoreService extends GetConnect {
   // general post
   Future<APIResponse> send(String url, payload) async {
     try {
+      // Debug: Print payload before sending
+      print("CoreService.send - payload type: ${payload.runtimeType}");
+      print("CoreService.send - payload: $payload");
+
       final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
         return APIResponse.fromMap(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
+        // Handle string responses (like HTML error pages)
+        if (e.response?.data is String) {
+          return APIResponse(
+            status: "error",
+            data: "Error",
+            message: e.response?.data ?? "Something went wrong",
+          );
+        }
         return APIResponse.fromMap(e.response?.data);
       } else {
         return APIResponse(

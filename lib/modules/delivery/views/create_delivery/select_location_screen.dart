@@ -18,7 +18,7 @@ class _SelectLocationState extends State<SelectLocation> {
   List<Prediction> _suggestedLocations = [];
   Set<Marker> _markers = {};
   ItemLocation? location;
-  LatLng? initialPosition;
+  LatLng initialPosition = const LatLng(9.0820, 8.6753); // Default: Abuja, Nigeria
   // OverlayEntry? _overlayEntry;
   Future _determinePosition() async {
     bool serviceEnabled;
@@ -40,6 +40,11 @@ class _SelectLocationState extends State<SelectLocation> {
               message:
                   "Your location is needed, kindly enable location from Settings.");
         }
+        // Use default location if permission denied
+        setState(() {
+          initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
+        });
+        return;
       }
     }
 
@@ -50,24 +55,61 @@ class _SelectLocationState extends State<SelectLocation> {
             message:
                 "Your location is needed, kindly enable location from Settings.");
       }
+      // Use default location if permission denied forever
+      setState(() {
+        initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
+      });
+      return;
     }
-    final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 100, // Update every 100 meters
-    ));
 
-    initialPosition = LatLng(position.latitude, position.longitude);
-    setState(() {});
+    try {
+      // Try to get last known position first (faster)
+      Position? lastPosition = await Geolocator.getLastKnownPosition();
+
+      if (lastPosition != null) {
+        setState(() {
+          initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
+        });
+      }
+
+      // Then get current position with timeout (more accurate)
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10), // 10 second timeout
+        ),
+      );
+
+      setState(() {
+        initialPosition = LatLng(position.latitude, position.longitude);
+      });
+    } catch (e) {
+      // If getting position fails, try last known position or use default
+      try {
+        Position? lastPosition = await Geolocator.getLastKnownPosition();
+        if (lastPosition != null) {
+          setState(() {
+            initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
+          });
+        } else {
+          // Use default location (Abuja, Nigeria)
+          setState(() {
+            initialPosition = const LatLng(9.0820, 8.6753);
+          });
+        }
+      } catch (e) {
+        // Final fallback to default location
+        setState(() {
+          initialPosition = const LatLng(9.0820, 8.6753);
+        });
+      }
+    }
   }
 
   Future<void> _useCurrentLocation() async {
     await _determinePosition(); // Get current position
-
-    if (initialPosition != null) {
-      // Call _showLocationDetails to get the formatted address
-      _showLocationDetails(initialPosition!);
-    }
+    // Call _showLocationDetails to get the formatted address
+    _showLocationDetails(initialPosition);
   }
 
   @override
@@ -87,8 +129,7 @@ class _SelectLocationState extends State<SelectLocation> {
 
   @override
   Widget build(BuildContext context) {
-    return initialPosition != null
-        ? Scaffold(
+    return Scaffold(
             body: Stack(
               children: [
                 GestureDetector(
@@ -126,7 +167,7 @@ class _SelectLocationState extends State<SelectLocation> {
                         _showLocationDetails(latLng);
                       },
                       initialCameraPosition:
-                          CameraPosition(target: initialPosition!, zoom: 14),
+                          CameraPosition(target: initialPosition, zoom: 14),
                       markers: _markers),
                 ),
                 // if (_suggestedLocations.isNotEmpty) ...[
@@ -184,7 +225,7 @@ class _SelectLocationState extends State<SelectLocation> {
                             borderRadius: BorderRadius.circular(4),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
+                                color: Colors.grey.withValues(alpha: 0.5),
                                 spreadRadius: 2,
                                 blurRadius: 5,
                                 offset: const Offset(0, 3),
@@ -253,9 +294,8 @@ class _SelectLocationState extends State<SelectLocation> {
                       ],
                     ),
                   )
-                : null)
-        : const Scaffold(
-            body: Center(child: CircularProgressIndicator.adaptive()));
+                : null,
+          );
   }
 
   void _onSearchTextChanged() async {

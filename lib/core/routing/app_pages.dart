@@ -13,6 +13,7 @@ import 'package:gosharpsharp/modules/orders/views/orders_home_screen.dart';
 import 'package:gosharpsharp/modules/support/bindings/support_bindings.dart';
 import 'package:gosharpsharp/modules/support/views/faq_screen.dart';
 import 'package:gosharpsharp/modules/location_permission/views/location_permission_screen.dart';
+import 'package:gosharpsharp/modules/delivery/views/parcel_deliveries/parcel_deliveries_home_screen.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -147,12 +148,12 @@ class AppPages {
       //middlewares: [AuthMiddleware()],
       binding: DeliveriesBindings(),
     ),
-    GetPage(
-      name: Routes.RIDE_SELECTION_SCREEN,
-      page: () => const RideSelectionScreen(),
-      //middlewares: [AuthMiddleware()],
-      binding: DeliveriesBindings(),
-    ),
+    // GetPage(
+    //   name: Routes.RIDE_SELECTION_SCREEN,
+    //   page: () => const RideSelectionScreen(),
+    //   //middlewares: [AuthMiddleware()],
+    //   binding: DeliveriesBindings(),
+    // ),
     GetPage(
       name: Routes.DELIVERY_PAYMENT_OPTIONS_SCREEN,
       page: () => const DeliveryPaymentOptionsScreen(),
@@ -250,6 +251,12 @@ class AppPages {
       page: () => const OrderSuccessScreen(),
       //middlewares: [AuthMiddleware()],
       binding: OrdersBindings(),
+    ),
+    GetPage(
+      name: Routes.PARCEL_DELIVERIES_HOME_SCREEN,
+      page: () => const ParcelDeliveriesHomeScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: DeliveriesBindings(),
     ),
     GetPage(
       name: Routes.SELECT_LOCATION_SCREEN,

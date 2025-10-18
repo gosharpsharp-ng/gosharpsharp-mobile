@@ -1,8 +1,11 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 class DeliveryItemWidget extends StatelessWidget {
-  const DeliveryItemWidget(
-      {super.key, required this.onSelected, required this.delivery});
+  const DeliveryItemWidget({
+    super.key,
+    required this.onSelected,
+    required this.delivery,
+  });
   final Function onSelected;
   final DeliveryModel delivery;
 
@@ -34,18 +37,14 @@ class DeliveryItemWidget extends StatelessWidget {
               overflow: TextOverflow.visible,
             ),
           ),
-          SizedBox(
-            height: 5.sp,
-          ),
+          SizedBox(height: 5.sp),
           customText(
             delivery.items[0].name,
             fontWeight: FontWeight.w500,
             fontSize: 14.sp,
             overflow: TextOverflow.visible,
           ),
-          SizedBox(
-            height: 8.sp,
-          ),
+          SizedBox(height: 8.sp),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -56,24 +55,24 @@ class DeliveryItemWidget extends StatelessWidget {
                 overflow: TextOverflow.visible,
               ),
               InkWell(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: delivery.trackingId));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:
-                            customText("Tracking number copied to clipboard!"),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: delivery.trackingId));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: customText(
+                        "Tracking number copied to clipboard!",
                       ),
-                    );
-                  },
-                  child: SvgPicture.asset(
-                    SvgAssets.copyIcon,
-                    color: AppColors.primaryColor,
-                  )),
+                    ),
+                  );
+                },
+                child: SvgPicture.asset(
+                  SvgAssets.copyIcon,
+                  color: AppColors.primaryColor,
+                ),
+              ),
             ],
           ),
-          SizedBox(
-            height: 8.sp,
-          ),
+          SizedBox(height: 8.sp),
           InkWell(
             splashColor: AppColors.transparent,
             highlightColor: AppColors.transparent,
@@ -90,9 +89,7 @@ class DeliveryItemWidget extends StatelessWidget {
                     margin: EdgeInsets.only(right: 5.sp),
                     child: Column(
                       children: [
-                        SvgPicture.asset(
-                          SvgAssets.parcelIcon,
-                        ),
+                        SvgPicture.asset(SvgAssets.parcelIcon),
                         const Expanded(
                           child: DottedLine(
                             dashLength: 3,
@@ -103,9 +100,7 @@ class DeliveryItemWidget extends StatelessWidget {
                             // lineLength: 150,
                           ),
                         ),
-                        SvgPicture.asset(
-                          SvgAssets.locationIcon,
-                        ),
+                        SvgPicture.asset(SvgAssets.locationIcon),
                       ],
                     ),
                   ),
@@ -121,7 +116,7 @@ class DeliveryItemWidget extends StatelessWidget {
                             children: [
                               Container(
                                 child: customText(
-                                  delivery.originLocation.name,
+                                  delivery.pickUpLocation.name,
                                   fontWeight: FontWeight.normal,
                                   fontSize: 12.sp,
                                   overflow: TextOverflow.visible,
@@ -157,20 +152,14 @@ class DeliveryItemWidget extends StatelessWidget {
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          SvgAssets.rightChevronIcon,
-                        ),
-                      ],
+                      children: [SvgPicture.asset(SvgAssets.rightChevronIcon)],
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          SizedBox(
-            height: 8.sp,
-          ),
+          SizedBox(height: 8.sp),
           Container(
             margin: EdgeInsets.only(top: 8.h),
             child: InkWell(
@@ -180,15 +169,14 @@ class DeliveryItemWidget extends StatelessWidget {
                 onSelected();
               },
               child: customText(
-                  "${formatDate(delivery.originLocation.createdAt)} ${formatTime(delivery.originLocation.createdAt)}",
-                  fontSize: 11.sp,
-                  color: AppColors.obscureTextColor,
-                  overflow: TextOverflow.visible),
+                "${formatDate(delivery.createdAt)} ${formatTime(delivery.createdAt)}",
+                fontSize: 11.sp,
+                color: AppColors.obscureTextColor,
+                overflow: TextOverflow.visible,
+              ),
             ),
           ),
-          SizedBox(
-            height: 8.sp,
-          ),
+          SizedBox(height: 8.sp),
         ],
       ),
     );
