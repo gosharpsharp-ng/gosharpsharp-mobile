@@ -69,7 +69,8 @@ class OrdersController extends GetxController {
 
       if (response.status == "success" && response.data != null) {
         // customDebugPrint(response.data);
-        final List<dynamic> ordersData = response.data['orders'] ?? [];
+        // API returns paginated data: response.data['data'] contains the orders array
+        final List<dynamic> ordersData = response.data['data'] ?? [];
 
         allOrders = ordersData
             .map((json) => OrderModel.fromJson(json))
