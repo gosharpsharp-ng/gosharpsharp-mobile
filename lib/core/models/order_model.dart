@@ -64,6 +64,11 @@ class OrderModel {
   final double subtotal;
   final double tax;
   final double deliveryFee;
+  final String deliveryType;
+  final int isDelivery;
+  final String? deliveryInstructions;
+  final String? scheduledDeliveryTime;
+  final int? deliveryAddressId;
   final String notes;
   final int? discountId;
   final double discountAmount;
@@ -81,8 +86,10 @@ class OrderModel {
   final DateTime updatedAt;
   final List<OrderItemModel> items;
   final List<OrderPackageModel> packages;
+  final List<OrderItemModel> allItems;
   final RestaurantModel? orderable;
-  final DeliveryLocationModel deliveryLocation;
+  final DeliveryLocationModel? deliveryLocation;
+  final List<dynamic> transactions;
   final dynamic discount;
 
   OrderModel({
@@ -95,6 +102,11 @@ class OrderModel {
     required this.subtotal,
     required this.tax,
     required this.deliveryFee,
+    required this.deliveryType,
+    required this.isDelivery,
+    this.deliveryInstructions,
+    this.scheduledDeliveryTime,
+    this.deliveryAddressId,
     required this.notes,
     this.discountId,
     required this.discountAmount,
@@ -112,8 +124,10 @@ class OrderModel {
     required this.updatedAt,
     required this.items,
     this.packages = const [],
+    this.allItems = const [],
     this.orderable,
-    required this.deliveryLocation,
+    this.deliveryLocation,
+    this.transactions = const [],
     this.discount,
   });
 
@@ -128,6 +142,11 @@ class OrderModel {
       subtotal: double.tryParse(json['subtotal']?.toString() ?? '0') ?? 0.0,
       tax: double.tryParse(json['tax']?.toString() ?? '0') ?? 0.0,
       deliveryFee: double.tryParse(json['delivery_fee']?.toString() ?? '0') ?? 0.0,
+      deliveryType: json['delivery_type'] ?? 'standard',
+      isDelivery: json['is_delivery'] ?? 0,
+      deliveryInstructions: json['delivery_instructions'],
+      scheduledDeliveryTime: json['scheduled_delivery_time'],
+      deliveryAddressId: json['delivery_address_id'],
       notes: json['notes'] ?? '',
       discountId: json['discount_id'],
       discountAmount: double.tryParse(json['discount_amount']?.toString() ?? '0') ?? 0.0,
@@ -161,10 +180,16 @@ class OrderModel {
       packages: (json['packages'] as List<dynamic>?)
           ?.map((package) => OrderPackageModel.fromJson(package))
           .toList() ?? [],
+      allItems: (json['all_items'] as List<dynamic>?)
+          ?.map((item) => OrderItemModel.fromJson(item))
+          .toList() ?? [],
       orderable: json['orderable'] != null
           ? RestaurantModel.fromJson(json['orderable'])
           : null,
-      deliveryLocation: DeliveryLocationModel.fromJson(json['delivery_location'] ?? {}),
+      deliveryLocation: json['delivery_location'] != null
+          ? DeliveryLocationModel.fromJson(json['delivery_location'])
+          : null,
+      transactions: json['transactions'] ?? [],
       discount: json['discount'],
     );
   }
@@ -180,6 +205,11 @@ class OrderModel {
       'subtotal': subtotal.toString(),
       'tax': tax.toString(),
       'delivery_fee': deliveryFee.toString(),
+      'delivery_type': deliveryType,
+      'is_delivery': isDelivery,
+      'delivery_instructions': deliveryInstructions,
+      'scheduled_delivery_time': scheduledDeliveryTime,
+      'delivery_address_id': deliveryAddressId,
       'notes': notes,
       'discount_id': discountId,
       'discount_amount': discountAmount.toString(),
@@ -196,8 +226,10 @@ class OrderModel {
       'updated_at': updatedAt.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
       'packages': packages.map((package) => package.toJson()).toList(),
+      'all_items': allItems.map((item) => item.toJson()).toList(),
       'orderable': orderable?.toJson(),
-      'delivery_location': deliveryLocation.toJson(),
+      'delivery_location': deliveryLocation?.toJson(),
+      'transactions': transactions,
       'discount': discount,
     };
   }
@@ -212,6 +244,11 @@ class OrderModel {
     double? subtotal,
     double? tax,
     double? deliveryFee,
+    String? deliveryType,
+    int? isDelivery,
+    String? deliveryInstructions,
+    String? scheduledDeliveryTime,
+    int? deliveryAddressId,
     String? notes,
     int? discountId,
     double? discountAmount,
@@ -229,8 +266,10 @@ class OrderModel {
     DateTime? updatedAt,
     List<OrderItemModel>? items,
     List<OrderPackageModel>? packages,
+    List<OrderItemModel>? allItems,
     RestaurantModel? orderable,
     DeliveryLocationModel? deliveryLocation,
+    List<dynamic>? transactions,
     dynamic discount,
   }) {
     return OrderModel(
@@ -243,6 +282,11 @@ class OrderModel {
       subtotal: subtotal ?? this.subtotal,
       tax: tax ?? this.tax,
       deliveryFee: deliveryFee ?? this.deliveryFee,
+      deliveryType: deliveryType ?? this.deliveryType,
+      isDelivery: isDelivery ?? this.isDelivery,
+      deliveryInstructions: deliveryInstructions ?? this.deliveryInstructions,
+      scheduledDeliveryTime: scheduledDeliveryTime ?? this.scheduledDeliveryTime,
+      deliveryAddressId: deliveryAddressId ?? this.deliveryAddressId,
       notes: notes ?? this.notes,
       discountId: discountId ?? this.discountId,
       discountAmount: discountAmount ?? this.discountAmount,
@@ -260,8 +304,10 @@ class OrderModel {
       updatedAt: updatedAt ?? this.updatedAt,
       items: items ?? this.items,
       packages: packages ?? this.packages,
+      allItems: allItems ?? this.allItems,
       orderable: orderable ?? this.orderable,
       deliveryLocation: deliveryLocation ?? this.deliveryLocation,
+      transactions: transactions ?? this.transactions,
       discount: discount ?? this.discount,
     );
   }
@@ -269,27 +315,18 @@ class OrderModel {
   // Helper getters for backward compatibility
   String get customerId => userId.toString();
   String get restaurantName => orderable?.name ?? 'Unknown Restaurant';
-  String get deliveryAddress => deliveryLocation.name;
+  String get deliveryAddress => deliveryLocation?.name ?? '';
   DateTime get orderDate => createdAt;
   String get estimatedDeliveryTime => "25-30 mins"; // You can calculate this based on your logic
 
-  // Get all items from both direct items list and package items
-  List<OrderItemModel> get allItems {
-    final List<OrderItemModel> combined = [];
-
-    // Add direct items if any
-    combined.addAll(items);
-
-    // Add items from all packages
-    for (final package in packages) {
-      combined.addAll(package.items);
-    }
-
-    return combined;
-  }
-
   // Calculate total item count from both sources
   int get totalItems {
+    // Use allItems if available from API
+    if (allItems.isNotEmpty) {
+      return allItems.fold(0, (sum, item) => sum + item.quantity);
+    }
+
+    // Otherwise calculate from items and packages
     int count = items.fold(0, (sum, item) => sum + item.quantity);
     for (final package in packages) {
       count += package.items.fold(0, (sum, item) => sum + item.quantity);
@@ -381,6 +418,7 @@ class OrderItemModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final OrderableItemModel orderable;
+  final List<dynamic> addons;
 
   OrderItemModel({
     required this.id,
@@ -395,9 +433,13 @@ class OrderItemModel {
     required this.createdAt,
     required this.updatedAt,
     required this.orderable,
+    this.addons = const [],
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
+    // Handle both 'orderable' and 'menu' fields (API sometimes returns 'menu')
+    final orderableData = json['orderable'] ?? json['menu'] ?? {};
+
     return OrderItemModel(
       id: json['id'] ?? 0,
       orderId: json['order_id'] ?? 0,
@@ -410,7 +452,8 @@ class OrderItemModel {
       total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
-      orderable: OrderableItemModel.fromJson(json['orderable'] ?? {}),
+      orderable: OrderableItemModel.fromJson(orderableData),
+      addons: json['addons'] ?? [],
     );
   }
 
@@ -428,6 +471,8 @@ class OrderItemModel {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'orderable': orderable.toJson(),
+      'menu': orderable.toJson(), // Include menu field for API compatibility
+      'addons': addons,
     };
   }
 
@@ -444,6 +489,7 @@ class OrderItemModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     OrderableItemModel? orderable,
+    List<dynamic>? addons,
   }) {
     return OrderItemModel(
       id: id ?? this.id,
@@ -458,6 +504,7 @@ class OrderItemModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       orderable: orderable ?? this.orderable,
+      addons: addons ?? this.addons,
     );
   }
 
@@ -475,6 +522,7 @@ class OrderableItemModel {
   final String name;
   final String description;
   final String plateSize;
+  final String packaging;
   final int quantity;
   final bool isAvailable;
   final double price;
@@ -486,6 +534,7 @@ class OrderableItemModel {
   final DateTime updatedAt;
   final List<ItemFileModel> files;
   final CategoryModel? category;
+  final RestaurantModel? restaurant;
 
   OrderableItemModel({
     required this.id,
@@ -493,6 +542,7 @@ class OrderableItemModel {
     required this.name,
     required this.description,
     required this.plateSize,
+    required this.packaging,
     required this.quantity,
     required this.isAvailable,
     required this.price,
@@ -504,6 +554,7 @@ class OrderableItemModel {
     required this.updatedAt,
     required this.files,
     this.category,
+    this.restaurant,
   });
 
   factory OrderableItemModel.fromJson(Map<String, dynamic> json) {
@@ -514,6 +565,7 @@ class OrderableItemModel {
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       plateSize: json['plate_size'] ?? '',
+      packaging: json['packaging'] ?? 'optional',
       quantity: json['quantity'] ?? 1,
       isAvailable: json['is_available'] == 1,
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
@@ -529,6 +581,9 @@ class OrderableItemModel {
       category: json['category'] != null
           ? CategoryModel.fromJson(json['category'])
           : null,
+      restaurant: json['restaurant'] != null
+          ? RestaurantModel.fromJson(json['restaurant'])
+          : null,
     );
   }
 
@@ -539,6 +594,7 @@ class OrderableItemModel {
       'name': name,
       'description': description,
       'plate_size': plateSize,
+      'packaging': packaging,
       'quantity': quantity,
       'is_available': isAvailable ? 1 : 0,
       'price': price.toString(),
@@ -550,6 +606,7 @@ class OrderableItemModel {
       'updated_at': updatedAt.toIso8601String(),
       'files': files.map((e) => e.toJson()).toList(),
       'category': category?.toJson(),
+      'restaurant': restaurant?.toJson(),
     };
   }
 }
