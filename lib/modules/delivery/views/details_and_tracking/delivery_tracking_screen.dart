@@ -15,6 +15,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   DraggableScrollableController? draggableScrollableController;
   final ordersController = Get.find<DeliveriesController>();
   final settingsController = Get.find<SettingsController>();
+  SocketService? _socketService;
+
   @override
   void initState() {
     super.initState();
@@ -31,17 +33,33 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    // Clean up WebSocket connection when screen is closed
+    if (ordersController.selectedDelivery?.trackingId != null) {
+      _socketService?.leaveParcelDeliveryTracking(
+        ordersController.selectedDelivery!.trackingId,
+      );
+      _socketService?.stopListeningForDeliveryStatusUpdate();
+    }
+    super.dispose();
+  }
+
   startLocationTracking({required String trackingId}) async {
     if (Get.isRegistered<SocketService>()) {
-      Get.find<SocketService>().joinTrackingRoom(
-        trackingId: trackingId,
-        msg: "join_room",
-      );
-      print("Listening to Parcel Location Update");
-      // Otherwise send location update
-      Get.find<SocketService>().listenForParcelLocationUpdate(
-        roomId: 'rider_tracking',
-        onLocationUpdate: (data) {
+      _socketService = Get.find<SocketService>();
+
+      // Join parcel delivery tracking room with new method
+      _socketService?.joinParcelDeliveryTracking(trackingId);
+
+      print("Listening to Parcel Delivery Tracking");
+
+      // Listen for delivery status updates using new event
+      _socketService?.listenForDeliveryStatusUpdate((data) {
+        if (!mounted) return;
+
+        // Handle location update from delivery:status-update event
+        if (data.containsKey('lat') && data.containsKey('lon')) {
           updateMarkerPosition(
             currentRiderPosition: LatLng(
               double.parse(data['lat'].toString()),
@@ -73,46 +91,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
               ordersController.getDelivery();
             }
           }
-        },
-      );
-    } else {
-      Get.find<SocketService>().joinTrackingRoom(
-        trackingId: trackingId,
-        msg: "join_room",
-      );
-      // Otherwise send location update
-      Get.find<SocketService>().listenForParcelLocationUpdate(
-        roomId: 'rider_tracking',
-        onLocationUpdate: (data) {
-          updateMarkerPosition(
-            currentRiderPosition: LatLng(
-              double.parse(data['lat'].toString()),
-              double.parse(data['lon'].toString()),
-            ),
-            degrees: double.parse(data['degrees'].toString()),
-          );
-          ordersController.checkProximityToLocations(
-            LatLng(
-              double.parse(data['lat'].toString()),
-              double.parse(data['lon'].toString()),
-            ),
-            context,
-          );
-          if (data.containsKey('status')) {
-            if (data['status'] != ordersController.selectedDelivery!.status) {
-              FlutterRingtonePlayer().playNotification();
-              showRiderAndDeliveryStatusToast(
-                title: "Status change",
-                message:
-                    "The current status of your delivery is: ${data['status']} ",
-                delivery: ordersController.selectedDelivery!,
-              );
-              ordersController.fetchDeliveries();
-              ordersController.getDelivery();
-            }
-          }
-        },
-      );
+        }
+      });
     }
   }
 

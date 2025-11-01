@@ -553,7 +553,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     DashboardController controller,
     CartController cartController,
   ) {
-    bool isInCart = cartController.isInCart(menuItem.id);
     int cartQuantity = cartController.getItemQuantityInCart(menuItem.id);
     bool isAvailable = controller.isMenuItemAvailable(menuItem);
     bool isCurrentlyAdding = cartController.isAddingItemToCart(menuItem.id);
@@ -688,16 +687,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           ],
                         ],
                       ),
-
-                      if (isInCart) ...[
-                        SizedBox(height: 4.h),
-                        customText(
-                          "$cartQuantity in cart",
-                          fontSize: 11.sp,
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
 
                       // Stock status
                       if (!isAvailable) ...[

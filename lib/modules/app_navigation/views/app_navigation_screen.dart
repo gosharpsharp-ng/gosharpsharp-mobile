@@ -72,13 +72,20 @@ class AppNavigationScreen extends StatelessWidget {
                   Expanded(
                     child: BottomNavItem(
                       index: 1,
+                      title: "Search",
+                      activeIcon: SvgAssets.searchIcon,
+                    ),
+                  ),
+                  Expanded(
+                    child: BottomNavItem(
+                      index: 2,
                       title: "Orders",
                       activeIcon: SvgAssets.ordersIcon,
                     ),
                   ),
                   Expanded(
                     child: BottomNavItem(
-                      index: 2,
+                      index: 3,
                       title: "Profile",
                       activeIcon: SvgAssets.profileIcon,
                     ),

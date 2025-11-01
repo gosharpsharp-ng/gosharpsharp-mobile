@@ -53,14 +53,7 @@ class DeliverySuccessScreen extends StatelessWidget {
                         CustomButton(
                           onPressed: () async {
                             ordersController.fetchDeliveries();
-                            await Get.find<SocketService>().joinTrackingRoom(
-                              trackingId:
-                                  ordersController
-                                      .selectedDelivery
-                                      ?.trackingId ??
-                                  "",
-                              msg: "join_room",
-                            );
+                            // Navigate to tracking screen - WebSocket joining handled by screen's initState
                             Get.offNamedUntil(Routes.DELIVERY_TRACKING_SCREEN, (
                               route,
                             ) {

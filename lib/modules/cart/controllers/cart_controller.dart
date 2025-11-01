@@ -3,7 +3,7 @@ import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/services/restaurant/cart/restaurant_cart_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/views/checkout_screen.dart';
-import 'package:gosharpsharp/modules/cart/views/order_tracking_screen.dart';
+import 'package:gosharpsharp/modules/orders/views/order_tracking_screen.dart';
 import 'package:gosharpsharp/modules/cart/views/widgets/package_selection_dialog.dart';
 
 class CartController extends GetxController {
@@ -222,7 +222,8 @@ class CartController extends GetxController {
     int? addonMenuId,
     List<int>? addonIds,
     String? packageName,
-    bool skipDialog = false, // New parameter to skip dialog when explicitly providing packageName
+    bool skipDialog = false, // Skip dialog when explicitly providing packageName
+    bool autoIncrementIfExists = false, // Auto-increment quantity if item exists (for programmatic adds)
     RestaurantModel? restaurant, // Restaurant to validate operating hours
   }) async {
     try {
@@ -234,6 +235,25 @@ class CartController extends GetxController {
           isError: true,
         );
         return;
+      }
+
+      // If autoIncrementIfExists is true, check if item exists and auto-increment
+      // This is used for programmatic quantity increases (not user-initiated adds)
+      if (autoIncrementIfExists && !isCartEmpty) {
+        // Try to find the item in existing packages
+        for (var package in _packages) {
+          final item = _findItemInPackage(menuId, package.name, addonIds);
+          if (item != null) {
+            // Item exists, auto-increment its quantity
+            final newQuantity = item.quantity + quantity;
+            await updateCartItemQuantity(
+              item.id,
+              quantity: newQuantity,
+              packageName: package.name,
+            );
+            return;
+          }
+        }
       }
 
       // If packageName is not explicitly provided and skipDialog is false, show package selection dialog

@@ -1218,11 +1218,8 @@ class DeliveriesController extends GetxController {
     required BuildContext context,
   }) async {
     if (Get.isRegistered<SocketService>()) {
-      Get.find<SocketService>().joinTrackingRoom(
-        trackingId: trackingId,
-        msg: "join_room",
-      );
-      // Otherwise send location update
+      // Note: Room joining is now handled by DeliveryTrackingScreen's initState
+      // Listen for location updates on legacy rider_tracking room
       Get.find<SocketService>().listenForParcelLocationUpdate(
         roomId: 'rider_tracking',
         onLocationUpdate: (data) async {
@@ -1262,11 +1259,8 @@ class DeliveriesController extends GetxController {
         },
       );
     } else {
-      Get.find<SocketService>().joinTrackingRoom(
-        trackingId: trackingId,
-        msg: "join_room",
-      );
-      // Otherwise send location update
+      // Note: Room joining is now handled by DeliveryTrackingScreen's initState
+      // Listen for location updates on legacy rider_tracking room
       Get.find<SocketService>().listenForParcelLocationUpdate(
         roomId: 'rider_tracking',
         onLocationUpdate: (data) async {

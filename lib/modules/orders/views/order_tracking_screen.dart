@@ -3,8 +3,67 @@ import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 
 import '../../../core/utils/exports.dart';
 
-class OrderTrackingScreen extends StatelessWidget {
-  const OrderTrackingScreen({super.key});
+class OrderTrackingScreen extends StatefulWidget {
+  final String? orderNumber; // Pass order number to track specific order
+
+  const OrderTrackingScreen({super.key, this.orderNumber});
+
+  @override
+  State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
+}
+
+class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
+  SocketService? _socketService;
+  String _currentStatus = 'preparing';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeTracking();
+  }
+
+  void _initializeTracking() {
+    try {
+      // Get socket service if available
+      if (Get.isRegistered<SocketService>()) {
+        _socketService = Get.find<SocketService>();
+
+        // Join order tracking room if orderNumber is provided
+        if (widget.orderNumber != null) {
+          _socketService?.joinFoodOrderTracking(widget.orderNumber!);
+
+          // Listen for order status updates
+          _socketService?.listenForOrderStatusUpdate((data) {
+            if (mounted) {
+              setState(() {
+                _currentStatus = data['status'] ?? 'preparing';
+              });
+
+              // Show toast notification for status change
+              if (data['previousStatus'] != null) {
+                showToast(
+                  message: 'Order status updated to ${data['status']}',
+                  isError: false,
+                );
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error initializing order tracking: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    // Leave tracking room and stop listening when screen is closed
+    if (widget.orderNumber != null && _socketService != null) {
+      _socketService?.leaveFoodOrderTracking(widget.orderNumber!);
+      _socketService?.stopListeningForOrderStatusUpdate();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
