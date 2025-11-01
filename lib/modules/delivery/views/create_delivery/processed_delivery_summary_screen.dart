@@ -167,23 +167,7 @@ class ProcessedDeliverySummaryScreen extends StatelessWidget {
                           )
                         : CustomButton(
                             onPressed: () async {
-                              if (![
-                                'delivered',
-                                'rejected',
-                                'canceled',
-                              ].contains(
-                                ordersController.selectedDelivery!.status,
-                              )) {
-                                await Get.find<SocketService>()
-                                    .joinTrackingRoom(
-                                      trackingId:
-                                          ordersController
-                                              .selectedDelivery
-                                              ?.trackingId ??
-                                          "",
-                                      msg: "join_room",
-                                    );
-                              }
+                              // Navigate to tracking screen - WebSocket joining handled by screen's initState
                               Get.toNamed(Routes.DELIVERY_TRACKING_SCREEN);
                               ordersController
                                   .drawPolyLineFromOriginToDestination(
@@ -297,19 +281,11 @@ class ProcessedDeliverySummaryScreen extends StatelessWidget {
                                               .selectedDelivery!
                                               .status,
                                         )) {
-                                          await Get.find<SocketService>()
-                                              .joinTrackingRoom(
-                                                trackingId:
-                                                    ordersController
-                                                        .selectedDelivery
-                                                        ?.trackingId ??
-                                                    "",
-                                                msg: "join_room",
-                                              );
+                                          // Navigate to tracking screen - WebSocket joining handled by screen's initState
+                                          Get.toNamed(
+                                            Routes.DELIVERY_TRACKING_SCREEN,
+                                          );
                                         }
-                                        Get.toNamed(
-                                          Routes.DELIVERY_TRACKING_SCREEN,
-                                        );
                                         ordersController
                                             .drawPolyLineFromOriginToDestination(
                                               context,

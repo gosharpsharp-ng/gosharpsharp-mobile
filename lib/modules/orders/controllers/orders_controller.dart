@@ -6,9 +6,15 @@ class OrdersController extends GetxController {
   // Orders Service Instance
   final OrdersService _ordersService = serviceLocator<OrdersService>();
 
+  // WebSocket Service Instance
+  SocketService? _socketService;
+
   // Loading states
   bool isLoading = false;
   bool isLoadingOrders = false;
+
+  // Track if we're listening to order updates
+  bool _isListeningToOrderUpdates = false;
 
   void setLoadingState(bool val) {
     isLoading = val;

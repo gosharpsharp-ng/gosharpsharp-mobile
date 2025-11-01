@@ -89,16 +89,7 @@ class DeliveriesHomeScreen extends StatelessWidget {
                                   ].contains(
                                     ordersController.selectedDelivery!.status,
                                   )) {
-                                    await Get.find<SocketService>()
-                                        .joinTrackingRoom(
-                                          trackingId:
-                                              ordersController
-                                                  .selectedDelivery
-                                                  ?.trackingId ??
-                                              "",
-                                          msg: "join_room",
-                                        );
-
+                                    // Navigate to tracking screen - WebSocket joining handled by screen's initState
                                     Get.toNamed(
                                       Routes.DELIVERY_TRACKING_SCREEN,
                                     );
