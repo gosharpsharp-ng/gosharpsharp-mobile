@@ -80,10 +80,10 @@ class SocketService extends GetxService {
   // ==================== FOOD ORDER TRACKING ====================
 
   /// Join a food order tracking room
-  /// Emits to: "order:track" with payload { "orderNumber": "ORD-UFBZV5YU" }
+  /// Emits to: "order:join" with payload { "orderNumber": "ORD-UFBZV5YU" }
   void joinFoodOrderTracking(String orderNumber) {
     if (isConnected.value) {
-      socket.emit('order:track', {'orderNumber': orderNumber});
+      socket.emit('order:join', {'orderNumber': orderNumber});
       log('🍔 Joined food order tracking for: $orderNumber');
     } else {
       log('⚠️ Cannot join food order tracking - socket not connected');
@@ -111,69 +111,63 @@ class SocketService extends GetxService {
   /// Leave food order tracking room
   void leaveFoodOrderTracking(String orderNumber) {
     if (isConnected.value) {
-      // Emit to order:track to leave (if needed by backend)
       log('👋 Stopped tracking food order: $orderNumber');
     }
   }
 
-  // ==================== PARCEL DELIVERY TRACKING ====================
+  // ==================== DELIVERY LOCATION TRACKING ====================
+  // Used for both food order deliveries and parcel deliveries
 
-  /// Join a parcel delivery tracking room
-  /// Emits to: "delivery:track" with payload { "trackingId": "DLV-20251030-1NZZKL" }
-  void joinParcelDeliveryTracking(String trackingId) {
+  /// Join a delivery tracking room (for both food orders and parcels)
+  /// Emits to: "delivery:track" with payload { "trackingId": "Order Number or Tracking ID" }
+  /// For food orders: trackingId = orderNumber (e.g., "ORD-UFBZV5YU")
+  /// For parcels: trackingId = deliveryTrackingId (e.g., "DLV-20251030-1NZZKL")
+  void joinDeliveryTracking(String trackingId) {
     if (isConnected.value) {
       socket.emit('delivery:track', {'trackingId': trackingId});
-      log('📦 Joined parcel delivery tracking for: $trackingId');
+      log('🚚 Joined delivery tracking for: $trackingId');
     } else {
-      log('⚠️ Cannot join parcel delivery tracking - socket not connected');
+      log('⚠️ Cannot join delivery tracking - socket not connected');
     }
   }
 
-  /// Listen for parcel delivery status updates
-  /// Event: "delivery:status-update"
-  /// Data: {trackingId, status, lat, lon, degrees, riderId, ...}
-  void listenForDeliveryStatusUpdate(Function(Map<String, dynamic>) onDeliveryUpdate) {
-    socket.on('delivery:status-update', (data) {
-      log('🚚 Delivery status update received: ${data.toString()}');
+  /// Listen for delivery location updates (rider location)
+  /// Event: "delivery:location-update"
+  /// Data: {trackingId, location: {latitude, longitude, degrees}}
+  void listenForDeliveryLocationUpdate(Function(Map<String, dynamic>) onLocationUpdate) {
+    socket.on('delivery:location-update', (data) {
+      log('📍 Delivery location update received: ${data.toString()}');
       if (data is Map<String, dynamic>) {
-        onDeliveryUpdate(data);
+        onLocationUpdate(data);
       }
     });
   }
 
-  /// Stop listening for delivery status updates
-  void stopListeningForDeliveryStatusUpdate() {
-    socket.off('delivery:status-update');
-    log('🔇 Stopped listening for delivery status updates');
+  /// Stop listening for delivery location updates
+  void stopListeningForDeliveryLocationUpdate() {
+    socket.off('delivery:location-update');
+    log('🔇 Stopped listening for delivery location updates');
   }
 
-  /// Leave parcel delivery tracking room
-  void leaveParcelDeliveryTracking(String trackingId) {
+  /// Leave delivery tracking room
+  void leaveDeliveryTracking(String trackingId) {
     if (isConnected.value) {
-      // Emit to delivery:track to leave (if needed by backend)
-      log('👋 Stopped tracking parcel delivery: $trackingId');
+      log('👋 Stopped tracking delivery: $trackingId');
     }
   }
 
-  /// DEPRECATED: Use listenForDeliveryStatusUpdate instead
-  /// Listen for parcel delivery tracking updates
-  /// Event: "delivery:track"
-  @Deprecated('Use listenForDeliveryStatusUpdate instead')
-  void listenForDeliveryTracking(Function(Map<String, dynamic>) onDeliveryUpdate) {
-    socket.on('delivery:track', (data) {
-      log('🚚 Delivery tracking update received: ${data.toString()}');
-      if (data is Map<String, dynamic>) {
-        onDeliveryUpdate(data);
-      }
-    });
-  }
+  // DEPRECATED methods - kept for backward compatibility
+  @Deprecated('Use joinDeliveryTracking instead')
+  void joinParcelDeliveryTracking(String trackingId) => joinDeliveryTracking(trackingId);
 
-  /// DEPRECATED: Use stopListeningForDeliveryStatusUpdate instead
-  @Deprecated('Use stopListeningForDeliveryStatusUpdate instead')
-  void stopListeningForDeliveryTracking() {
-    socket.off('delivery:track');
-    log('🔇 Stopped listening for delivery tracking updates');
-  }
+  @Deprecated('Use listenForDeliveryLocationUpdate instead')
+  void listenForDeliveryStatusUpdate(Function(Map<String, dynamic>) onDeliveryUpdate) => listenForDeliveryLocationUpdate(onDeliveryUpdate);
+
+  @Deprecated('Use stopListeningForDeliveryLocationUpdate instead')
+  void stopListeningForDeliveryStatusUpdate() => stopListeningForDeliveryLocationUpdate();
+
+  @Deprecated('Use leaveDeliveryTracking instead')
+  void leaveParcelDeliveryTracking(String trackingId) => leaveDeliveryTracking(trackingId);
 
   // ==================== LEGACY METHODS (kept for backward compatibility) ====================
 
@@ -214,7 +208,7 @@ class SocketService extends GetxService {
 
     // Stop all listeners
     stopListeningForOrderStatusUpdate();
-    stopListeningForDeliveryStatusUpdate();
+    stopListeningForDeliveryLocationUpdate();
 
     // Dispose socket
     socket.dispose();

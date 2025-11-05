@@ -179,6 +179,28 @@ class CoreService extends GetConnect {
     Get.offAllNamed(Routes.SIGN_IN);
   }
 
+  /// Helper method to safely parse API response data
+  /// Handles cases where response data might be a String instead of Map
+  APIResponse _parseResponse(dynamic responseData) {
+    try {
+      if (responseData is String) {
+        return APIResponse(
+          status: "error",
+          data: "Error",
+          message: responseData.isNotEmpty ? responseData : "Something went wrong",
+        );
+      }
+      return APIResponse.fromMap(responseData);
+    } catch (parseError) {
+      log("Error parsing response: $parseError");
+      return APIResponse(
+        status: "error",
+        data: "Error",
+        message: "Invalid response format from server",
+      );
+    }
+  }
+
   // login post
   Future<APIResponse> sendLogin(String url, payload) async {
     try {
@@ -186,11 +208,11 @@ class CoreService extends GetConnect {
       if (res.statusCode == 200 || res.statusCode == 201) {
         await getStorage.write("id", payload['id']);
         await getStorage.write("password", payload['password']);
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -198,6 +220,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong ",
         );
       }
+    } catch (e) {
+      log("Unexpected error in sendLogin: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",
@@ -215,19 +241,11 @@ class CoreService extends GetConnect {
 
       final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        // Handle string responses (like HTML error pages)
-        if (e.response?.data is String) {
-          return APIResponse(
-            status: "error",
-            data: "Error",
-            message: e.response?.data ?? "Something went wrong",
-          );
-        }
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -235,6 +253,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong ",
         );
       }
+    } catch (e) {
+      log("Unexpected error in send: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",
@@ -252,11 +274,11 @@ class CoreService extends GetConnect {
       });
       final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -264,6 +286,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in upload: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",
@@ -277,11 +303,11 @@ class CoreService extends GetConnect {
     try {
       final res = await _dio.get(url);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -289,6 +315,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in fetch: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",
@@ -305,11 +335,11 @@ class CoreService extends GetConnect {
     try {
       final res = await _dio.get(url, queryParameters: params);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -317,6 +347,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in fetchByParams: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",
@@ -330,11 +364,11 @@ class CoreService extends GetConnect {
     try {
       final res = await _dio.put(url, data: data);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -342,6 +376,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in update: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",
@@ -355,11 +393,11 @@ class CoreService extends GetConnect {
     try {
       final res = await _dio.patch(url, data: data);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -367,6 +405,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in generalPatch: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",
@@ -401,11 +443,11 @@ class CoreService extends GetConnect {
       // Perform the PUT request
       final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -413,6 +455,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in formUpdate: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
 
     return APIResponse(
@@ -486,11 +532,11 @@ class CoreService extends GetConnect {
       // Perform the PUT request
       final res = await _dio.post(url, data: payload);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -498,6 +544,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in formPost: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
 
     return APIResponse(
@@ -512,11 +562,11 @@ class CoreService extends GetConnect {
     try {
       final res = await _dio.delete(url);
       if (res.statusCode == 200 || res.statusCode == 201) {
-        return APIResponse.fromMap(res.data);
+        return _parseResponse(res.data);
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        return APIResponse.fromMap(e.response?.data);
+        return _parseResponse(e.response?.data);
       } else {
         return APIResponse(
           status: "error",
@@ -524,6 +574,10 @@ class CoreService extends GetConnect {
           message: "Something went wrong",
         );
       }
+    } catch (e) {
+      log("Unexpected error in remove: $e");
+      return APIResponse(
+          status: "error", data: "Error", message: "An unexpected error occurred");
     }
     return APIResponse(
       status: "error",

@@ -59,37 +59,43 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
         if (!mounted) return;
 
         // Handle location update from delivery:status-update event
-        if (data.containsKey('lat') && data.containsKey('lon')) {
-          updateMarkerPosition(
-            currentRiderPosition: LatLng(
-              double.parse(data['lat'].toString()),
-              double.parse(data['lon'].toString()),
-            ),
-            degrees: double.parse(data['degrees'].toString()),
-          );
-          ordersController.checkProximityToLocations(
-            LatLng(
-              double.parse(data['lat'].toString()),
-              double.parse(data['lon'].toString()),
-            ),
-            context,
-          );
-          if (data.containsKey('status')) {
-            String newStatus = data['status'];
-            if (data['status'] != ordersController.selectedDelivery!.status &&
-                !ordersController.shownStatusToasts.contains(newStatus)) {
-              FlutterRingtonePlayer().playNotification();
-              showRiderAndDeliveryStatusDialog(
-                title: "Status change",
-                message:
-                    "The current status of your delivery is: ${data['status']} ",
-                delivery: ordersController.selectedDelivery!,
-                context: context,
-              );
-              ordersController.shownStatusToasts.add(newStatus);
-              ordersController.fetchDeliveries();
-              ordersController.getDelivery();
-            }
+        // Data format: { trackingId, location: { latitude, longitude, degrees } }
+        if (data.containsKey('location')) {
+          final location = data['location'] as Map<String, dynamic>;
+
+          if (location.containsKey('latitude') && location.containsKey('longitude')) {
+            final latitude = double.parse(location['latitude'].toString());
+            final longitude = double.parse(location['longitude'].toString());
+            final degrees = double.parse(location['degrees']?.toString() ?? '0');
+
+            updateMarkerPosition(
+              currentRiderPosition: LatLng(latitude, longitude),
+              degrees: degrees,
+            );
+
+            ordersController.checkProximityToLocations(
+              LatLng(latitude, longitude),
+              context,
+            );
+          }
+        }
+
+        // Handle status updates (if backend sends status separately)
+        if (data.containsKey('status')) {
+          String newStatus = data['status'];
+          if (data['status'] != ordersController.selectedDelivery!.status &&
+              !ordersController.shownStatusToasts.contains(newStatus)) {
+            FlutterRingtonePlayer().playNotification();
+            showRiderAndDeliveryStatusDialog(
+              title: "Status change",
+              message:
+                  "The current status of your delivery is: ${data['status']} ",
+              delivery: ordersController.selectedDelivery!,
+              context: context,
+            );
+            ordersController.shownStatusToasts.add(newStatus);
+            ordersController.fetchDeliveries();
+            ordersController.getDelivery();
           }
         }
       });
