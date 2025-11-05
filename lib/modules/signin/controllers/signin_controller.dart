@@ -44,35 +44,44 @@ class SignInController extends GetxController {
   signIn() async {
     if (signInFormKey.currentState!.validate()) {
       setLoadingState(true);
-      dynamic data = {
-        'login': signInWithEmail
-            ? loginController.text
-            : filledPhoneNumber?.completeNumber ?? "",
-        'password': passwordController.text,
-      };
-      APIResponse response = await authService.login(data);
-      showToast(
-          message: response.message, isError: response.status != "success");
-      setLoadingState(false);
+      try {
+        dynamic data = {
+          'login': signInWithEmail
+              ? loginController.text
+              : filledPhoneNumber?.completeNumber ?? "",
+          'password': passwordController.text,
+        };
+        APIResponse response = await authService.login(data);
+        showToast(
+            message: response.message, isError: response.status != "success");
 
-      if (response.status.toLowerCase() == "success") {
-        loginController.clear();
-        passwordController.clear();
-        filledPhoneNumber=null;
-        update();
-        final getStorage = GetStorage();
-        getStorage.write("token", response.data['auth_token']);
-        Get.put(WalletController());
-        Get.put(SettingsController());
-        Get.put(DeliveriesController());
+        if (response.status.toLowerCase() == "success") {
+          loginController.clear();
+          passwordController.clear();
+          filledPhoneNumber=null;
+          update();
+          final getStorage = GetStorage();
+          getStorage.write("token", response.data['auth_token']);
+          Get.put(WalletController());
+          Get.put(SettingsController());
+          Get.put(DeliveriesController());
 
-        // Check if location is set up
-        final hasLocationSetup = await _checkLocationSetup();
-        if (hasLocationSetup) {
-          Get.toNamed(Routes.APP_NAVIGATION);
-        } else {
-          Get.toNamed(Routes.LOCATION_PERMISSION_SCREEN);
+          // Check if location is set up
+          final hasLocationSetup = await _checkLocationSetup();
+          if (hasLocationSetup) {
+            Get.toNamed(Routes.APP_NAVIGATION);
+          } else {
+            Get.toNamed(Routes.LOCATION_PERMISSION_SCREEN);
+          }
         }
+      } catch (e) {
+        print("Error during sign in: $e");
+        showToast(
+            message: "An unexpected error occurred. Please try again.",
+            isError: true);
+      } finally {
+        // Always reset loading state, even if an error occurs
+        setLoadingState(false);
       }
     }
   }
