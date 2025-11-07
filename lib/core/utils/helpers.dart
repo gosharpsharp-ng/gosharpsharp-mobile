@@ -994,10 +994,20 @@ Color getStatusColor(String? status) {
       return AppColors.lightAmberColor;
     case "paid":
       return AppColors.lightGreenColor;
+    case "accepted":
+      return AppColors.lightGreenColor;
     case "assigned":
+      return AppColors.lightBlueColor;
+    case "preparing":
+      return AppColors.lightAmberColor;
+    case "ready":
+      return AppColors.lightGreenColor;
+    case "picked":
       return AppColors.lightBlueColor;
     case "enroute":
       return AppColors.lightPurpleColor;
+    case "in_transit":
+      return AppColors.lightOrangeColor;
     case "collected":
       return AppColors.lightTealColor;
     case "transit":
@@ -1006,7 +1016,11 @@ Color getStatusColor(String? status) {
       return AppColors.lightGreenColor;
     case "approved":
       return AppColors.greenColor; // ✅ Approved status color
+    case "rejected":
+      return AppColors.lightRedColor;
     case "canceled":
+      return AppColors.lightGreyColor;
+    case "cancelled":
       return AppColors.lightGreyColor;
     default:
       return AppColors.lightGreyColor;
@@ -1021,10 +1035,20 @@ Color getStatusTextColor(String? status) {
       return AppColors.amberColor;
     case "paid":
       return AppColors.greenColor;
+    case "accepted":
+      return AppColors.greenColor;
     case "assigned":
+      return AppColors.blueColor;
+    case "preparing":
+      return AppColors.amberColor;
+    case "ready":
+      return AppColors.greenColor;
+    case "picked":
       return AppColors.blueColor;
     case "enroute":
       return AppColors.purpleColor;
+    case "in_transit":
+      return AppColors.orangeColor;
     case "collected":
       return AppColors.tealColor;
     case "transit":
@@ -1033,7 +1057,11 @@ Color getStatusTextColor(String? status) {
       return AppColors.greenColor;
     case "approved":
       return AppColors.greenColor;
+    case "rejected":
+      return AppColors.redColor;
     case "canceled":
+      return AppColors.greyColor;
+    case "cancelled":
       return AppColors.greyColor;
     default:
       return AppColors.greyColor;

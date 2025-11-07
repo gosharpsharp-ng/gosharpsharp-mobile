@@ -188,6 +188,32 @@ class DeliveryInvoiceDetailsScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+
+                    SizedBox(height: 12.h),
+
+                    // Track Delivery Button - show for all statuses except cancelled
+                    if (ordersController.selectedDelivery != null &&
+                        ordersController.selectedDelivery!.status != null &&
+                        !['cancelled', 'rejected'].contains(
+                            ordersController.selectedDelivery!.status!.toLowerCase()))
+                      Container(
+                        width: double.infinity,
+                        margin: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: CustomButton(
+                          title: 'Track Delivery',
+                          backgroundColor: AppColors.primaryColor,
+                          fontColor: AppColors.whiteColor,
+                          width: double.infinity,
+                          height: 50,
+                          fontSize: 16,
+                          onPressed: () {
+                            // Navigate to delivery tracking screen (map-based)
+                            Get.toNamed(Routes.DELIVERY_TRACKING_SCREEN);
+                          },
+                        ),
+                      ),
+
+                    SizedBox(height: 80.h),
                   ],
                 ),
               ),
