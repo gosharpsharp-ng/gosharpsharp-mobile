@@ -3,6 +3,7 @@ import 'package:gosharpsharp/modules/orders/controllers/orders_controller.dart';
 import 'package:gosharpsharp/modules/orders/views/widgets/order_detail_summary_item.dart';
 import 'package:gosharpsharp/modules/orders/views/widgets/order_detail_package_item.dart';
 import 'package:gosharpsharp/modules/orders/views/widgets/order_detail_menu_item.dart';
+import 'package:gosharpsharp/modules/orders/views/order_status_tracking_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/exports.dart';
 
@@ -338,12 +339,29 @@ class OrderDetailsScreen extends GetView<OrdersController> {
 
                   SizedBox(height: 12.h),
 
-                  // Order Status Actions - only show if not completed or cancelled
-                  if (![
-                    'completed',
-                    'cancelled',
-                  ].contains(order.status.toLowerCase()))
-                    SizedBox(height: 20.h),
+                  // Track Order Button - show for all statuses except cancelled
+                  if (!['cancelled', 'rejected'].contains(order.status.toLowerCase()))
+                    Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: CustomButton(
+                        title: 'Track Order',
+                        backgroundColor: AppColors.primaryColor,
+                        fontColor: AppColors.whiteColor,
+                        width: double.infinity,
+                        height: 50,
+                        fontSize: 16,
+                        onPressed: () {
+                          // Navigate to order status tracking screen
+                          Get.to(
+                            () => OrderStatusTrackingScreen(order: order),
+                            transition: Transition.rightToLeft,
+                          );
+                        },
+                      ),
+                    ),
+
+                  SizedBox(height: 80.h),
                 ],
               ),
             ),
