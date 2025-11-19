@@ -43,7 +43,7 @@ class GoSharpSharp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'GoSharpSharp',
       theme: ThemeData(
-        fontFamily: 'HelveticaNeue',
+        fontFamily: GoogleFonts.inter().fontFamily,
       ),
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,

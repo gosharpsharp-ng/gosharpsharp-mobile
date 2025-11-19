@@ -24,11 +24,11 @@ class AuthenticationService extends CoreService {
     return await send("/auth/verify-phone", data);
   }
   Future<APIResponse> sendOtp(dynamic data) async {
-    return await fetch("/auth/get-otp?login=${data['login']}");
+    return await fetch("/auth/get-otp?identifier=${data['identifier']}");
   }
 
   Future<APIResponse> verifyEmailOtp(dynamic data) async {
-    return await send("/auth/verify-email", data);
+    return await send("/auth/verify", data);
   }
 
   Future<APIResponse> signup(dynamic data) async {

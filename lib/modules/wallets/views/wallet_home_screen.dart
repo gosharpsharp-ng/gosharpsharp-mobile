@@ -86,8 +86,7 @@ class WalletHomeScreen extends StatelessWidget {
                                     : "*****",
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
-                                fontFamily:
-                                    'HelveticaNeue',
+                                fontStyle: GoogleFonts.inter().fontStyle,
                                 fontSize: 30.sp,
                                 overflow: TextOverflow.visible,
                               ),
@@ -111,8 +110,7 @@ class WalletHomeScreen extends StatelessWidget {
                                 "Bonus Balance",
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
-                                fontFamily:
-                                    'HelveticaNeue',
+                               fontStyle: GoogleFonts.inter().fontStyle,
                                 fontSize: 15.sp,
                                 overflow: TextOverflow.visible,
                               ),
@@ -130,8 +128,7 @@ class WalletHomeScreen extends StatelessWidget {
                                     : "*****",
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
-                                fontFamily:
-                                    'HelveticaNeue',
+                                fontStyle: GoogleFonts.inter().fontStyle,
                                 fontSize: 20.sp,
                                 overflow: TextOverflow.visible,
                               ),
@@ -167,7 +164,7 @@ class WalletHomeScreen extends StatelessWidget {
                     //                 color: AppColors.blackColor,
                     //                 fontWeight: FontWeight.normal,
                     //                 fontFamily:
-                    //                     GoogleFonts.montserrat().fontFamily!,
+                    //                     GoogleFonts.inter().fontFamily!,
                     //                 fontSize: 14.sp,
                     //                 overflow: TextOverflow.visible),
                     //           ],

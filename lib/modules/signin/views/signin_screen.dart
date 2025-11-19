@@ -1,8 +1,4 @@
-import 'dart:math';
-
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:gosharpsharp/modules/dashboard/views/landing_screen.dart';
-import 'package:intl_phone_field/phone_number.dart';
 
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
@@ -33,6 +29,7 @@ class SignInScreen extends StatelessWidget {
                         vertical: 0.sp,
                       ),
                       margin: EdgeInsets.only(left: 10.sp, right: 10.sp),
+                      width: 1.sw,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -48,41 +45,6 @@ class SignInScreen extends StatelessWidget {
                             color: AppColors.blackColor,
                             fontSize: 16.sp,
                             fontWeight: FontWeight.normal,
-                          ),
-                          SizedBox(height: 5.sp),
-                          SizedBox(height: 20.sp),
-                          SizedBox(
-                            width: 1.sw,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: LoginTypeSelector(
-                                    title: "Login with Email",
-                                    onSelected: () {
-                                      if (!signInController.signInWithEmail) {
-                                        signInController
-                                            .toggleSignInWithEmail();
-                                      }
-                                    },
-                                    isSelected:
-                                        signInController.signInWithEmail,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: LoginTypeSelector(
-                                    title: "Login with Phone",
-                                    onSelected: () {
-                                      if (signInController.signInWithEmail) {
-                                        signInController
-                                            .toggleSignInWithEmail();
-                                      }
-                                    },
-                                    isSelected:
-                                        !signInController.signInWithEmail,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                           SizedBox(height: 25.sp),
                         ],
@@ -103,91 +65,24 @@ class SignInScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          // SizedBox(
-                          //   height: 5.sp,
-                          // ),
-                          // customText(
-                          //   "Welcome back to the app",
-                          //   color: AppColors.obscureTextColor,
-                          //   fontWeight: FontWeight.w500,
-                          //   fontSize: 16.sp,
-                          // ),
-                          signInController.signInWithEmail
-                              ? CustomRoundedInputField(
-                                  title: "Email",
-                                  label: "meterme@gmail.com",
-                                  showLabel: true,
-                                  isRequired: true,
-                                  useCustomValidator: true,
-                                  hasTitle: true,
-                                  keyboardType: TextInputType.emailAddress,
-                                  controller: signInController.loginController,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter an email';
-                                    } else if (!validateEmail(value)) {
-                                      return 'Please enter a valid email';
-                                    }
-                                    return null;
-                                  },
-                                )
-                              : CustomRoundedPhoneInputField(
-                                  title: "Phone number",
-                                  label: "7061032122",
-                                  onChanged: (PhoneNumber phone) {
-                                    // Remove all spaces and leading zero
-                                    String cleanedNumber = phone.number.replaceAll(' ', '');
-
-                                    if (cleanedNumber.isNotEmpty && cleanedNumber.startsWith('0')) {
-                                      cleanedNumber = cleanedNumber.replaceFirst(RegExp(r'^0'), '');
-                                    }
-
-                                    if (cleanedNumber != phone.number) {
-                                      signInController.loginController.value =
-                                          TextEditingValue(
-                                            text: cleanedNumber,
-                                            selection: TextSelection.collapsed(
-                                              offset: cleanedNumber.length,
-                                            ),
-                                          );
-                                      signInController.setPhoneNumber(
-                                        PhoneNumber(
-                                          countryISOCode: phone.countryISOCode,
-                                          countryCode: phone.countryCode,
-                                          number: cleanedNumber,
-                                        ),
-                                      );
-                                      signInController.setFilledPhoneNumber(
-                                        PhoneNumber(
-                                          countryISOCode: phone.countryISOCode,
-                                          countryCode: phone.countryCode,
-                                          number: cleanedNumber,
-                                        ),
-                                      );
-                                    } else {
-                                      signInController.setFilledPhoneNumber(
-                                        phone,
-                                      );
-                                    }
-                                  },
-                                  keyboardType: TextInputType.phone,
-                                  validator: (phone) {
-                                    if (phone == null ||
-                                        phone.completeNumber.isEmpty) {
-                                      return "Phone number is required";
-                                    }
-                                    // Regex: `+` followed by 1 to 3 digits (country code), then 10 digits (phone number)
-                                    final regex = RegExp(r'^\+234[1-9]\d{9}$');
-                                    if (!regex.hasMatch(phone.completeNumber)) {
-                                      return "Phone number must be 10 digits long";
-                                    }
-
-                                    return null; // Valid phone number
-                                  },
-                                  isPhone: true,
-                                  hasTitle: true,
-                                  controller: signInController.loginController,
-                                ),
+                          CustomRoundedInputField(
+                            title: "Email",
+                            label: "meterme@gmail.com",
+                            showLabel: true,
+                            isRequired: true,
+                            useCustomValidator: true,
+                            hasTitle: true,
+                            keyboardType: TextInputType.emailAddress,
+                            controller: signInController.loginController,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter an email';
+                              } else if (!validateEmail(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
                           SizedBox(height: 10.sp),
                           CustomRoundedInputField(
                             title: "Password",
@@ -280,52 +175,6 @@ class SignInScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class LoginTypeSelector extends StatelessWidget {
-  final String title;
-  final Function onSelected;
-  final bool isSelected;
-  const LoginTypeSelector({
-    super.key,
-    required this.title,
-    this.isSelected = false,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      highlightColor: AppColors.transparent,
-      onTap: () {
-        onSelected();
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 5.sp),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected
-                  ? AppColors.primaryColor
-                  : AppColors.obscureTextColor,
-              width: isSelected ? 2.sp : 1.sp,
-            ),
-          ),
-        ),
-        width: double.infinity,
-        child: Center(
-          child: customText(
-            title,
-            fontWeight: FontWeight.w500,
-            fontSize: 15.sp,
-            color: isSelected
-                ? AppColors.primaryColor
-                : AppColors.obscureTextColor,
-          ),
-        ),
-      ),
     );
   }
 }

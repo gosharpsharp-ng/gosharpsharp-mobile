@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/utils/exports.dart';
@@ -12,6 +11,9 @@ class OrderCheckoutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<CartController>(
       builder: (cartController) {
+        // Only show skeleton on initial load when cart is empty
+        final bool showSkeleton = cartController.isLoading && cartController.isCartEmpty;
+
         return Scaffold(
           backgroundColor: AppColors.backgroundColor,
           appBar: defaultAppBar(
@@ -20,7 +22,7 @@ class OrderCheckoutScreen extends StatelessWidget {
             implyLeading: true,
             centerTitle: true,
           ),
-          body: cartController.isLoading
+          body: showSkeleton
               ? _buildLoadingSkeleton()
               : Column(
                   children: [
@@ -565,21 +567,6 @@ class OrderCheckoutScreen extends StatelessWidget {
                     cartController.selectedPaymentMethod.value.toLowerCase() ==
                     'paystack',
               ),
-
-              SizedBox(height: 12.h),
-
-              // Cash on Delivery Option
-              _buildModernPaymentOption(
-                title: 'Cash on Delivery',
-                subtitle: 'Pay when your order arrives',
-                icon: null,
-                materialIcon: Icons.money,
-                iconColor: AppColors.secondaryColor,
-                onTap: () => _selectPaymentMethod(cartController, 'cash'),
-                isSelected:
-                    cartController.selectedPaymentMethod.value.toLowerCase() ==
-                    'cash',
-              ),
             ],
           ),
         );
@@ -997,19 +984,31 @@ class OrderCheckoutScreen extends StatelessWidget {
       cartController.instructions.value,
     );
     if (cartController.payStackAuthorizationData != null) {
-      WebViewController collectionsWebViewController = createWebViewController(
-        successCallback: () {
-          Get.back();
-        },
-      );
-      showWebViewDialog(
+      if (!context.mounted) return;
+      showPaymentWebViewDialog(
         context,
-        controller: collectionsWebViewController,
-        onDialogClosed: () {
-          Get.back();
-        },
-        title: "Paystack",
         url: cartController.payStackAuthorizationData?.authorizationUrl ?? "",
+        title: "Paystack Payment",
+        onSuccess: () {
+          // Payment successful - navigate to success screen
+          Get.offNamedUntil(
+            Routes.ORDER_SUCCESS_SCREEN,
+            (route) => route.settings.name == Routes.APP_NAVIGATION,
+            arguments: {
+              'orderNumber': cartController.lastOrderNumber ?? 'N/A',
+            },
+          );
+        },
+        onFailure: (String reason) {
+          // Payment failed or cancelled - navigate to failure screen with specific reason
+          Get.offNamedUntil(
+            Routes.ORDER_FAILURE_SCREEN,
+            (route) => route.settings.name == Routes.APP_NAVIGATION,
+            arguments: {
+              'message': reason,
+            },
+          );
+        },
       );
     }
   }

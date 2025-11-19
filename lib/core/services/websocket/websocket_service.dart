@@ -18,7 +18,7 @@ class SocketService extends GetxService {
 
   void _initializeSocket() {
     socket = IO.io(
-        'http://socket.gosharpsharp.com/',
+        'https://socket.gosharpsharp.com',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableAutoConnect()
@@ -32,7 +32,7 @@ class SocketService extends GetxService {
   void _setupSocketListeners() {
     socket
       ..onConnect((_) {
-        log('🟢 Socket Connected to http://socket.gosharpsharp.com/');
+        log('🟢 Socket Connected to https://socket.gosharpsharp.com');
         isConnected.value = true;
         // Rejoin user room if userId was set
         if (_currentUserId != null) {
@@ -93,7 +93,8 @@ class SocketService extends GetxService {
   /// Listen for food order status updates
   /// Event: "order:status-update"
   /// Data: {orderId, orderNumber, status, previousStatus, userId, restaurantId, total, currency, items, packages, updatedAt}
-  void listenForOrderStatusUpdate(Function(Map<String, dynamic>) onOrderUpdate) {
+  void listenForOrderStatusUpdate(
+      Function(Map<String, dynamic>) onOrderUpdate) {
     socket.on('order:status-update', (data) {
       log('📦 Order status update received: ${data.toString()}');
       if (data is Map<String, dynamic>) {
@@ -134,7 +135,8 @@ class SocketService extends GetxService {
   /// Listen for delivery location updates (rider location)
   /// Event: "delivery:location-update"
   /// Data: {trackingId, location: {latitude, longitude, degrees}}
-  void listenForDeliveryLocationUpdate(Function(Map<String, dynamic>) onLocationUpdate) {
+  void listenForDeliveryLocationUpdate(
+      Function(Map<String, dynamic>) onLocationUpdate) {
     socket.on('delivery:location-update', (data) {
       log('📍 Delivery location update received: ${data.toString()}');
       if (data is Map<String, dynamic>) {
@@ -158,16 +160,21 @@ class SocketService extends GetxService {
 
   // DEPRECATED methods - kept for backward compatibility
   @Deprecated('Use joinDeliveryTracking instead')
-  void joinParcelDeliveryTracking(String trackingId) => joinDeliveryTracking(trackingId);
+  void joinParcelDeliveryTracking(String trackingId) =>
+      joinDeliveryTracking(trackingId);
 
   @Deprecated('Use listenForDeliveryLocationUpdate instead')
-  void listenForDeliveryStatusUpdate(Function(Map<String, dynamic>) onDeliveryUpdate) => listenForDeliveryLocationUpdate(onDeliveryUpdate);
+  void listenForDeliveryStatusUpdate(
+          Function(Map<String, dynamic>) onDeliveryUpdate) =>
+      listenForDeliveryLocationUpdate(onDeliveryUpdate);
 
   @Deprecated('Use stopListeningForDeliveryLocationUpdate instead')
-  void stopListeningForDeliveryStatusUpdate() => stopListeningForDeliveryLocationUpdate();
+  void stopListeningForDeliveryStatusUpdate() =>
+      stopListeningForDeliveryLocationUpdate();
 
   @Deprecated('Use leaveDeliveryTracking instead')
-  void leaveParcelDeliveryTracking(String trackingId) => leaveDeliveryTracking(trackingId);
+  void leaveParcelDeliveryTracking(String trackingId) =>
+      leaveDeliveryTracking(trackingId);
 
   // ==================== LEGACY METHODS (kept for backward compatibility) ====================
 
@@ -176,7 +183,8 @@ class SocketService extends GetxService {
     socket.on(roomId, onLocationUpdate);
   }
 
-  void joinTrackingRoom({required String trackingId, required String msg}) async {
+  void joinTrackingRoom(
+      {required String trackingId, required String msg}) async {
     if (isConnected.value) {
       socket.emit(msg, trackingId);
     }

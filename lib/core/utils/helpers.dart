@@ -741,6 +741,231 @@ String getFormattedResendOTPTime(int remainingTime) {
   }
 }
 
+// Payment WebView Controller for handling Paystack payments
+class PaymentWebViewController {
+  bool paymentCompleted = false;
+  bool autoClosing = false;
+  String paymentStatus = 'pending'; // 'pending', 'success', 'failed', 'cancelled', 'declined'
+  String? failureReason; // Store the specific failure reason
+  Timer? autoCloseTimer;
+  Timer? statusCheckTimer;
+
+  final WebViewController controller;
+  final VoidCallback onSuccess;
+  final Function(String reason) onFailure;
+
+  PaymentWebViewController({
+    required this.controller,
+    required this.onSuccess,
+    required this.onFailure,
+  }) {
+    _setupController();
+  }
+
+  void _setupController() {
+    controller
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0x00000000))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) async {
+            // Focus on input field for better UX
+            try {
+              controller.runJavaScript('document.querySelector("input")?.focus();');
+            } catch (e) {
+              debugPrint('Error focusing input: $e');
+            }
+
+            // Check payment status after page loads
+            await _checkPaymentStatus();
+          },
+          onUrlChange: (UrlChange? urlChange) {
+            // Additional check on URL change
+            _checkPaymentStatus();
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            // Allow navigation
+            return NavigationDecision.navigate;
+          },
+        ),
+      );
+
+    // Periodic status check (backup method) - check every 2 seconds
+    statusCheckTimer = Timer.periodic(Duration(seconds: 2), (timer) {
+      if (!paymentCompleted) {
+        _checkPaymentStatus();
+      }
+    });
+  }
+
+  Future<void> _checkPaymentStatus() async {
+    if (paymentCompleted) return;
+
+    try {
+      // Method 1: Check page title
+      final title = await controller.getTitle();
+
+      if (title != null) {
+        final titleLower = title.toLowerCase();
+
+        // Check for success indicators in title
+        if (titleLower.contains('success') ||
+            titleLower.contains('successful') ||
+            titleLower.contains('complete')) {
+          _handleSuccess();
+          return;
+        }
+
+        // Check for cancellation indicators in title
+        if (titleLower.contains('cancel') || titleLower.contains('abort')) {
+          _handleCancellation();
+          return;
+        }
+
+        // Check for declined indicators
+        if (titleLower.contains('declined') || titleLower.contains('decline')) {
+          _handleFailure(isDeclined: true);
+          return;
+        }
+
+        // Check for failure indicators
+        if (titleLower.contains('fail') || titleLower.contains('error')) {
+          _handleFailure(isDeclined: false);
+          return;
+        }
+      }
+
+      // Method 2: Check page content via JavaScript
+      final result = await controller.runJavaScriptReturningResult('''
+        (function() {
+          const bodyText = document.body.innerText.toLowerCase();
+
+          // Check for cancellation
+          if (bodyText.includes('payment cancelled') ||
+              bodyText.includes('transaction cancelled') ||
+              bodyText.includes('you cancelled')) {
+            return 'cancelled';
+          }
+
+          // Check for declined
+          if (bodyText.includes('declined') ||
+              bodyText.includes('card declined')) {
+            return 'declined';
+          }
+
+          // Check for failure
+          if (bodyText.includes('payment failed') ||
+              bodyText.includes('payment error')) {
+            return 'failed';
+          }
+
+          // Check for success
+          if (bodyText.includes('payment successful') ||
+              bodyText.includes('transaction successful') ||
+              bodyText.includes('payment complete') ||
+              bodyText.includes('transaction complete')) {
+            return 'success';
+          }
+
+          return 'unknown';
+        })();
+      ''');
+
+      final status = result.toString().replaceAll('"', '');
+
+      if (status == 'success') {
+        _handleSuccess();
+      } else if (status == 'cancelled') {
+        _handleCancellation();
+      } else if (status == 'declined') {
+        _handleFailure(isDeclined: true);
+      } else if (status == 'failed') {
+        _handleFailure(isDeclined: false);
+      }
+    } catch (e) {
+      debugPrint('Error checking payment status: $e');
+    }
+  }
+
+  void _handleSuccess() {
+    if (paymentCompleted) return;
+
+    paymentCompleted = true;
+    paymentStatus = 'success';
+    autoClosing = true;
+
+    // Cancel status check timer
+    statusCheckTimer?.cancel();
+
+    debugPrint('Payment successful - auto-closing in 3 seconds');
+
+    // Auto-close after 3 seconds to let user see success message
+    autoCloseTimer = Timer(Duration(seconds: 3), () {
+      Get.back();
+      onSuccess();
+    });
+  }
+
+  void _handleFailure({bool isDeclined = false}) {
+    if (paymentCompleted) return;
+
+    paymentCompleted = true;
+    paymentStatus = isDeclined ? 'declined' : 'failed';
+    autoClosing = true;
+
+    failureReason = isDeclined
+        ? 'Your payment was declined. Please check your card details or try another payment method.'
+        : 'Payment could not be completed. Please try again.';
+
+    // Cancel status check timer
+    statusCheckTimer?.cancel();
+
+    debugPrint('Payment ${isDeclined ? 'declined' : 'failed'} - auto-closing in 2 seconds');
+
+    // Auto-close after 2 seconds
+    autoCloseTimer = Timer(Duration(seconds: 2), () {
+      Get.back();
+      onFailure(failureReason ?? 'Payment was not completed. Please try again.');
+    });
+  }
+
+  void _handleCancellation() {
+    if (paymentCompleted) return;
+
+    paymentCompleted = true;
+    paymentStatus = 'cancelled';
+    autoClosing = true;
+    failureReason = 'You cancelled this payment. No charges were made to your account.';
+
+    statusCheckTimer?.cancel();
+
+    debugPrint('Payment cancelled - auto-closing in 2 seconds');
+
+    // Auto-close after 2 seconds
+    autoCloseTimer = Timer(Duration(seconds: 2), () {
+      Get.back();
+      onFailure(failureReason ?? 'Payment was cancelled.');
+    });
+  }
+
+  void handleManualClose() {
+    statusCheckTimer?.cancel();
+    autoCloseTimer?.cancel();
+
+    // User closed webview manually before payment completed
+    if (!paymentCompleted) {
+      paymentStatus = 'cancelled';
+      debugPrint('Payment cancelled by user');
+      onFailure('Payment was cancelled. Please try again if you wish to complete this transaction.');
+    }
+  }
+
+  void dispose() {
+    statusCheckTimer?.cancel();
+    autoCloseTimer?.cancel();
+  }
+}
+
 WebViewController createWebViewController({required Function successCallback}) {
   final WebViewController controller = WebViewController();
 
@@ -774,6 +999,78 @@ WebViewController createWebViewController({required Function successCallback}) {
   return controller;
 }
 
+// Show WebView Dialog for Payment with automatic success/failure detection
+void showPaymentWebViewDialog(
+  BuildContext context, {
+  required String url,
+  required VoidCallback onSuccess,
+  required Function(String reason) onFailure,
+  String title = "Payment",
+}) {
+  final WebViewController webViewController = WebViewController();
+  PaymentWebViewController? paymentController;
+
+  paymentController = PaymentWebViewController(
+    controller: webViewController,
+    onSuccess: onSuccess,
+    onFailure: onFailure,
+  );
+
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    pageBuilder: (BuildContext context, Animation<double> animation,
+        Animation<double> secondaryAnimation) {
+      webViewController.loadRequest(Uri.parse(url));
+      return PopScope(
+        canPop: true,
+        onPopInvoked: (didPop) {
+          if (didPop && paymentController != null) {
+            if (!paymentController.paymentCompleted) {
+              paymentController.paymentStatus = 'cancelled';
+              // Schedule callback for next frame to avoid state issues
+              final controller = paymentController;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                controller.onFailure('Payment was cancelled. Please try again if you wish to complete this transaction.');
+              });
+            }
+            paymentController.dispose();
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: customText(title),
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                if (paymentController == null) return;
+
+                if (!paymentController.paymentCompleted) {
+                  paymentController.paymentStatus = 'cancelled';
+                  Navigator.of(context).pop();
+                  // Use PostFrameCallback to avoid context issues
+                  final controller = paymentController;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    controller.onFailure('Payment was cancelled. Please try again if you wish to complete this transaction.');
+                  });
+                  paymentController.dispose();
+                } else {
+                  Navigator.of(context).pop();
+                  paymentController.dispose();
+                }
+              },
+            ),
+          ),
+          body: WebViewWidget(
+            controller: webViewController,
+          ),
+        ),
+      );
+    },
+  );
+}
+
 void showWebViewDialog(
   BuildContext context, {
   required WebViewController controller,
@@ -793,7 +1090,6 @@ void showWebViewDialog(
           if (onDialogClosed != null) {
             onDialogClosed();
           }
-          onDialogClosed!();
           return true;
         },
         child: Scaffold(

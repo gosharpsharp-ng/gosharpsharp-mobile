@@ -35,27 +35,23 @@
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>NSLocalNetworkUsageDescription</key>
-        <string>This app uses the local network for development and debugging.</string>
-        <key>NSBonjourServices</key>
-        <array>
-            <string>_dartobservatory._tcp</string>
-        </array>
-			<key>NSCameraUsageDescription</key>
-        	<string>We need access to your camera to allow you to take photos of your delivery, ensuring a smooth transaction and confirming your order and to update your profile avatar.</string>
-        	<key>NSMicrophoneUsageDescription</key>
-        	<string>We need access to your microphone to enable voice communication with the rider for delivery instructions or any issues that may arise during the process.</string>
-        	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-            <string>This app needs access to your location to help the rider locate you for parcel pickup and delivery, both when you're using the app and when it's in the background.</string>
-
-            <key>NSLocationAlwaysUsageDescription</key>
-            <string>This app needs access to your location in the background to allow the rider to locate you for pickup and delivery updates.</string>
-
-            <key>NSLocationWhenInUseUsageDescription</key>
-            <string>This app needs access to your location while you're using the app to help the rider find your location for parcel pickup and delivery.</string>
-
-            <key>NSPhotoLibraryUsageDescription</key>
-            <string>We need access to your photo library to allow you to select photos of your delivery, ensuring a smooth transaction and confirming your order and to update your profile avatar.</string>
-
+		<string>This app uses the local network for development and debugging.</string>
+		<key>NSBonjourServices</key>
+		<array>
+			<string>_dartobservatory._tcp</string>
+		</array>
+		<key>NSCameraUsageDescription</key>
+		<string>We need access to your camera to allow you to take photos of your delivery, ensuring a smooth transaction and confirming your order and to update your profile avatar.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>We need access to your microphone to enable voice communication with the rider for delivery instructions or any issues that may arise during the process.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>This app needs access to your location to help the rider locate you for parcel pickup and delivery, both when you're using the app and when it's in the background.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>This app needs access to your location in the background to allow the rider to locate you for pickup and delivery updates.</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>This app needs access to your location while you're using the app to help the rider find your location for parcel pickup and delivery.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need access to your photo library to allow you to select photos of your delivery, ensuring a smooth transaction and confirming your order and to update your profile avatar.</string>
 		<key>UISupportedInterfaceOrientations~ipad</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>

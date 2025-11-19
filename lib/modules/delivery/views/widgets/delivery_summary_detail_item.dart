@@ -38,7 +38,7 @@ class DeliverySummaryDetailItem extends StatelessWidget {
                         value,
                         color: AppColors.blackColor,
                         fontSize: 15.sp,
-                        fontFamily: isCurrency?'HelveticaNeue':'HelveticaNeue',
+                        fontStyle: GoogleFonts.inter().fontStyle,
                         fontWeight: FontWeight.w500,
                         overflow: TextOverflow.visible,
                       ),
@@ -78,7 +78,7 @@ class DeliverySummaryDetailItem extends StatelessWidget {
                 customText(
                   value,
                   color: AppColors.blackColor,
-                  fontFamily: isCurrency?'HelveticaNeue':'HelveticaNeue',
+                  fontStyle: GoogleFonts.inter().fontStyle,
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w500,
                   overflow: TextOverflow.visible,

@@ -9,11 +9,16 @@ import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.da
 import 'package:gosharpsharp/modules/orders/bindings/orders_bindings.dart';
 import 'package:gosharpsharp/modules/orders/views/order_details_screen.dart';
 import 'package:gosharpsharp/modules/orders/views/order_success_screen.dart';
+import 'package:gosharpsharp/modules/orders/views/order_failure_screen.dart';
 import 'package:gosharpsharp/modules/orders/views/orders_home_screen.dart';
+import 'package:gosharpsharp/modules/wallets/views/fund_wallet_success_screen.dart';
+import 'package:gosharpsharp/modules/wallets/views/fund_wallet_failure_screen.dart';
 import 'package:gosharpsharp/modules/support/bindings/support_bindings.dart';
 import 'package:gosharpsharp/modules/support/views/faq_screen.dart';
 import 'package:gosharpsharp/modules/location_permission/views/location_permission_screen.dart';
 import 'package:gosharpsharp/modules/delivery/views/parcel_deliveries/parcel_deliveries_home_screen.dart';
+import 'package:gosharpsharp/modules/delivery/views/parcel_deliveries/parcel_delivery_details_screen.dart';
+import 'package:gosharpsharp/modules/delivery/views/parcel_deliveries/parcel_delivery_tracking_screen.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -43,7 +48,6 @@ class AppPages {
     GetPage(
       name: Routes.SIGNUP_OTP_SCREEN,
       page: () => SignUpOtpScreen(),
-      binding: SignUpBindings(),
     ),
     GetPage(
       name: Routes.SIGN_IN,
@@ -253,8 +257,38 @@ class AppPages {
       binding: OrdersBindings(),
     ),
     GetPage(
+      name: Routes.ORDER_FAILURE_SCREEN,
+      page: () => const OrderFailureScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: OrdersBindings(),
+    ),
+    GetPage(
+      name: Routes.FUND_WALLET_SUCCESS_SCREEN,
+      page: () => const FundWalletSuccessScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: WalletBindings(),
+    ),
+    GetPage(
+      name: Routes.FUND_WALLET_FAILURE_SCREEN,
+      page: () => const FundWalletFailureScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: WalletBindings(),
+    ),
+    GetPage(
       name: Routes.PARCEL_DELIVERIES_HOME_SCREEN,
       page: () => const ParcelDeliveriesHomeScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: DeliveriesBindings(),
+    ),
+    GetPage(
+      name: Routes.PARCEL_DELIVERY_DETAILS_SCREEN,
+      page: () => const ParcelDeliveryDetailsScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: DeliveriesBindings(),
+    ),
+    GetPage(
+      name: Routes.PARCEL_DELIVERY_TRACKING_SCREEN,
+      page: () => const ParcelDeliveryTrackingScreen(),
       //middlewares: [AuthMiddleware()],
       binding: DeliveriesBindings(),
     ),

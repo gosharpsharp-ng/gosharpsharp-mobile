@@ -26,7 +26,8 @@ class WalletModel {
     return WalletModel(
       id: json['id'] ?? 0,
       balance: double.tryParse(json['balance']?.toString() ?? '0') ?? 0.0,
-      bonusBalance: double.tryParse(json['bonus_balance']?.toString() ?? '0') ?? 0.0,
+      bonusBalance:
+          double.tryParse(json['bonus_balance']?.toString() ?? '0') ?? 0.0,
       currencyId: json['currency_id'] ?? 0,
       walletableType: json['walletable_type']?.toString() ?? '',
       walletableId: json['walletable_id'] ?? 0,
@@ -60,6 +61,7 @@ class NotificationModel {
   final int notifiableId;
   final String title;
   final String message;
+  final String? status;
   final String priority;
   final String? readAt;
   final String? deletedAt;
@@ -71,6 +73,7 @@ class NotificationModel {
     required this.notifiableType,
     required this.notifiableId,
     required this.title,
+    this.status,
     required this.message,
     required this.priority,
     this.readAt,
@@ -85,6 +88,7 @@ class NotificationModel {
       notifiableType: json['notifiable_type']?.toString() ?? '',
       notifiableId: json['notifiable_id'] ?? 0,
       title: json['title']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
       message: json['message']?.toString() ?? '',
       priority: json['priority']?.toString() ?? 'medium',
       readAt: json['read_at']?.toString(),
@@ -172,12 +176,12 @@ class UserProfile {
         parsedNotifications = notificationsJson
             .where((n) => n != null)
             .map((n) {
-          try {
-            return NotificationModel.fromJson(n as Map<String, dynamic>);
-          } catch (e) {
-            return null;
-          }
-        })
+              try {
+                return NotificationModel.fromJson(n as Map<String, dynamic>);
+              } catch (e) {
+                return null;
+              }
+            })
             .where((n) => n != null)
             .cast<NotificationModel>()
             .toList();
@@ -262,7 +266,9 @@ class UserProfile {
   double get totalWalletBalance => wallet?.totalBalance ?? 0.0;
 
   // Notifications getters
-  int get unreadNotificationsCount => notifications.where((n) => n.isUnread).length;
+  int get unreadNotificationsCount =>
+      notifications.where((n) => n.isUnread).length;
   bool get hasUnreadNotifications => unreadNotificationsCount > 0;
-  List<NotificationModel> get unreadNotifications => notifications.where((n) => n.isUnread).toList();
+  List<NotificationModel> get unreadNotifications =>
+      notifications.where((n) => n.isUnread).toList();
 }

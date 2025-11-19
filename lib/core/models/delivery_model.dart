@@ -70,8 +70,8 @@ class DeliveryModel {
                 .map((e) => PaymentMethodModel.fromJson(e))
                 .toList()
           : null,
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      createdAt: json['created_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
       timestamp: json['timestamp'],
       rating: json['rating'] != null ? Rating.fromJson(json['rating']) : null,
     );
@@ -133,36 +133,53 @@ class Sender {
     this.avatar,
     this.firstName,
     this.lastName,
-    required this.phone,
+    this.phone = '',
     this.dob,
-    required this.email,
-    required this.role,
-    required this.status,
-    required this.referralCode,
+    this.email = '',
+    this.role = '',
+    this.status = '',
+    this.referralCode = '',
     this.referredBy,
     this.lastLoginAt,
-    required this.failedLoginAttempts,
-    required this.createdAt,
-    required this.updatedAt,
+    this.failedLoginAttempts = 0,
+    this.createdAt = '',
+    this.updatedAt = '',
   });
 
   factory Sender.fromJson(Map<String, dynamic> json) {
+    // Handle both full user object and simplified sender object
+    String? firstName;
+    String? lastName;
+
+    // Check if simplified format with single 'name' field
+    if (json.containsKey('name') && !json.containsKey('fname')) {
+      final fullName = json['name'] as String?;
+      if (fullName != null) {
+        final nameParts = fullName.split(' ');
+        firstName = nameParts.isNotEmpty ? nameParts.first : null;
+        lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : null;
+      }
+    } else {
+      firstName = json['fname'];
+      lastName = json['lname'];
+    }
+
     return Sender(
       id: json['id'],
-      avatar: json['avatar'],
-      firstName: json['fname'],
-      lastName: json['lname'],
-      phone: json['phone'],
-      dob: json['dob'],
-      email: json['email'],
-      role: json['role'],
-      status: json['status'],
-      referralCode: json['referral_code'],
+      avatar: json['avatar'] ?? '',
+      firstName: firstName,
+      lastName: lastName,
+      phone: json['phone'] ?? '',
+      dob: json['dob'] ?? '',
+      email: json['email'] ?? '',
+      role: json['role'] ?? '',
+      status: json['status'] ?? '',
+      referralCode: json['referral_code'] ?? '',
       referredBy: json['referred_by'],
       lastLoginAt: json['last_login_at'],
-      failedLoginAttempts: json['failed_login_attempts'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      failedLoginAttempts: json['failed_login_attempts'] ?? 0,
+      createdAt: json['created_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
     );
   }
 
@@ -200,7 +217,6 @@ class Rider {
   final String referralCode;
   final String? referredBy;
   final String? lastLoginAt;
-  final int failedLoginAttempts;
   final String createdAt;
   final String updatedAt;
 
@@ -217,7 +233,6 @@ class Rider {
     required this.referralCode,
     this.referredBy,
     this.lastLoginAt,
-    required this.failedLoginAttempts,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -225,20 +240,19 @@ class Rider {
   factory Rider.fromJson(Map<String, dynamic> json) {
     return Rider(
       id: json['id'],
-      avatar: json['avatar'],
+      avatar: json['avatar'] ?? "",
       firstName: json['fname'],
-      lastName: json['lname'],
-      phone: json['phone'],
-      dob: json['dob'],
-      email: json['email'],
-      role: json['role'],
-      status: json['status'],
-      referralCode: json['referral_code'],
-      referredBy: json['referred_by'],
-      lastLoginAt: json['last_login_at'],
-      failedLoginAttempts: json['failed_login_attempts'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      lastName: json['lname'] ?? "",
+      phone: json['phone'] ?? "",
+      dob: json['dob'] ?? "",
+      email: json['email'] ?? '',
+      role: json['role'] ?? "",
+      status: json['status'] ?? "",
+      referralCode: json['referral_code'] ?? "",
+      referredBy: json['referred_by'] ?? "",
+      lastLoginAt: json['last_login_at'] ?? "",
+      createdAt: json['created_at'] ?? "",
+      updatedAt: json['updated_at'] ?? "",
     );
   }
 
@@ -256,7 +270,6 @@ class Rider {
       'referral_code': referralCode,
       'referred_by': referredBy,
       'last_login_at': lastLoginAt,
-      'failed_login_attempts': failedLoginAttempts,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };

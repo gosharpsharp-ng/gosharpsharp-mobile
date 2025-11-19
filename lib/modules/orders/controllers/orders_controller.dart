@@ -12,6 +12,7 @@ class OrdersController extends GetxController {
   // Loading states
   bool isLoading = false;
   bool isLoadingOrders = false;
+  bool isLoadingOrderDetails = false;
 
   // Track if we're listening to order updates
   bool _isListeningToOrderUpdates = false;
@@ -23,6 +24,11 @@ class OrdersController extends GetxController {
 
   setOrdersLoadingState(bool val) {
     isLoadingOrders = val;
+    update();
+  }
+
+  void setLoadingOrderDetails(bool val) {
+    isLoadingOrderDetails = val;
     update();
   }
 

@@ -14,7 +14,6 @@ class DeliveryTrackingScreen extends StatefulWidget {
 class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   DraggableScrollableController? draggableScrollableController;
   final ordersController = Get.find<DeliveriesController>();
-  final settingsController = Get.find<SettingsController>();
   SocketService? _socketService;
 
   @override

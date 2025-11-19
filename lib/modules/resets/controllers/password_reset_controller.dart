@@ -55,7 +55,7 @@ class PasswordResetController extends GetxController {
     if (resetPasswordRequestFormKey.currentState!.validate()) {
       setLoadingState(true);
       dynamic data = {
-        'login': loginController.text,
+        'identifier': loginController.text,
       };
       APIResponse response = await authService.sendOtp(data);
       showToast(
@@ -77,7 +77,7 @@ class PasswordResetController extends GetxController {
   resendPasswordResetOTP() async {
     setIsResendingOTPState(true);
     dynamic data = {
-      'login': loginController.text,
+      'identifier': loginController.text,
     };
     APIResponse response = await authService.sendOtp(data);
     showToast(message: response.message, isError: response.status != "success");
@@ -113,7 +113,7 @@ class PasswordResetController extends GetxController {
       setLoadingState(true);
       dynamic data = {
         'otp': otpController.text,
-        'login': loginController.text,
+        'identifier': loginController.text,
         'password': newPasswordController.text,
       };
       APIResponse response = await authService.resetPassword(data);

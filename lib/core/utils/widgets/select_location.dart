@@ -19,6 +19,8 @@ class _SelectLocationState extends State<SelectLocation> {
   Set<Marker> _markers = {};
   ItemLocation? location;
   LatLng initialPosition = const LatLng(9.0820, 8.6753); // Default: Abuja, Nigeria
+  bool _isLoadingLocation = false;
+  bool _isMapReady = false;
   // OverlayEntry? _overlayEntry;
   Future _determinePosition() async {
     bool serviceEnabled;
@@ -27,7 +29,18 @@ class _SelectLocationState extends State<SelectLocation> {
     // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      Geolocator.requestPermission();
+      // Location services are disabled, use default location
+      // User can still search manually or tap on map
+      if (mounted) {
+        showToast(
+          isError: false,
+          message: "Location services disabled. You can search or tap on the map to select your location.",
+        );
+      }
+      setState(() {
+        initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
+      });
+      return;
     }
 
     permission = await Geolocator.checkPermission();
@@ -36,9 +49,9 @@ class _SelectLocationState extends State<SelectLocation> {
       if (permission == LocationPermission.denied) {
         if (mounted) {
           showToast(
-              isError: true,
-              message:
-                  "Your location is needed to determine restaurant location, kindly enable location from Settings.");
+            isError: false,
+            message: "Location permission denied. You can search or tap on the map to select your location.",
+          );
         }
         // Use default location if permission denied
         setState(() {
@@ -51,9 +64,9 @@ class _SelectLocationState extends State<SelectLocation> {
     if (permission == LocationPermission.deniedForever) {
       if (mounted) {
         showToast(
-            isError: true,
-            message:
-                "Your location is needed to determine restaurant location, kindly enable location from Settings.");
+          isError: false,
+          message: "Location permission denied permanently. You can search or tap on the map to select your location.",
+        );
       }
       // Use default location if permission denied forever
       setState(() {
@@ -93,12 +106,24 @@ class _SelectLocationState extends State<SelectLocation> {
           });
         } else {
           // Use default location (Abuja, Nigeria)
+          if (mounted) {
+            showToast(
+              isError: false,
+              message: "Could not get current location. You can search or tap on the map to select your location.",
+            );
+          }
           setState(() {
             initialPosition = const LatLng(9.0820, 8.6753);
           });
         }
       } catch (e) {
         // Final fallback to default location
+        if (mounted) {
+          showToast(
+            isError: false,
+            message: "Could not get current location. You can search or tap on the map to select your location.",
+          );
+        }
         setState(() {
           initialPosition = const LatLng(9.0820, 8.6753);
         });
@@ -107,17 +132,126 @@ class _SelectLocationState extends State<SelectLocation> {
   }
 
   Future<void> _useCurrentLocation() async {
-    await _determinePosition(); // Get current position
-    // Call _showLocationDetails to get the formatted address
-    _showLocationDetails(initialPosition);
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      showToast(
+        isError: true,
+        message: "Location services are disabled. Please enable location in your device settings.",
+      );
+      // Optionally open app settings
+      await Geolocator.openLocationSettings();
+      return;
+    }
+
+    // Check permission
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        showToast(
+          isError: true,
+          message: "Location permission is required to use your current location.",
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      showToast(
+        isError: true,
+        message: "Location permission denied permanently. Please enable it in app settings.",
+      );
+      // Optionally open app settings
+      await Geolocator.openAppSettings();
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      showToast(
+        isError: false,
+        message: "Getting your current location...",
+      );
+
+      // Get current position with timeout
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      final currentLatLng = LatLng(position.latitude, position.longitude);
+
+      // Update map position
+      setState(() {
+        initialPosition = currentLatLng;
+        _markers = {
+          Marker(
+            markerId: MarkerId(currentLatLng.toString()),
+            position: currentLatLng,
+          ),
+        };
+      });
+
+      // Animate camera to current location
+      final controller = await _controller.future;
+      controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: currentLatLng, zoom: 16),
+        ),
+      );
+
+      // Get formatted address
+      await _showLocationDetails(currentLatLng);
+    } catch (e) {
+      debugPrint('Error getting current location: $e');
+      showToast(
+        isError: true,
+        message: "Failed to get current location. Please try again or search manually.",
+      );
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    _determinePosition();
+    // Use last known position first for faster initial load
+    _initializeMapFast();
     _textEditingController.addListener(_onSearchTextChanged);
     // _textFieldFocusNode.addListener(_onTextFieldFocusChanged);
+  }
+
+  // Fast initialization using last known position
+  Future<void> _initializeMapFast() async {
+    try {
+      // Try to get last known position immediately (very fast)
+      Position? lastPosition = await Geolocator.getLastKnownPosition();
+
+      if (lastPosition != null && mounted) {
+        setState(() {
+          initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
+          _isMapReady = true;
+        });
+      } else {
+        // Use default position if no last known position
+        setState(() {
+          _isMapReady = true;
+        });
+      }
+    } catch (e) {
+      // Use default position on error
+      setState(() {
+        _isMapReady = true;
+      });
+    }
+
+    // Then try to get accurate current position in background
+    _determinePosition();
   }
 
   @override
@@ -138,8 +272,15 @@ class _SelectLocationState extends State<SelectLocation> {
                   },
                   child: GoogleMap(
                       myLocationEnabled: true,
+                      myLocationButtonEnabled: false,
+                      mapToolbarEnabled: false,
+                      liteModeEnabled: false,
+                      compassEnabled: true,
                       onMapCreated: (GoogleMapController controller) {
                         _controller.complete(controller);
+                        setState(() {
+                          _isMapReady = true;
+                        });
                       },
                       onCameraMoveStarted: () {
                         setState(() {
@@ -170,6 +311,44 @@ class _SelectLocationState extends State<SelectLocation> {
                           CameraPosition(target: initialPosition, zoom: 15),
                       markers: _markers),
                 ),
+
+                // Loading indicator while fetching location details
+                if (_isLoadingLocation)
+                  Container(
+                    color: AppColors.blackColor.withValues(alpha: 0.3),
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.all(20.sp),
+                        decoration: BoxDecoration(
+                          color: AppColors.whiteColor,
+                          borderRadius: BorderRadius.circular(12.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.blackColor.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              color: AppColors.primaryColor,
+                              strokeWidth: 3,
+                            ),
+                            SizedBox(height: 16.h),
+                            customText(
+                              "Loading location details...",
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.blackColor,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 // if (_suggestedLocations.isNotEmpty) ...[
                 //   const SizedBox(height: 8),
                 //   _buildSuggestionsOverlay(),
@@ -271,27 +450,85 @@ class _SelectLocationState extends State<SelectLocation> {
             ),
             bottomSheet: location != null
                 ? Container(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        customText(
-                          location!.formattedAddress!,
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        const SizedBox(height: 16),
-                        CustomButton(
-                          onPressed: () {
-                            Navigator.pop(context, location);
-                          },
-                          backgroundColor: AppColors.primaryColor,
-                          title: "Confirm",
-                          fontColor: AppColors.whiteColor,
-                          width: 1.sw * 0.75,
+                    padding: EdgeInsets.all(16.sp),
+                    decoration: BoxDecoration(
+                      color: AppColors.whiteColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20.r),
+                        topRight: Radius.circular(20.r),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.blackColor.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
                         ),
                       ],
+                    ),
+                    child: SafeArea(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Drag handle
+                          Center(
+                            child: Container(
+                              width: 40.w,
+                              height: 4.h,
+                              margin: EdgeInsets.only(bottom: 12.h),
+                              decoration: BoxDecoration(
+                                color: AppColors.greyColor.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(2.r),
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                color: AppColors.primaryColor,
+                                size: 24.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: customText(
+                                  "Selected Location",
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.greyColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8.h),
+                          // Show complete location text without truncation
+                          Container(
+                            padding: EdgeInsets.all(12.sp),
+                            decoration: BoxDecoration(
+                              color: AppColors.greyColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: customText(
+                              location!.formattedAddress!,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.blackColor,
+                              overflow: TextOverflow.visible,
+                              maxLines: 10, // Allow multiple lines
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          CustomButton(
+                            onPressed: () {
+                              Navigator.pop(context, location);
+                            },
+                            backgroundColor: AppColors.primaryColor,
+                            title: "Confirm Location",
+                            fontColor: AppColors.whiteColor,
+                            width: 1.sw,
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : null,
@@ -344,19 +581,42 @@ class _SelectLocationState extends State<SelectLocation> {
   }
 
   Future<void> _showLocationDetails(LatLng latLng) async {
-    final url =
-        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=${Secret.apiKey}';
+    // Show loading indicator
+    setState(() {
+      _isLoadingLocation = true;
+    });
 
-    final res = await Dio().get(url);
-    final decodedData = json.decode(json.encode(res.data));
+    try {
+      final url =
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=${Secret.apiKey}';
 
-    if (res.statusCode == 200 && decodedData['results'] != null) {
-      setState(() {
-        location = ItemLocation(
-            formattedAddress: decodedData['results'][0]['formatted_address'],
-            latitude: latLng.latitude,
-            longitude: latLng.longitude);
-      });
+      final res = await Dio().get(url);
+      final decodedData = json.decode(json.encode(res.data));
+
+      if (res.statusCode == 200 && decodedData['results'] != null && mounted) {
+        setState(() {
+          location = ItemLocation(
+              formattedAddress: decodedData['results'][0]['formatted_address'],
+              latitude: latLng.latitude,
+              longitude: latLng.longitude);
+          _isLoadingLocation = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error getting location details: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+        showToast(
+          message: 'Failed to get location details. Please try again.',
+          isError: true,
+        );
+      }
     }
   }
 }

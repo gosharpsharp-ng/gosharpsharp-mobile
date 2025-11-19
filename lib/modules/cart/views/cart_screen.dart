@@ -5,8 +5,29 @@ import 'package:gosharpsharp/modules/cart/views/widgets/cart_item_widget.dart';
 
 import '../../../core/utils/exports.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  bool _isNavigatingToCheckout = false;
+
+  Future<void> _handleCheckout() async {
+    setState(() {
+      _isNavigatingToCheckout = true;
+    });
+
+    await Get.toNamed(Routes.CHECKOUT_SCREEN);
+
+    if (mounted) {
+      setState(() {
+        _isNavigatingToCheckout = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +78,14 @@ class CartScreen extends StatelessWidget {
                       // Packages List - Grouped by package
                       Expanded(
                         child: ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
+                          ),
                           itemCount: cartController.packages.length,
                           itemBuilder: (context, packageIndex) {
-                            final package = cartController.packages[packageIndex];
+                            final package =
+                                cartController.packages[packageIndex];
                             return _buildPackageSection(
                               context,
                               cartController,
@@ -200,10 +225,8 @@ class CartScreen extends StatelessWidget {
               height: 50.h,
               backgroundColor: AppColors.primaryColor,
               title: 'Checkout',
-              onPressed: () {
-                // Navigate to checkout screen
-                Get.toNamed(Routes.CHECKOUT_SCREEN);
-              },
+              isBusy: _isNavigatingToCheckout,
+              onPressed: _handleCheckout,
               borderRadius: 12.r,
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
@@ -214,7 +237,6 @@ class CartScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildPackageSection(
     BuildContext context,
@@ -242,26 +264,59 @@ class CartScreen extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
-              color: AppColors.lightGreyColor,
+              color: cartController.selectedPackageName == package.name
+                  ? AppColors.primaryColor.withValues(alpha: 0.1)
+                  : AppColors.lightGreyColor,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(12.r),
                 topRight: Radius.circular(12.r),
               ),
+              border: cartController.selectedPackageName == package.name
+                  ? Border.all(
+                      color: AppColors.primaryColor,
+                      width: 2,
+                    )
+                  : null,
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.inventory_2_outlined,
                   size: 20.sp,
-                  color: AppColors.greyColor,
+                  color: cartController.selectedPackageName == package.name
+                      ? AppColors.primaryColor
+                      : AppColors.greyColor,
                 ),
                 SizedBox(width: 8.w),
                 Expanded(
-                  child: customText(
-                    package.name,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.blackColor,
+                  child: Row(
+                    children: [
+                      customText(
+                        package.name,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.blackColor,
+                      ),
+                      if (cartController.selectedPackageName == package.name) ...[
+                        SizedBox(width: 8.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: customText(
+                            'Selected',
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.whiteColor,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 // Package cost
@@ -283,7 +338,7 @@ class CartScreen extends StatelessWidget {
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      cartController.duplicatePackage(package.id);
+                      // cartController.duplicatePackage(package.id);
                     },
                     icon: Icon(
                       Icons.content_copy,
@@ -297,7 +352,10 @@ class CartScreen extends StatelessWidget {
                       color: AppColors.blackColor,
                     ),
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),
+                      padding: EdgeInsets.symmetric(
+                        vertical: 4.h,
+                        horizontal: 8.w,
+                      ),
                       backgroundColor: AppColors.secondaryColor.withAlpha(190),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6.r),
@@ -308,14 +366,40 @@ class CartScreen extends StatelessWidget {
                 SizedBox(width: 8.w),
                 Expanded(
                   child: TextButton.icon(
-                    onPressed: () {
-                      // Set selected package and navigate to dashboard
+                    onPressed: () async {
+                      // Get restaurant from the first item in the package
+                      if (package.items.isEmpty) {
+                        showToast(
+                          message: "Package is empty",
+                          isError: true,
+                        );
+                        return;
+                      }
+
+                      final restaurant = package.items.first.purchasable.restaurant;
+
+                      // Set the selected package and restaurant
                       cartController.setSelectedPackage(package.name);
-                      Get.toNamed(Routes.DASHBOARD);
-                      showToast(
-                        message: "Select items to add to ${package.name}",
-                        isError: false,
-                      );
+
+                      // Get dashboard controller and set the selected restaurant
+                      try {
+                        final dashboardController = Get.find<DashboardController>();
+                        dashboardController.setSelectedRestaurant(restaurant);
+
+                        // Navigate to restaurant details screen
+                        await Get.toNamed(Routes.RESTAURANT_DETAILS_SCREEN);
+
+                        showToast(
+                          message: "Select items to add to ${package.name}",
+                          isError: false,
+                        );
+                      } catch (e) {
+                        debugPrint('Error navigating to restaurant: $e');
+                        showToast(
+                          message: "Could not open restaurant",
+                          isError: true,
+                        );
+                      }
                     },
                     icon: Icon(
                       Icons.add,
@@ -329,7 +413,10 @@ class CartScreen extends StatelessWidget {
                       color: AppColors.blackColor,
                     ),
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),
+                      padding: EdgeInsets.symmetric(
+                        vertical: 4.h,
+                        horizontal: 8.w,
+                      ),
                       backgroundColor: AppColors.lightGreyColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6.r),
@@ -417,4 +504,3 @@ class CartScreen extends StatelessWidget {
     );
   }
 }
-

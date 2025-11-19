@@ -31,7 +31,7 @@ class CustomPinInput extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 10.h),
                 child: Text(
                   title!,
-                  style: GoogleFonts.dmSans(
+                  style: GoogleFonts.inter(
                     color: AppColors.obscureTextColor,
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
@@ -44,7 +44,7 @@ class CustomPinInput extends StatelessWidget {
           defaultPinTheme: PinTheme(
             width: 48.h,
             height: 48.h,
-            textStyle: GoogleFonts.dmSans(
+            textStyle: GoogleFonts.inter(
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,
@@ -63,7 +63,7 @@ class CustomPinInput extends StatelessWidget {
           followingPinTheme: PinTheme(
             width: useBottomBorderOnly?60.w:48.h,
             height: 48.h,
-            textStyle: GoogleFonts.dmSans(
+            textStyle: GoogleFonts.inter(
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,
@@ -78,7 +78,7 @@ class CustomPinInput extends StatelessWidget {
           submittedPinTheme: PinTheme(
             width: useBottomBorderOnly?60.w:48.h,
             height: 48.h,
-            textStyle: GoogleFonts.dmSans(
+            textStyle: GoogleFonts.inter(
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,
@@ -98,7 +98,7 @@ class CustomPinInput extends StatelessWidget {
           focusedPinTheme: PinTheme(
             width:useBottomBorderOnly?60.w:48.h,
             height: 48.h,
-            textStyle: GoogleFonts.dmSans(
+            textStyle: GoogleFonts.inter(
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,

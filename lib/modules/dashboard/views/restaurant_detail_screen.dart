@@ -80,10 +80,14 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           topRight: Radius.circular(20.r),
                         ),
                       ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                      child: RefreshIndicator(
+                        onRefresh: () => _refreshRestaurantDetails(dashboardController),
+                        color: AppColors.primaryColor,
+                        child: SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
 
 
                             // Restaurant Description
@@ -143,7 +147,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                             ),
 
                             SizedBox(height: 30.h),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -170,7 +175,11 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           width: 1.sw,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: restaurant.banner != null && restaurant.banner!.isNotEmpty
+              image: restaurant.bannerUrl != null && restaurant.bannerUrl!.isNotEmpty
+                  ? NetworkImage(restaurant.bannerUrl!)
+                  : restaurant.logoUrl != null && restaurant.logoUrl!.isNotEmpty
+                  ? NetworkImage(restaurant.logoUrl!)
+                  : restaurant.banner != null && restaurant.banner!.isNotEmpty
                   ? NetworkImage(restaurant.banner!)
                   : restaurant.logo != null && restaurant.logo!.isNotEmpty
                   ? NetworkImage(restaurant.logo!)
@@ -259,10 +268,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     radius: 40.r,
                     backgroundColor: AppColors.primaryColor,
                     backgroundImage:
-                    restaurant.logo != null && restaurant.logo!.isNotEmpty
+                    (restaurant.logoUrl != null && restaurant.logoUrl!.isNotEmpty)
+                        ? NetworkImage(restaurant.logoUrl!)
+                        : (restaurant.logo != null && restaurant.logo!.isNotEmpty)
                         ? NetworkImage(restaurant.logo!)
                         : null,
-                    child: restaurant.logo == null || restaurant.logo!.isEmpty
+                    child: (restaurant.logoUrl == null || restaurant.logoUrl!.isEmpty) &&
+                           (restaurant.logo == null || restaurant.logo!.isEmpty)
                         ? Text(
                       restaurant.name.isNotEmpty
                           ? restaurant.name[0].toUpperCase()
@@ -829,6 +841,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       }
     } catch (e) {
       debugPrint('Error adding to cart: $e');
+    }
+  }
+
+  Future<void> _refreshRestaurantDetails(DashboardController controller) async {
+    final restaurant = controller.selectedRestaurant;
+    if (restaurant != null) {
+      await controller.refreshRestaurantDetails(restaurant.id.toString());
     }
   }
 

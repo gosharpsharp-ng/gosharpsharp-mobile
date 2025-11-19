@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-
 import '../../../core/utils/exports.dart';
 import '../../../core/services/recently_visited_restaurants_service.dart';
 import '../../../core/models/restaurant_model.dart';
@@ -405,36 +404,40 @@ class MenuItemWidget extends StatelessWidget {
                                     width: iconSize.w,
                                   );
                                 },
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return SizedBox(
-                                    height: iconSize.h,
-                                    width: iconSize.w,
-                                    child: Center(
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          AppColors.whiteColor,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return SizedBox(
+                                        height: iconSize.h,
+                                        width: iconSize.w,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  AppColors.whiteColor,
+                                                ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                                      );
+                                    },
                               ),
                             )
                           : Image.asset(
                               item.icon,
                               height: iconSize.h,
                               width: iconSize.w,
-                              color: item.isAvailable ? null : Colors.grey.shade600,
+                              color: item.isAvailable
+                                  ? null
+                                  : Colors.grey.shade600,
                             ),
                     ),
-                    SizedBox(height: 6.h),
+
                     customText(
                       item.title,
                       textAlign: TextAlign.center,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w500,
                       color: item.isAvailable
                           ? (item.color == AppColors.primaryColor
                                 ? AppColors.whiteColor

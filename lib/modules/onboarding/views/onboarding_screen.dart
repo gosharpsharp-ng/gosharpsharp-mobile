@@ -18,7 +18,8 @@ class OnboardingScreen extends StatelessWidget {
           appBar: AppBar(
             backgroundColor: AppColors.transparent,
             elevation: 0,
-            systemOverlayStyle: SystemUiOverlayStyle.dark, // For light status bar text
+            systemOverlayStyle:
+                SystemUiOverlayStyle.dark, // For light status bar text
           ),
           body: SafeArea(
             top: false,
@@ -26,10 +27,11 @@ class OnboardingScreen extends StatelessWidget {
             child: Container(
               height: 1.sh,
               width: 1.sw,
-              padding: EdgeInsets.only(top: 50.h),
+              padding: EdgeInsets.only(top: 0.h),
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(PngAssets.lightWatermark,),fit: BoxFit.cover
+                  image: AssetImage(PngAssets.lightWatermark),
+                  fit: BoxFit.cover,
                 ),
               ),
               child: Column(
@@ -48,16 +50,18 @@ class OnboardingScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Expanded(
-                              flex: 2,
+                              flex: 4,
                               child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 15.sp,horizontal: 35.sp),
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 15.sp,
+                                  // horizontal: 35.sp,
+                                ),
                                 child: Container(
-
                                   width: 1.sw,
                                   decoration: BoxDecoration(
                                     image: DecorationImage(
                                       image: AssetImage(contents[i].image),
-                                      fit: BoxFit.contain,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
@@ -65,9 +69,11 @@ class OnboardingScreen extends StatelessWidget {
                             ),
                             SizedBox(height: 25.sp),
                             Expanded(
-                              flex:1,
+                              flex: 1,
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 14.sp),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 14.sp,
+                                ),
                                 child: Column(
                                   children: [
                                     customText(
@@ -95,60 +101,70 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 3,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          child: AnimatedSmoothIndicator(
-                            activeIndex: onboardingController.currentPageIndex,
-                            count: 3,
-                            effect: ExpandingDotsEffect(
-                              activeDotColor: AppColors.primaryColor,
-                              dotColor: AppColors.obscureTextColor,
-                              dotWidth: 8.sp,
-                              dotHeight: 8.sp,
+                    child: Container(
+                      width: 1.sw,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(PngAssets.lightWatermark),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            child: AnimatedSmoothIndicator(
+                              activeIndex:
+                                  onboardingController.currentPageIndex,
+                              count: 3,
+                              effect: ExpandingDotsEffect(
+                                activeDotColor: AppColors.primaryColor,
+                                dotColor: AppColors.obscureTextColor,
+                                dotWidth: 8.sp,
+                                dotHeight: 8.sp,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 12.sp),
-                        CustomButton(
-                          borderRadius: 16.r,
-                          onPressed: () {
-                            if (onboardingController.currentPageIndex !=
-                                contents.length - 1) {
-                              onboardingController.autoNextIndex();
-                            } else {
-                              Get.toNamed(Routes.SIGN_IN);
-                            }
-                          },
-                          width: 1.sw * 0.80,
-                          fontWeight: FontWeight.w600,
-                          title:
-                              onboardingController.currentPageIndex !=
-                                  contents.length - 1
-                              ? "Next"
-                              : "Continue",
-                          backgroundColor: AppColors.primaryColor,
-                        ),
-                        SizedBox(height: 12.sp),
-                        Visibility(
-                          visible:
-                          onboardingController.currentPageIndex !=
-                              contents.length - 1,
-                          replacement: SizedBox(height: 19.sp),
-                          child: InkWell(
-                            onTap: () {
-                              onboardingController.moveToLastIndex();
+                          SizedBox(height: 12.sp),
+                          CustomButton(
+                            borderRadius: 16.r,
+                            onPressed: () {
+                              if (onboardingController.currentPageIndex !=
+                                  contents.length - 1) {
+                                onboardingController.autoNextIndex();
+                              } else {
+                                Get.toNamed(Routes.SIGN_IN);
+                              }
                             },
-                            child: customText(
-                              "Skip",
-                              textAlign: TextAlign.center,
-                              fontSize: 16.sp,
-                              color: AppColors.primaryColor,
-                              overflow: TextOverflow.visible,
+                            width: 1.sw * 0.80,
+                            fontWeight: FontWeight.w600,
+                            title:
+                                onboardingController.currentPageIndex !=
+                                    contents.length - 1
+                                ? "Next"
+                                : "Continue",
+                            backgroundColor: AppColors.primaryColor,
+                          ),
+                          SizedBox(height: 12.sp),
+                          Visibility(
+                            visible:
+                                onboardingController.currentPageIndex !=
+                                contents.length - 1,
+                            replacement: SizedBox(height: 19.sp),
+                            child: InkWell(
+                              onTap: () {
+                                onboardingController.moveToLastIndex();
+                              },
+                              child: customText(
+                                "Skip",
+                                textAlign: TextAlign.center,
+                                fontSize: 16.sp,
+                                color: AppColors.primaryColor,
+                                overflow: TextOverflow.visible,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

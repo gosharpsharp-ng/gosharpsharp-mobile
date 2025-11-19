@@ -1,4 +1,3 @@
-
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 Widget customText(String text,
@@ -12,7 +11,6 @@ Widget customText(String text,
       TextDecoration? decoration,
       FontWeight? fontWeight,
       FontStyle? fontStyle,
-      String fontFamily='HelveticaNeue',
       bool blur = false}) {
   // Check if text contains Naira sign (₦) and handle it specially
   if (text.contains('₦')) {
@@ -28,7 +26,6 @@ Widget customText(String text,
       decoration: decoration,
       fontWeight: fontWeight,
       fontStyle: fontStyle,
-      fontFamily: fontFamily,
     );
   }
 
@@ -38,14 +35,13 @@ Widget customText(String text,
     maxLines: maxLines,
     overflow: overflow,
     softWrap: true,
-    style: TextStyle(
-      fontFamily: fontFamily,
+    style: GoogleFonts.inter(
       color: color,
       letterSpacing: letterSpacing,
       fontSize: fontSize,
       height: height,
       fontWeight: fontWeight,
-      fontStyle: fontStyle,
+      fontStyle: fontStyle ?? FontStyle.normal,
       decoration: decoration,
     ),
   );
@@ -64,45 +60,42 @@ Widget _buildRichTextWithNaira(
   TextDecoration? decoration,
   FontWeight? fontWeight,
   FontStyle? fontStyle,
-  String fontFamily = 'HelveticaNeue',
 }) {
   // Split text by Naira sign
   final parts = text.split('₦');
   final spans = <TextSpan>[];
 
   for (int i = 0; i < parts.length; i++) {
-    // Add the text part with custom font
+    // Add the text part with Inter font
     if (parts[i].isNotEmpty) {
       spans.add(
         TextSpan(
           text: parts[i],
-          style: TextStyle(
-            fontFamily: fontFamily,
+          style: GoogleFonts.inter(
             color: color,
             letterSpacing: letterSpacing,
             fontSize: fontSize,
             height: height,
             fontWeight: fontWeight,
-            fontStyle: fontStyle,
+            fontStyle: fontStyle ?? FontStyle.normal,
             decoration: decoration,
           ),
         ),
       );
     }
 
-    // Add Naira sign with Roboto font (except for last iteration)
+    // Add Naira sign with Inter font (except for last iteration)
     if (i < parts.length - 1) {
       spans.add(
         TextSpan(
           text: '₦',
-          style: TextStyle(
-            fontFamily: 'Roboto', // Use Roboto font for Naira sign
+          style: GoogleFonts.inter(
             color: color,
             letterSpacing: letterSpacing,
             fontSize: fontSize,
             height: height,
             fontWeight: fontWeight,
-            fontStyle: fontStyle,
+            fontStyle: fontStyle ?? FontStyle.normal,
             decoration: decoration,
           ),
         ),

@@ -45,8 +45,10 @@ class OrdersHomeScreen extends GetView<OrdersController> {
                       final displayName = _getStatusDisplayName(status);
 
                       return InkWell(
-                        onTap: () {
+                        onTap: () async {
                           ordersController.setSelectedOrderStatus(status);
+                          // Reload orders when switching tabs
+                          await ordersController.refreshOrders();
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -516,19 +518,18 @@ class OrderCard extends StatelessWidget {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'preparing':
-        return Colors.blue;
       case 'ready':
-        return Colors.green;
       case 'in_transit':
-        return AppColors.primaryColor;
+        return AppColors.primaryColor;  // Active states use primary color
+      case 'pending':
+        return AppColors.secondaryColor;  // Waiting state uses secondary color
+      case 'preparing':
+        return AppColors.deepAmberColor;  // In-progress uses amber
       case 'completed':
-        return Colors.grey;
+        return AppColors.greyColor;  // Finished state uses grey
       case 'cancelled':
-        return Colors.red;
+      case 'rejected':
+        return AppColors.redColor;  // Error states use red
       default:
         return AppColors.greyColor;
     }

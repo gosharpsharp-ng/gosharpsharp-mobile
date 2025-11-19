@@ -22,7 +22,6 @@ class DeliveryNotificationService extends GetxService {
       //       "***************************************************************************************************");
       // });
     }
-
   }
 
   void setupShipmentListener() {
@@ -36,29 +35,25 @@ class DeliveryNotificationService extends GetxService {
     // Setup shipment listener
     socketService.socket.on('shipment_events', (dynamic data) {
       log('Received shipment notification');
-      log("**********************************************************************************");
+      log(
+        "**********************************************************************************",
+      );
       log(data.toString());
-      log("Shipment Entered **********************************************************************************");
-
+      log(
+        "Shipment Entered **********************************************************************************",
+      );
     });
 
     _isListenerSetup = true;
   }
-
-
-
-
 }
 
 class OrderDetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const OrderDetailRow({
-    Key? key,
-    required this.label,
-    required this.value,
-  }) : super(key: key);
+  const OrderDetailRow({Key? key, required this.label, required this.value})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -70,15 +65,17 @@ class OrderDetailRow extends StatelessWidget {
           customText(
             label,
             fontSize: 16.sp,
-            fontFamily: 'HelveticaNeue',
+          fontStyle: GoogleFonts.inter().fontStyle,
             fontWeight: FontWeight.bold,
           ),
           SizedBox(width: 10.sp),
           Expanded(
-            child: customText(value,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'HelveticaNeue'),
+            child: customText(
+              value,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+            fontStyle: GoogleFonts.inter().fontStyle,
+            ),
           ),
         ],
       ),

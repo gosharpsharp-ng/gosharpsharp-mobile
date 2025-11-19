@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:gosharpsharp/core/models/available_rider_model.dart';
+import 'package:gosharpsharp/core/models/courier_type_model.dart';
 import 'package:gosharpsharp/core/models/payment_method_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/delivery/views/widgets/bike_and_payment_selection_bottomsheet.dart';
@@ -56,8 +57,8 @@ class DeliveriesController extends GetxController {
         "points": rating,
         "review": ratingReviewController.text,
       };
-      // Call the API
-      APIResponse response = await deliveryService.rateDelivery(
+      // Call the API - Use rateParcelDelivery for customer mobile app
+      APIResponse response = await deliveryService.rateParcelDelivery(
         data: data,
         deliveryId: selectedDelivery!.id,
       );
@@ -131,13 +132,16 @@ class DeliveriesController extends GetxController {
   bool trackingDelivery = false;
   trackShipment(BuildContext context) async {
     if (deliveryTrackingFormKey.currentState!.validate()) {
-      dynamic data = {'tracking_id': trackingIdController.text};
       trackingDelivery = true;
       update();
-      APIResponse response = await deliveryService.trackDelivery(data);
+      // Use trackParcelDelivery for customer mobile app
+      APIResponse response = await deliveryService.trackParcelDelivery(
+        trackingIdController.text,
+      );
       trackingDelivery = false;
       update();
       if (response.status == "success") {
+        // response.data is the delivery object directly
         selectedDelivery = DeliveryModel.fromJson(response.data);
         if ([].contains(selectedDelivery?.status)) {
           drawPolyLineFromOriginToDestination(
@@ -286,15 +290,17 @@ class DeliveriesController extends GetxController {
       currentDeliveriesPage = 1;
     }
 
-    dynamic data = {
-      "page": currentDeliveriesPage,
-      "per_page": deliveriesPageSize,
-    };
     final getStorage = GetStorage();
-    APIResponse response = await deliveryService.getAllDeliveries(data);
+    // Use getAllParcelDeliveries for customer mobile app
+    APIResponse response = await deliveryService.getAllParcelDeliveries(
+      // page: currentDeliveriesPage,
+      // perPage: deliveriesPageSize,
+    );
     fetchingDeliveries = false;
     update();
     if (response.status == "success") {
+      // Parse paginated data structure from API response
+      // response.data is the pagination object with 'data' array and 'total'
       List<DeliveryModel> newDeliveries = (response.data['data'] as List)
           .map((sh) => DeliveryModel.fromJson(sh))
           .toList();
@@ -304,7 +310,7 @@ class DeliveriesController extends GetxController {
         allDeliveries = newDeliveries;
       }
 
-      setTotalDeliveries(response.data['total']);
+      // setTotalDeliveries(response.data['total']);
       currentDeliveriesPage++; // Increment for next load more
       update();
     } else {
@@ -321,12 +327,14 @@ class DeliveriesController extends GetxController {
     fetchingDeliveries = true;
     update();
 
-    APIResponse response = await deliveryService.getDelivery({
-      'id': selectedDelivery!.id,
-    });
+    // Use getParcelDelivery for customer mobile app
+    APIResponse response = await deliveryService.getParcelDelivery(
+      selectedDelivery!.id,
+    );
     fetchingDeliveries = false;
     update();
     if (response.status == "success") {
+      // response.data is the delivery object directly
       selectedDelivery = DeliveryModel.fromJson(response.data);
       update();
     }
@@ -345,18 +353,93 @@ class DeliveriesController extends GetxController {
     update();
   }
 
-  // Mock bike and payment selection
+  // Bike and payment selection
   String? selectedBikeType;
   String? selectedPaymentType;
+  DeliveryCourierType? selectedCourierType;
 
   setSelectedBikeType(String bikeType) {
     selectedBikeType = bikeType;
     update();
   }
 
+  setSelectedCourierType(DeliveryCourierType courierType) {
+    selectedCourierType = courierType;
+    update();
+  }
+
   setSelectedPaymentType(String paymentType) {
     selectedPaymentType = paymentType;
     update();
+  }
+
+  // Confirm parcel delivery with selected courier and payment method
+  bool confirmingDelivery = false;
+  Future<void> confirmParcelDelivery(BuildContext context) async {
+    if (selectedCourierType == null) {
+      showToast(message: "Please select a courier type", isError: true);
+      return;
+    }
+
+    if (selectedPaymentType == null) {
+      showToast(message: "Please select a payment method", isError: true);
+      return;
+    }
+
+    confirmingDelivery = true;
+    update();
+
+    try {
+      final response = await deliveryService.confirmParcelDelivery(
+        trackingId: selectedDeliveryResponseModel!.trackingId,
+        courierId: selectedCourierType!.id,
+        paymentMethodCode: selectedPaymentType!,
+      );
+
+      confirmingDelivery = false;
+      update();
+
+      if (response.status == "success") {
+        // Parse the confirmed delivery response
+        final deliveryData = response.data['delivery'] as Map<String, dynamic>;
+        final nearbyRidersCount = response.data['nearby_riders_count'] ?? 0;
+        final transaction = response.data['transaction'];
+
+        // Update selected delivery with confirmed data
+        selectedDelivery = DeliveryModel.fromJson(deliveryData);
+        selectedDeliveryResponseModel = DeliveryResponseModel.fromJson(
+          deliveryData,
+        );
+
+        // Show success message
+        showToast(message: response.message, isError: false);
+
+        // Refresh deliveries list
+        fetchDeliveries();
+
+        // Clear form fields after successful confirmation
+        clearFields();
+
+        // Always navigate to success screen after confirming delivery
+        // User can then navigate to tracking from there
+        // This will also automatically close the bottomsheet
+        Get.offAllNamed(
+          Routes.DELIVERY_SUCCESS_SCREEN,
+          arguments: {
+            'delivery': selectedDelivery,
+            'tracking_id': selectedDelivery!.trackingId,
+            'message': response.message,
+            'nearby_riders_count': nearbyRidersCount,
+          },
+        );
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      confirmingDelivery = false;
+      update();
+      showToast(message: "Error confirming delivery: $e", isError: true);
+    }
   }
 
   DeliveryResponseModel? selectedDeliveryResponseModel;
@@ -621,6 +704,8 @@ class DeliveriesController extends GetxController {
   setDeliveryReceiverLocation(ItemLocation point) {
     deliveryReceiverLocation = point;
     receiverAddressController.setText(point.formattedAddress!);
+    // Unfocus any active text field to prevent unwanted focus shifts
+    FocusManager.instance.primaryFocus?.unfocus();
     update();
   }
 
@@ -709,29 +794,22 @@ class DeliveriesController extends GetxController {
     }
 
     // Original validation flow for other screens
-    if (parcelImage != null) {
-      imageUploaded = true;
-      update();
-      if (itemDetailsFormKey.currentState!.validate()) {
-        deliveryItems.clear();
-        deliveryItems.add(
-          DeliveryItemData(
-            name: deliveryItemNameController.text,
-            description: deliveryItemDescriptionController.text,
-            category: deliveryItemCategoryController.text,
-            weight: 1.5,
-            height: 0.3,
-            quantity: int.parse(deliveryItemQuantityController.text),
-            image: parcelImage!,
-          ),
-        );
-        update();
-      }
-    } else {
-      imageUploaded = false;
+    if (itemDetailsFormKey.currentState!.validate()) {
+      deliveryItems.clear();
+      deliveryItems.add(
+        DeliveryItemData(
+          name: deliveryItemNameController.text,
+          description: deliveryItemDescriptionController.text,
+          category: deliveryItemCategoryController.text,
+          weight: 1.5,
+          height: 0.3,
+          quantity: int.parse(deliveryItemQuantityController.text),
+          image: parcelImage ?? '',
+        ),
+      );
+      imageUploaded = parcelImage != null;
       update();
     }
-    update();
   }
   // addDeliveryItem() {
   //   if (parcelImage != null) {
@@ -771,8 +849,7 @@ class DeliveriesController extends GetxController {
 
     // Case 2: delivery items exist, and fields have data
     if (deliveryItems.isNotEmpty && _hasAnyFieldValue()) {
-      if ((itemDetailsFormKey.currentState?.validate() ?? false) &&
-          parcelImage != null) {
+      if (itemDetailsFormKey.currentState?.validate() ?? false) {
         addDeliveryItem();
         Get.toNamed(Routes.DELIVERY_SUMMARY_SCREEN);
       }
@@ -781,8 +858,7 @@ class DeliveriesController extends GetxController {
 
     // Case 3: No delivery items, but fields have data
     if (deliveryItems.isEmpty && _hasAnyFieldValue()) {
-      if ((itemDetailsFormKey.currentState?.validate() ?? false) &&
-          parcelImage != null) {
+      if (itemDetailsFormKey.currentState?.validate() ?? false) {
         addDeliveryItem();
         Get.toNamed(Routes.DELIVERY_SUMMARY_SCREEN);
       } else {
@@ -827,17 +903,13 @@ class DeliveriesController extends GetxController {
     submittingDelivery = true;
     update();
     // Case 1: delivery items exist, but fields are empty
-    if (deliveryItems.isNotEmpty &&
-        parcelImage != null &&
-        !_hasAnyFieldValue()) {
+    if (deliveryItems.isNotEmpty && !_hasAnyFieldValue()) {
       await callDeliveryEndpoint(context);
       return;
     }
 
     // Case 2: delivery items exist, and fields have data
-    if (deliveryItems.isNotEmpty &&
-        parcelImage != null &&
-        _hasAnyFieldValue()) {
+    if (deliveryItems.isNotEmpty && _hasAnyFieldValue()) {
       if (itemDetailsFormKey.currentState?.validate() ?? false) {
         addDeliveryItem();
         await callDeliveryEndpoint(context);
@@ -846,7 +918,7 @@ class DeliveriesController extends GetxController {
     }
 
     // Case 3: No delivery items, but fields have data
-    if (deliveryItems.isEmpty && parcelImage != null && _hasAnyFieldValue()) {
+    if (deliveryItems.isEmpty && _hasAnyFieldValue()) {
       if (itemDetailsFormKey.currentState?.validate() ?? false) {
         addDeliveryItem();
         await callDeliveryEndpoint(context);
@@ -905,7 +977,9 @@ class DeliveriesController extends GetxController {
       },
       "items": [
         {
-          "name": deliveryItemNameController.text,
+          "name": deliveryItemNameController.text.isNotEmpty
+              ? deliveryItemNameController.text
+              : "parcel",
           "images": parcelImage != null && parcelImage!.isNotEmpty
               ? [parcelImage!]
               : [],
@@ -940,30 +1014,31 @@ class DeliveriesController extends GetxController {
     submittingDelivery = false;
     update();
     if (response.status == "success") {
+      // Parse the nested response structure
+      final deliveryData = response.data['delivery'] as Map<String, dynamic>;
+      final courierTypes = response.data['courier_types'] ?? [];
+      final courierTypesAvailable =
+          response.data['courier_types_available'] ?? false;
+
+      // Combine delivery data with courier types
+      final combinedData = <String, dynamic>{
+        ...deliveryData,
+        'courier_types': courierTypes,
+        'courier_types_available': courierTypesAvailable,
+      };
+
       selectedDeliveryResponseModel = DeliveryResponseModel.fromJson(
-        response.data,
+        combinedData,
       );
-      selectedDelivery = DeliveryModel.fromJson(response.data);
+      selectedDelivery = DeliveryModel.fromJson(deliveryData);
 
       update();
       fetchDeliveries();
-      clearFields();
+      // Don't clear fields yet - only clear after successful confirmation
       showAnyBottomSheet(
         child: BikeAndPaymentSelectionBottomsheet(
           onProceed: () {
-            // Show delivery instructions bottomsheet after bike selection
-            showAnyBottomSheet(
-              child: DeliveryInstructionsBottomSheet(
-                onContinue: () {
-                  // TODO: Submit the delivery
-                  showToast(
-                    message: "Delivery submitted successfully!",
-                    isError: false,
-                  );
-                  Get.back(); // Return to landing/dashboard
-                },
-              ),
-            );
+            confirmParcelDelivery(context);
           },
         ),
       );
@@ -992,43 +1067,97 @@ class DeliveriesController extends GetxController {
       if (paymentMethodFormKey.currentState!.validate()) {
         submittingDelivery = true;
         update();
-        final dynamic data = {
-          "tracking_id": ['pending'].contains(selectedDelivery?.status ?? '')
-              ? selectedDelivery!.trackingId
-              : selectedDeliveryResponseModel!.trackingId,
-          "courier_id": selectedCourierTypePrice!.courierTypeId,
-          "action": "confirm",
-          "payment_method_id": selectedPaymentMethod!.id,
-        };
 
-        // Call the API
-        APIResponse response = await deliveryService.confirmDelivery(data);
-        // Handle response
-        showToast(
-          message: response.message,
-          isError: response.status != "success",
-        );
-        submittingDelivery = false;
-        update();
-        if (response.status == "success") {
-          selectedDelivery = DeliveryModel.fromJson(response.data);
+        try {
+          final dynamic data = {
+            "tracking_id": ['pending'].contains(selectedDelivery?.status ?? '')
+                ? selectedDelivery!.trackingId
+                : selectedDeliveryResponseModel!.trackingId,
+            "courier_id": selectedCourierTypePrice!.courierTypeId,
+            "action": "confirm",
+            "payment_method_id": selectedPaymentMethod!.id,
+          };
+
+          // Call the API
+          APIResponse response = await deliveryService.confirmDelivery(data);
+
+          // Handle response
+          showToast(
+            message: response.message,
+            isError: response.status != "success",
+          );
+
+          submittingDelivery = false;
           update();
-          drawPolyLineFromOriginToDestination(
-            context,
-            originLatitude: selectedDelivery!.pickUpLocation.latitude,
-            originLongitude: selectedDelivery!.pickUpLocation.longitude,
-            originAddress: selectedDelivery!.pickUpLocation.name,
-            destinationLatitude: selectedDelivery!.destinationLocation.latitude,
-            destinationLongitude:
-                selectedDelivery!.destinationLocation.longitude,
-            destinationAddress: selectedDelivery!.destinationLocation.name,
+
+          if (response.status == "success") {
+            try {
+              // Parse delivery model from response
+              // API returns {delivery: {...}, nearby_riders_count: 0, transaction: null}
+              // We need to extract the 'delivery' object
+              final deliveryData = response.data is Map && response.data.containsKey('delivery')
+                  ? response.data['delivery']
+                  : response.data;
+
+              selectedDelivery = DeliveryModel.fromJson(deliveryData);
+              update();
+
+              // Check if context is still mounted before using it
+              if (context.mounted) {
+                // Draw route on map
+                drawPolyLineFromOriginToDestination(
+                  context,
+                  originLatitude: selectedDelivery!.pickUpLocation.latitude,
+                  originLongitude: selectedDelivery!.pickUpLocation.longitude,
+                  originAddress: selectedDelivery!.pickUpLocation.name,
+                  destinationLatitude:
+                      selectedDelivery!.destinationLocation.latitude,
+                  destinationLongitude:
+                      selectedDelivery!.destinationLocation.longitude,
+                  destinationAddress:
+                      selectedDelivery!.destinationLocation.name,
+                );
+
+                // Start location tracking
+                startLocationTracking(
+                  trackingId: selectedDelivery!.trackingId,
+                  context: Get.context!,
+                );
+              }
+
+              // Refresh deliveries list
+              fetchDeliveries();
+
+              // Navigate to success screen
+              Get.offNamed(Routes.DELIVERY_SUCCESS_SCREEN);
+            } catch (parseError, stackTrace) {
+              debugPrint(
+                'Error parsing delivery confirmation response: $parseError',
+              );
+              debugPrint('Stack trace: $stackTrace');
+              debugPrint('Response data: ${response.data}');
+
+              showToast(
+                message:
+                    'Delivery confirmed but error displaying details. Please check your deliveries list.',
+                isError: true,
+              );
+
+              // Navigate back to deliveries home as fallback
+              Get.offAllNamed(Routes.DELIVERIES_HOME);
+            }
+          }
+        } catch (error, stackTrace) {
+          debugPrint('Error confirming delivery: $error');
+          debugPrint('Stack trace: $stackTrace');
+
+          submittingDelivery = false;
+          update();
+
+          showToast(
+            message: 'Failed to confirm delivery. Please try again.',
+            isError: true,
           );
-          fetchDeliveries();
-          startLocationTracking(
-            trackingId: selectedDelivery!.trackingId,
-            context: Get.context!,
-          );
-          Get.offNamed(Routes.DELIVERY_SUCCESS_SCREEN);
         }
       }
     } else {
@@ -1479,6 +1608,7 @@ class DeliveriesController extends GetxController {
 
   // Parcel deliveries list
   List<dynamic> allParcelDeliveries = [];
+  List<dynamic> filteredParcelDeliveries = [];
   bool isLoadingParcelDeliveries = false;
   int parcelDeliveriesPage = 1;
   int parcelDeliveriesPerPage = 15;
@@ -1486,6 +1616,19 @@ class DeliveriesController extends GetxController {
 
   // Selected parcel delivery for details
   Map<String, dynamic>? selectedParcelDelivery;
+
+  // Delivery status filter
+  String selectedDeliveryStatus = 'all';
+  List<String> deliveryStatuses = [
+    'all',
+    'pending',
+    'confirmed',
+    'accepted',
+    'picked',
+    'in_transit',
+    'delivered',
+    'cancelled',
+  ];
 
   void setParcelDeliveriesLoadingState(bool val) {
     isLoadingParcelDeliveries = val;
@@ -1495,6 +1638,38 @@ class DeliveriesController extends GetxController {
   void setSelectedParcelDelivery(Map<String, dynamic> parcelDelivery) {
     selectedParcelDelivery = parcelDelivery;
     update();
+  }
+
+  // Set selected delivery status and filter
+  void setSelectedDeliveryStatus(String status) {
+    selectedDeliveryStatus = status;
+    filterParcelDeliveriesByStatus();
+    update();
+  }
+
+  // Filter deliveries by status
+  void filterParcelDeliveriesByStatus() {
+    if (selectedDeliveryStatus == 'all') {
+      filteredParcelDeliveries = allParcelDeliveries;
+    } else {
+      filteredParcelDeliveries = allParcelDeliveries
+          .where((delivery) =>
+              delivery['status']?.toString().toLowerCase() ==
+              selectedDeliveryStatus.toLowerCase())
+          .toList();
+    }
+  }
+
+  // Get delivery count by status
+  int getDeliveryCountByStatus(String status) {
+    if (status == 'all') {
+      return allParcelDeliveries.length;
+    }
+    return allParcelDeliveries
+        .where((delivery) =>
+            delivery['status']?.toString().toLowerCase() ==
+            status.toLowerCase())
+        .length;
   }
 
   // Fetch all parcel deliveries
@@ -1513,8 +1688,8 @@ class DeliveriesController extends GetxController {
 
     try {
       final response = await deliveryService.getAllParcelDeliveries(
-        page: parcelDeliveriesPage,
-        perPage: parcelDeliveriesPerPage,
+        // page: parcelDeliveriesPage,
+        // perPage: parcelDeliveriesPerPage,
       );
 
       if (response.status == "success" && response.data != null) {
@@ -1528,6 +1703,9 @@ class DeliveriesController extends GetxController {
 
         totalParcelDeliveries = response.data['total'] ?? 0;
         parcelDeliveriesPage++;
+
+        // Filter deliveries after fetching
+        filterParcelDeliveriesByStatus();
       } else {
         showToast(message: response.message, isError: true);
       }

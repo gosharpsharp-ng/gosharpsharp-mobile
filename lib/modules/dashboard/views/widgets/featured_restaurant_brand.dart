@@ -35,9 +35,10 @@ class FeaturedRestaurantBrand extends StatelessWidget {
                 ),
               ),
               child: ClipOval(
-                child: restaurant.logo != null && restaurant.logo!.isNotEmpty
+                child: (restaurant.logoUrl != null && restaurant.logoUrl!.isNotEmpty) ||
+                       (restaurant.logo != null && restaurant.logo!.isNotEmpty)
                     ? CachedNetworkImage(
-                        imageUrl: restaurant.logo!,
+                        imageUrl: restaurant.logoUrl ?? restaurant.logo!,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
                           color: AppColors.backgroundColor,
