@@ -45,7 +45,7 @@ final NotificationModel notification;
                 child: Stack(
                   children: [
                     Visibility(
-                      visible:notification.readAt==null,
+                      visible: notification.status == "unread",
                       child: Positioned(
                           top: 0,
                           right: 0,
@@ -70,26 +70,11 @@ final NotificationModel notification;
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        customText(notification.title,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12.sp,
-                            overflow: TextOverflow.visible),
-
-                      ],
-                    ),
-                    SizedBox(
-                      height: 5.h,
-                    ),
-                    customText(
-                      "${formatDate(notification.createdAt)} ${formatTime(notification.createdAt)}",
-                      color: AppColors.obscureTextColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12.sp,
-                    ),
+                    customText(notification.title,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                        overflow: TextOverflow.visible),
                     SizedBox(
                       height: 5.h,
                     ),
@@ -100,10 +85,26 @@ final NotificationModel notification;
                           child: customText(notification.message,
                               color: AppColors.blackColor,
                               fontWeight: FontWeight.normal,
-                              fontSize: 12.sp,
+                              fontSize: 15.sp,
                               overflow: TextOverflow.visible),
                         ),
                       ],
+                    ),
+                    SizedBox(
+                      height: 5.h,
+                    ),
+                    Divider(
+                      color: AppColors.greyColor,
+                      thickness: 0.1,
+                    ),
+                    SizedBox(
+                      height: 4.h,
+                    ),
+                    customText(
+                      "${formatDate(notification.createdAt)} ${formatTime(notification.createdAt)}",
+                      color: AppColors.obscureTextColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12.sp,
                     ),
                   ],
                 ),

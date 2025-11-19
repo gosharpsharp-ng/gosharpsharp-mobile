@@ -57,6 +57,34 @@ class DashboardController extends GetxController {
   // Walking distance filter (true = walking distance only, false = all restaurants)
   RxBool isWalkingDistanceFilter = false.obs;
 
+  // Filter states
+  RxBool hasDiscountFilter = false.obs;
+  RxBool hasFreeDeliveryFilter = false.obs;
+  RxString selectedFoodType = ''.obs;
+
+  // Food type categories with images (dummy data for now)
+  List<Map<String, String>> get foodTypeCategories => [
+    {'name': 'Pizza', 'image': 'assets/imgs/chow1.png'},
+    {'name': 'Burger', 'image': 'assets/imgs/chow2.png'},
+    {'name': 'Chinese', 'image': 'assets/imgs/chow3.png'},
+    {'name': 'African', 'image': 'assets/imgs/food.png'},
+    {'name': 'Fast Food', 'image': 'assets/imgs/chow1.png'},
+    {'name': 'Desserts', 'image': 'assets/imgs/chow2.png'},
+    {'name': 'Drinks', 'image': 'assets/imgs/chow3.png'},
+    {'name': 'Healthy', 'image': 'assets/imgs/food.png'},
+  ];
+
+  // Category icons mapping
+  Map<String, IconData> get categoryIcons => {
+    'All': Icons.restaurant_menu,
+    'Breakfast': Icons.free_breakfast,
+    'Lunch': Icons.lunch_dining,
+    'Dinner': Icons.dinner_dining,
+    'Snacks': Icons.cookie,
+    'Drinks': Icons.local_cafe,
+    'Desserts': Icons.icecream,
+  };
+
   // Selected items
   RestaurantModel? selectedRestaurant;
   MenuItemModel? selectedMenuItem;
@@ -168,7 +196,11 @@ class DashboardController extends GetxController {
       APIResponse response = await restaurantService.getRestaurants(filter);
 
       if (response.status.toLowerCase() == "success") {
-        restaurants = (response.data['data'] as List)
+        // Handle both response formats: direct array or nested under 'data'
+        final restaurantData = response.data is List
+            ? response.data
+            : (response.data['data'] ?? response.data);
+        restaurants = (restaurantData as List)
             .map((json) => RestaurantModel.fromJson(json))
             .toList();
 
@@ -312,6 +344,18 @@ class DashboardController extends GetxController {
     }
   }
 
+  // Refresh restaurant details (menus and categories)
+  Future<void> refreshRestaurantDetails(String restaurantId) async {
+    try {
+      await Future.wait([
+        fetchRestaurantMenus(restaurantId),
+        fetchMenuCategories(),
+      ]);
+    } catch (e) {
+      debugPrint('Error refreshing restaurant details: $e');
+    }
+  }
+
   // Toggle favorite restaurant
   Future<void> toggleFavorite(RestaurantModel restaurant) async {
     try {
@@ -375,7 +419,7 @@ class DashboardController extends GetxController {
       }).toList();
     }
 
-    // Then filter by category
+    // Filter by category
     if (selectedCategory.value != 'All') {
       filteredRestaurants = filteredRestaurants
           .where(
@@ -384,6 +428,30 @@ class DashboardController extends GetxController {
                 selectedCategory.value.toLowerCase(),
           )
           .toList();
+    }
+
+    // Filter by discount/promotions
+    if (hasDiscountFilter.value) {
+      filteredRestaurants = filteredRestaurants.where((restaurant) {
+        return restaurant.topDiscount != null &&
+            restaurant.topDiscount!.isCurrentlyActive;
+      }).toList();
+    }
+
+    // Filter by free delivery
+    if (hasFreeDeliveryFilter.value) {
+      filteredRestaurants = filteredRestaurants.where((restaurant) {
+        return restaurant.freeDelivery;
+      }).toList();
+    }
+
+    // Filter by food type (cuisine type match)
+    if (selectedFoodType.value.isNotEmpty) {
+      filteredRestaurants = filteredRestaurants.where((restaurant) {
+        final cuisineType = restaurant.cuisineType?.toLowerCase() ?? '';
+        final foodType = selectedFoodType.value.toLowerCase();
+        return cuisineType.contains(foodType) || foodType.contains(cuisineType);
+      }).toList();
     }
 
     return filteredRestaurants;
@@ -441,6 +509,54 @@ class DashboardController extends GetxController {
       update();
     });
   }
+
+  // Toggle discount filter
+  void toggleDiscountFilter() {
+    hasDiscountFilter.value = !hasDiscountFilter.value;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
+  }
+
+  // Toggle free delivery filter
+  void toggleFreeDeliveryFilter() {
+    hasFreeDeliveryFilter.value = !hasFreeDeliveryFilter.value;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
+  }
+
+  // Update selected food type
+  void updateSelectedFoodType(String foodType) {
+    if (selectedFoodType.value == foodType) {
+      selectedFoodType.value = ''; // Deselect if already selected
+    } else {
+      selectedFoodType.value = foodType;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
+  }
+
+  // Clear all filters
+  void clearAllFilters() {
+    selectedCategory.value = 'All';
+    hasDiscountFilter.value = false;
+    hasFreeDeliveryFilter.value = false;
+    selectedFoodType.value = '';
+    isWalkingDistanceFilter.value = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      update();
+    });
+  }
+
+  // Check if any filter is active
+  bool get hasActiveFilters =>
+      selectedCategory.value != 'All' ||
+      hasDiscountFilter.value ||
+      hasFreeDeliveryFilter.value ||
+      selectedFoodType.value.isNotEmpty ||
+      isWalkingDistanceFilter.value;
 
   // Refresh all data
   Future<void> refreshData() async {

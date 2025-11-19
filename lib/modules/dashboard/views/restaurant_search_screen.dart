@@ -56,21 +56,25 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
                     CustomOutlinedRoundedInputField(
                       controller: _searchController,
                       borderRadius: 12.r,
-                      label: "Search for restaurants, cuisine...",
-                      prefixWidget: Icon(Icons.search, size: 25.sp),
                       isSearch: true,
-                      isRequired: false,
-                      suffixWidget: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear, size: 20.sp),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
+                      prefixWidget: Icon(Icons.search, size: 25.sp),
+                      suffixWidget: Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 5.h,
+                          horizontal: 5.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withAlpha(180),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: SvgPicture.asset(
+                          SvgAssets.filterIcon,
+                          colorFilter: ColorFilter.mode(
+                            AppColors.whiteColor,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
                       onChanged: (value) {
                         setState(() {
                           _searchQuery = value.toLowerCase();
@@ -206,13 +210,21 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            !controller.hasValidLocation()
-                ? Icons.location_off
-                : Icons.restaurant,
-            size: 60.sp,
-            color: AppColors.obscureTextColor.withAlpha(127),
-          ),
+          !controller.hasValidLocation()
+              ? Icon(
+                  Icons.location_off,
+                  size: 60.sp,
+                  color: AppColors.obscureTextColor.withAlpha(127),
+                )
+              : SvgPicture.asset(
+                  SvgAssets.restaurantIcon,
+                  height: 60.sp,
+                  width: 60.sp,
+                  colorFilter: ColorFilter.mode(
+                    AppColors.obscureTextColor.withAlpha(127),
+                    BlendMode.srcIn,
+                  ),
+                ),
           SizedBox(height: 15.h),
           customText(
             !controller.hasValidLocation()
@@ -229,7 +241,7 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
           customText(
             message.isNotEmpty
                 ? message
-                : "We're working on adding more restaurants to your area",
+                : "Pull down to refresh",
             fontSize: 14.sp,
             color: AppColors.obscureTextColor,
             textAlign: TextAlign.center,
@@ -268,25 +280,6 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
               ),
               child: customText(
                 "Select Delivery Address",
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.whiteColor,
-              ),
-            )
-          else
-            ElevatedButton(
-              onPressed: () {
-                controller.fetchRestaurants();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-              ),
-              child: customText(
-                "Refresh",
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColors.whiteColor,
@@ -364,14 +357,20 @@ class RestaurantContainer extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.r),
                     color: AppColors.backgroundColor,
                     image: DecorationImage(
-                      image: restaurant.banner != null &&
-                              restaurant.banner!.isNotEmpty
-                          ? NetworkImage(restaurant.banner!)
-                          : restaurant.logo != null &&
-                                  restaurant.logo!.isNotEmpty
-                              ? NetworkImage(restaurant.logo!)
-                              : AssetImage("assets/images/placeholder.png")
-                                  as ImageProvider,
+                      image: restaurant.bannerUrl != null &&
+                              restaurant.bannerUrl!.isNotEmpty
+                          ? NetworkImage(restaurant.bannerUrl!)
+                          : restaurant.logoUrl != null &&
+                                  restaurant.logoUrl!.isNotEmpty
+                              ? NetworkImage(restaurant.logoUrl!)
+                              : restaurant.banner != null &&
+                                      restaurant.banner!.isNotEmpty
+                                  ? NetworkImage(restaurant.banner!)
+                                  : restaurant.logo != null &&
+                                          restaurant.logo!.isNotEmpty
+                                      ? NetworkImage(restaurant.logo!)
+                                      : AssetImage("assets/images/placeholder.png")
+                                          as ImageProvider,
                       fit: BoxFit.cover,
                       onError: (exception, stackTrace) {
                         // Handle image loading error

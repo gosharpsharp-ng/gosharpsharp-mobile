@@ -5,6 +5,7 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/views/checkout_screen.dart';
 import 'package:gosharpsharp/modules/orders/views/order_tracking_screen.dart';
 import 'package:gosharpsharp/modules/cart/views/widgets/package_selection_dialog.dart';
+import 'package:gosharpsharp/modules/cart/views/widgets/add_to_cart_success_bottom_sheet.dart';
 
 class CartController extends GetxController {
   final cartService = serviceLocator<RestaurantCartService>();
@@ -59,6 +60,12 @@ class CartController extends GetxController {
   // Set selected package
   void setSelectedPackage(String? packageName) {
     _selectedPackageName = packageName;
+    update();
+  }
+
+  // Clear selected package
+  void clearSelectedPackage() {
+    _selectedPackageName = null;
     update();
   }
 
@@ -230,9 +237,10 @@ class CartController extends GetxController {
       // Check if restaurant is open before adding to cart
       if (restaurant != null && !restaurant.isOpen()) {
         final hours = restaurant.getOperatingHoursText();
-        showToast(
-          message: '${restaurant.name} is currently closed. Operating hours: $hours',
-          isError: true,
+        _showErrorBottomSheet(
+          title: 'Restaurant Closed',
+          message: '${restaurant.name} is currently closed.\n\nOperating hours: $hours',
+          autoDismiss: true,
         );
         return;
       }
@@ -256,18 +264,27 @@ class CartController extends GetxController {
         }
       }
 
-      // If packageName is not explicitly provided and skipDialog is false, show package selection dialog
-      if (packageName == null && !skipDialog) {
+      // Show package selection dialog only if:
+      // 1. No package is explicitly provided
+      // 2. No package is currently selected by user
+      // 3. Dialog is not skipped
+      if (packageName == null && _selectedPackageName == null && !skipDialog) {
         await showPackageSelectionAndAddToCart(menuId, quantity, addonIds: addonIds, restaurant: restaurant);
         return;
       }
 
-      // Determine package name
+      // Determine package name with priority:
+      // 1. Explicitly provided packageName
+      // 2. User-selected package (_selectedPackageName)
+      // 3. First item: Pack 1
+      // 4. Existing packages: use first
+      // 5. Fallback: Pack 1
       String finalPackageName;
       if (packageName != null) {
         finalPackageName = packageName;
       } else if (_selectedPackageName != null) {
         finalPackageName = _selectedPackageName!;
+        debugPrint('📦 Using selected package: $_selectedPackageName');
       } else if (isCartEmpty) {
         // First item in cart, default to Pack 1
         finalPackageName = 'Pack 1';
@@ -279,12 +296,14 @@ class CartController extends GetxController {
         finalPackageName = 'Pack 1';
       }
 
-      // Check if item already exists in the selected package
+      // IMPORTANT: Check if item already exists in the selected package
+      // If it exists, increment quantity instead of creating duplicate
       final existingItem = _findItemInPackage(menuId, finalPackageName, addonIds);
 
       if (existingItem != null) {
-        // Item exists in package, increase quantity instead
+        // Item with same addons exists in this package, increase quantity instead
         final newQuantity = existingItem.quantity + quantity;
+        debugPrint('📦 Item already exists in package "$finalPackageName", incrementing quantity to $newQuantity');
         // Note: Don't send addons when updating quantity - they're already set on the item
         await updateCartItemQuantity(
           existingItem.id,
@@ -315,14 +334,41 @@ class CartController extends GetxController {
       APIResponse response = await cartService.addToMenuCart(data);
 
       if (response.status.toLowerCase() == "success") {
-        showToast(message: "Item added to cart successfully", isError: false);
         // Refresh cart after adding item
         await fetchCart();
+
+        // Find the newly added item to get its name
+        String itemName = "Item";
+        try {
+          // Look for the item in the cart
+          for (var package in _packages) {
+            for (var item in package.items) {
+              if (item.purchasableId == menuId) {
+                itemName = item.purchasable?.name ?? "Item";
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint("Error getting item name: $e");
+        }
+
+        // Show success bottom sheet
+        _showAddToCartSuccessBottomSheet(itemName, quantity);
       } else {
-        showToast(message: response.message, isError: true);
+        _showErrorBottomSheet(
+          title: 'Unable to Add Item',
+          message: response.message,
+          autoDismiss: true,
+        );
       }
     } catch (e) {
-      showToast(message: "Failed to add item to cart: $e", isError: true);
+      _showErrorBottomSheet(
+        title: 'Error',
+        message: 'Failed to add item to cart. Please try again.',
+        autoDismiss: true,
+      );
+      debugPrint('Failed to add item to cart: $e');
     } finally {
       _addingToCartItemId = null; // Clear specific item
       setAddingToCartState(false);
@@ -439,7 +485,11 @@ class CartController extends GetxController {
         }
 
         if (finalPackageName == null) {
-          showToast(message: "Item not found in cart", isError: true);
+          _showErrorBottomSheet(
+            title: 'Item Not Found',
+            message: 'The item you\'re trying to update could not be found in your cart.',
+            autoDismiss: true,
+          );
           return;
         }
       }
@@ -457,7 +507,11 @@ class CartController extends GetxController {
       }
 
       if (cartItem == null) {
-        showToast(message: "Cart item not found", isError: true);
+        _showErrorBottomSheet(
+          title: 'Item Not Found',
+          message: 'The item you\'re trying to update could not be found in your cart.',
+          autoDismiss: true,
+        );
         return;
       }
 
@@ -513,12 +567,20 @@ class CartController extends GetxController {
         customDebugPrint("Error Message: ${response.message}");
         customDebugPrint("Error Data: ${response.data}");
         customDebugPrint("=========================");
-        showToast(message: response.message, isError: true);
+        _showErrorBottomSheet(
+          title: 'Update Failed',
+          message: response.message.isNotEmpty ? response.message : 'Unable to update cart item. Please try again.',
+          autoDismiss: true,
+        );
       }
     } catch (e, stackTrace) {
       customDebugPrint("Exception updating cart: $e");
       customDebugPrint("Stack trace: $stackTrace");
-      showToast(message: "Failed to update cart: $e", isError: true);
+      _showErrorBottomSheet(
+        title: 'Update Failed',
+        message: 'Unable to update cart item. Please try again.',
+        autoDismiss: true,
+      );
     } finally {
       setUpdatingCartState(false);
     }
@@ -549,10 +611,19 @@ class CartController extends GetxController {
         // Refresh cart after removing item
         await fetchCart();
       } else {
-        showToast(message: response.message, isError: true);
+        _showErrorBottomSheet(
+          title: 'Remove Failed',
+          message: response.message.isNotEmpty ? response.message : 'Unable to remove item from cart. Please try again.',
+          autoDismiss: true,
+        );
       }
     } catch (e) {
-      showToast(message: "Failed to remove item from cart: $e", isError: true);
+      _showErrorBottomSheet(
+        title: 'Remove Failed',
+        message: 'Unable to remove item from cart. Please try again.',
+        autoDismiss: true,
+      );
+      debugPrint('Failed to remove item from cart: $e');
     } finally {
       setRemovingFromCartState(false);
     }
@@ -571,6 +642,10 @@ class CartController extends GetxController {
       if (response.status.toLowerCase() == "success") {
         showToast(message: "Cart cleared successfully", isError: false);
         await fetchCart();
+
+        // Clear selected package when cart is manually cleared
+        clearSelectedPackage();
+        debugPrint('🧹 Cleared selected package after manual cart clear');
       } else {
         showToast(message: response.message, isError: true);
       }
@@ -736,6 +811,8 @@ class CartController extends GetxController {
   }
 
   PayStackAuthorizationModel? payStackAuthorizationData;
+  String? lastOrderNumber;
+
   // Place order with Paystack
   Future<void> placeOrderWithPaystack([String? instructions]) async {
     if (isCartEmpty) {
@@ -770,23 +847,10 @@ class CartController extends GetxController {
         );
 
         // Extract order details from response
-        final orderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
-        final orderId = response.data['id'];
+        lastOrderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
 
         // Refresh the cart after successful order
         await refreshCart();
-
-        // Navigate to success screen, clearing entire stack
-        Get.offAllNamed(
-          Routes.ORDER_SUCCESS_SCREEN,
-          arguments: {
-            'orderId': orderId,
-            'orderNumber': orderNumber,
-            'totalAmount': total,
-            'paymentMethod': 'paystack',
-            'deliveryAddress': currentLocation.value,
-          },
-        );
       } else {
         showToast(message: response.message, isError: true);
       }
@@ -840,6 +904,12 @@ class CartController extends GetxController {
   // Refresh cart data
   Future<void> refreshCart() async {
     await fetchCart();
+
+    // Clear selected package if cart is empty (after successful checkout)
+    if (isCartEmpty && _selectedPackageName != null) {
+      clearSelectedPackage();
+      debugPrint('🧹 Cleared selected package after checkout');
+    }
   }
 
   // Package-aware helper methods
@@ -1194,6 +1264,41 @@ class CartController extends GetxController {
     } finally {
       setLoadingState(false);
     }
+  }
+
+  // Show add to cart success bottom sheet
+  void _showAddToCartSuccessBottomSheet(String itemName, int quantity) {
+    Get.bottomSheet(
+      AddToCartSuccessBottomSheet(
+        itemName: itemName,
+        quantity: quantity,
+      ),
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+    );
+  }
+
+  // Show error bottom sheet
+  void _showErrorBottomSheet({
+    required String title,
+    required String message,
+    String? actionButtonText,
+    VoidCallback? onActionPressed,
+    bool autoDismiss = true,
+  }) {
+    Get.bottomSheet(
+      ErrorBottomSheet(
+        title: title,
+        message: message,
+        actionButtonText: actionButtonText,
+        onActionPressed: onActionPressed,
+        autoDismiss: autoDismiss,
+      ),
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+    );
   }
 
   @override

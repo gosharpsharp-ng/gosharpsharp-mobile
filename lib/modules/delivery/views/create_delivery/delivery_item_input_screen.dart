@@ -85,8 +85,8 @@ class DeliveryItemInputScreen extends StatelessWidget {
                               width: 3.w,
                             ),
                             customText(
-                              "(Required)",
-                              color: AppColors.redColor,
+                              "(Optional)",
+                              color: AppColors.greyColor,
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w500,
                             ),

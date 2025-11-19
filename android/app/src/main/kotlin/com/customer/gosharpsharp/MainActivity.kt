@@ -1,4 +1,4 @@
-package com.example.gosharpsharp
+package com.customer.gosharpsharp
 
 import io.flutter.embedding.android.FlutterActivity
 

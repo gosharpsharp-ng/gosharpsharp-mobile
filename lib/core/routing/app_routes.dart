@@ -51,6 +51,8 @@ abstract class Routes {
 
   static const WALLETS_HOME_SCREEN = '/wallets_home_screen';
   static const FUND_WALLET_SCREEN = '/fund_wallet_screen';
+  static const FUND_WALLET_SUCCESS_SCREEN = '/fund_wallet_success_screen';
+  static const FUND_WALLET_FAILURE_SCREEN = '/fund_wallet_failure_screen';
   static const TRANSACTIONS_SCREEN = '/transactions_screen';
   static const TRANSACTION_DETAILS_SCREEN = '/transaction_details_screen';
 
@@ -64,10 +66,12 @@ abstract class Routes {
   static const CART_SCREEN = '/cart_screen';
   static const CHECKOUT_SCREEN = '/checkout_screen';
   static const ORDER_SUCCESS_SCREEN = '/order_success_screen';
+  static const ORDER_FAILURE_SCREEN = '/order_failure_screen';
 
   // Parcel Deliveries
   static const PARCEL_DELIVERIES_HOME_SCREEN = '/parcel_deliveries_home_screen';
   static const PARCEL_DELIVERY_DETAILS_SCREEN = '/parcel_delivery_details_screen';
+  static const PARCEL_DELIVERY_TRACKING_SCREEN = '/parcel_delivery_tracking_screen';
 
 //   Restaurant
 

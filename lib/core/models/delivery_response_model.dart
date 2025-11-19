@@ -1,3 +1,5 @@
+import 'package:gosharpsharp/core/models/courier_type_model.dart';
+
 class DeliveryResponseModel {
   final int id;
   final String trackingId;
@@ -9,14 +11,19 @@ class DeliveryResponseModel {
   final int userId;
   final int? riderId;
   final int currencyId;
+  final int? courierTypeId;
+  final int? paymentMethodId;
   final Receiver receiver;
   final List<Item> items;
   final ShipmentLocation pickupLocation;
   final ShipmentLocation destinationLocation;
   final UserModel user;
   final RiderModel? rider;
+  final Currency? currency;
   final String createdAt;
   final String updatedAt;
+  final List<DeliveryCourierType> courierTypes;
+  final bool courierTypesAvailable;
 
   DeliveryResponseModel({
     required this.id,
@@ -29,14 +36,19 @@ class DeliveryResponseModel {
     required this.userId,
     this.riderId,
     required this.currencyId,
+    this.courierTypeId,
+    this.paymentMethodId,
     required this.receiver,
     required this.items,
     required this.pickupLocation,
     required this.destinationLocation,
     required this.user,
     this.rider,
+    this.currency,
     required this.createdAt,
     required this.updatedAt,
+    this.courierTypes = const [],
+    this.courierTypesAvailable = false,
   });
 
   factory DeliveryResponseModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +63,8 @@ class DeliveryResponseModel {
       userId: json['user_id'],
       riderId: json['rider_id'],
       currencyId: json['currency_id'],
+      courierTypeId: json['courier_type_id'],
+      paymentMethodId: json['payment_method_id'],
       receiver: Receiver.fromJson(json['receiver']),
       items: (json['items'] as List)
           .map((item) => Item.fromJson(item))
@@ -61,8 +75,15 @@ class DeliveryResponseModel {
       ),
       user: UserModel.fromJson(json['user']),
       rider: json['rider'] != null ? RiderModel.fromJson(json['rider']) : null,
+      currency: json['currency'] != null ? Currency.fromJson(json['currency']) : null,
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      courierTypes: json['courier_types'] != null
+          ? (json['courier_types'] as List)
+              .map((courier) => DeliveryCourierType.fromJson(courier))
+              .toList()
+          : [],
+      courierTypesAvailable: json['courier_types_available'] ?? false,
     );
   }
 
@@ -108,10 +129,10 @@ class Receiver {
   factory Receiver.fromJson(Map<String, dynamic> json) {
     return Receiver(
       id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
       email: json['email'],
-      address: json['address'],
+      address: json['address'] ?? '',
     );
   }
 
@@ -148,11 +169,13 @@ class Item {
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? '',  // Added null safety
       description: json['description'] ?? "",
       category: json['category'] ?? "",
-      weight: json['weight'] ?? "",
-      quantity: json['quantity'] ?? "",
+      weight: json['weight']?.toString() ?? "",
+      quantity: json['quantity'] is int
+          ? json['quantity']
+          : int.tryParse(json['quantity']?.toString() ?? "0") ?? 0,
       files: json['files'] ?? [],
     );
   }
@@ -186,9 +209,9 @@ class ShipmentLocation {
   factory ShipmentLocation.fromJson(Map<String, dynamic> json) {
     return ShipmentLocation(
       id: json['id'],
-      name: json['name'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
+      name: json['name'] ?? '',
+      latitude: json['latitude']?.toString() ?? '0.0',
+      longitude: json['longitude']?.toString() ?? '0.0',
     );
   }
 
@@ -218,9 +241,9 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
-      email: json['email'],
+      name: json['name'] ?? '',
+      phone: json['phone']?.toString() ?? '',  // Convert to string in case it's a number
+      email: json['email'] ?? '',
     );
   }
 
@@ -245,13 +268,49 @@ class RiderModel {
   factory RiderModel.fromJson(Map<String, dynamic> json) {
     return RiderModel(
       id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
+      name: json['name'] ?? '',
+      phone: json['phone']?.toString() ?? '',  // Convert to string in case it's a number
       email: json['email'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {'id': id, 'name': name, 'phone': phone, 'email': email};
+  }
+}
+
+class Currency {
+  final int id;
+  final String code;
+  final String name;
+  final String symbol;
+  final String? exchangeRate;  // Made nullable
+
+  Currency({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.symbol,
+    this.exchangeRate,  // Made optional
+  });
+
+  factory Currency.fromJson(Map<String, dynamic> json) {
+    return Currency(
+      id: json['id'],
+      code: json['code'] ?? '',
+      name: json['name'] ?? '',
+      symbol: json['symbol'] ?? '',
+      exchangeRate: json['exchange_rate']?.toString(),  // Made nullable with toString for safety
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'code': code,
+      'name': name,
+      'symbol': symbol,
+      'exchange_rate': exchangeRate,
+    };
   }
 }

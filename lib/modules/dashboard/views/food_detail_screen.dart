@@ -56,105 +56,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     }
   }
 
-  void _addToCartAndShowSuccess(CartController cartController) async {
-    final menuItem = dashboardController.selectedMenuItem;
-    if (menuItem == null) return;
-
-    await cartController.addToCart(
-      menuItem.id,
-      quantity,
-      restaurant: dashboardController.selectedRestaurant,
-    );
-
-    // Show success bottom sheet instead of dialog
-    Get.bottomSheet(
-      Container(
-        padding: EdgeInsets.all(20.w),
-        decoration: BoxDecoration(
-          color: AppColors.whiteColor,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20.r),
-            topRight: Radius.circular(20.r),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 48.sp),
-            SizedBox(height: 16.h),
-            customText(
-              "Added to Cart!",
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.blackColor,
-            ),
-            SizedBox(height: 8.h),
-            customText(
-              "$quantity x ${menuItem.name} has been added to your cart",
-              fontSize: 14.sp,
-              color: AppColors.greyColor,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 24.h),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.primaryColor),
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                    child: customText(
-                      "Continue Shopping",
-                      fontSize: 14.sp,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Close the bottom sheet first
-                      Get.back();
-                      // Navigate to app navigation and set cart tab
-                      Get.offNamedUntil(
-                        Routes.APP_NAVIGATION,
-                        (route) => false,
-                      );
-                      // Ensure the controller is available and set cart tab
-                      Future.delayed(Duration(milliseconds: 100), () {
-                        try {
-                          final appNavController =
-                              Get.find<AppNavigationController>();
-                          appNavController.changeScreenIndex(1);
-                        } catch (e) {
-                          print('Error setting cart tab: $e');
-                        }
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                    child: customText(
-                      "View Cart",
-                      fontSize: 14.sp,
-                      color: AppColors.whiteColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
-    );
-  }
 
   double _calculateTotalPrice(MenuItemModel? menuItem) {
     if (menuItem == null) return 0.0;
@@ -715,6 +616,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                 menuItem.id,
                 1,
                 addonMenuId: addonMenuId,
+                restaurant: dashboardController.selectedRestaurant,
               );
             },
           ),
@@ -724,7 +626,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
         );
       } else {
         // No addons, add directly to cart
-        await cartController.addToCart(menuItem.id, 1);
+        await cartController.addToCart(
+          menuItem.id,
+          1,
+          restaurant: dashboardController.selectedRestaurant,
+        );
       }
     } catch (e) {
       debugPrint('Error adding to cart: $e');
@@ -765,6 +671,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                   menuItem.id,
                   1,
                   addonMenuId: addonMenuId,
+                  restaurant: dashboardController.selectedRestaurant,
                 );
                 setState(() => isAddingToCart = false);
                 Get.back(result: true); // Pass success back
@@ -786,7 +693,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
       } else {
         // No addons, add directly to cart
         setState(() => isAddingToCart = true);
-        await cartController.addToCart(menuItem.id, 1);
+        await cartController.addToCart(
+          menuItem.id,
+          1,
+          restaurant: dashboardController.selectedRestaurant,
+        );
         setState(() => isAddingToCart = false);
         addedToCart = true;
       }
@@ -813,7 +724,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
   ) {
     // Check if addon is in cart
     final isInCart = cartController.isAddonInCart(mainItem.id, addon.id);
-    final addonQuantity = cartController.getAddonQuantityInCart(mainItem.id, addon.id);
 
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
@@ -835,11 +745,12 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                 // Remove from cart
                 await cartController.removeAddonFromCart(mainItem.id, addon.id);
               } else {
-                // Add to cart
+                // Add to cart with restaurant validation
                 await cartController.addToCart(
                   mainItem.id,
                   1,
                   addonMenuId: addon.id,
+                  restaurant: dashboardController.selectedRestaurant,
                 );
               }
             },

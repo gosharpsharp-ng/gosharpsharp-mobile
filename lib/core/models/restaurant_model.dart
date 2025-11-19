@@ -53,7 +53,9 @@ class FavouriteRestaurantModel {
 class RestaurantModel {
   final int id;
   final String? banner;
+  final String? bannerUrl;
   final String? logo;
+  final String? logoUrl;
   final String name;
   final String? description;
   final String email;
@@ -71,11 +73,27 @@ class RestaurantModel {
   final String createdAt;
   final String updatedAt;
   final List<Schedule>? schedules;
+  final List<String>? badges;
+  final bool isFeaturedBool;
+  final bool isSponsored;
+  final bool isVerified;
+  final bool freeDelivery;
+  final bool isNew;
+  final String averageRating;
+  final int totalOrders;
+  final int totalReviews;
+  final int viewsCount;
+  final int favoritesCount;
+  final RestaurantDiscount? topDiscount;
+  final RestaurantLocation? location;
+  final List<dynamic>? activeCampaigns;
 
   RestaurantModel({
     required this.id,
     this.banner,
+    this.bannerUrl,
     this.logo,
+    this.logoUrl,
     required this.name,
     this.description,
     required this.email,
@@ -93,21 +111,37 @@ class RestaurantModel {
     required this.createdAt,
     required this.updatedAt,
     this.schedules,
+    this.badges,
+    this.isFeaturedBool = false,
+    this.isSponsored = false,
+    this.isVerified = false,
+    this.freeDelivery = false,
+    this.isNew = false,
+    this.averageRating = '0.00',
+    this.totalOrders = 0,
+    this.totalReviews = 0,
+    this.viewsCount = 0,
+    this.favoritesCount = 0,
+    this.topDiscount,
+    this.location,
+    this.activeCampaigns,
   });
 
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
     return RestaurantModel(
       id: json['id'] ?? 0,
       banner: json['banner']?.toString(),
+      bannerUrl: json['banner_url']?.toString(),
       logo: json['logo']?.toString(),
+      logoUrl: json['logo_url']?.toString(),
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString(),
       distance: json['distance']?.toString() ?? '0.0',
       email: json['email']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
       cuisineType: json['cuisine_type']?.toString(),
-      isActive: json['is_active'] ?? 0,
-      isFeatured: json['is_featured'] ?? 0,
+      isActive: json['is_active'] is bool ? (json['is_active'] ? 1 : 0) : (json['is_active'] ?? 0),
+      isFeatured: json['is_featured'] is bool ? (json['is_featured'] ? 1 : 0) : (json['is_featured'] ?? 0),
       commissionRate: json['commission_rate']?.toString() ?? '0.0',
       businessRegistrationNumber: json['business_registration_number']?.toString(),
       taxIdentificationNumber: json['tax_identification_number']?.toString(),
@@ -121,6 +155,26 @@ class RestaurantModel {
           .map((s) => Schedule.fromJson(s))
           .toList()
           : null,
+      badges: json['badges'] != null
+          ? (json['badges'] as List).map((b) => b.toString()).toList()
+          : null,
+      isFeaturedBool: json['is_featured'] == true || json['is_featured'] == 1,
+      isSponsored: json['is_sponsored'] == true || json['is_sponsored'] == 1,
+      isVerified: json['is_verified'] == true || json['is_verified'] == 1,
+      freeDelivery: json['free_delivery'] == true || json['free_delivery'] == 1,
+      isNew: json['is_new'] == true || json['is_new'] == 1,
+      averageRating: json['average_rating']?.toString() ?? '0.00',
+      totalOrders: json['total_orders'] ?? 0,
+      totalReviews: json['total_reviews'] ?? 0,
+      viewsCount: json['views_count'] ?? 0,
+      favoritesCount: json['favorites_count'] ?? 0,
+      topDiscount: json['top_discount'] != null
+          ? RestaurantDiscount.fromJson(json['top_discount'])
+          : null,
+      location: json['location'] != null
+          ? RestaurantLocation.fromJson(json['location'])
+          : null,
+      activeCampaigns: json['active_campaigns'] as List<dynamic>?,
     );
   }
 
@@ -128,7 +182,9 @@ class RestaurantModel {
     return {
       'id': id,
       'banner': banner,
+      'banner_url': bannerUrl,
       'logo': logo,
+      'logo_url': logoUrl,
       'name': name,
       'description': description,
       'email': email,
@@ -145,6 +201,19 @@ class RestaurantModel {
       'created_at': createdAt,
       'updated_at': updatedAt,
       'schedules': schedules?.map((s) => s.toJson()).toList(),
+      'badges': badges,
+      'is_sponsored': isSponsored,
+      'is_verified': isVerified,
+      'free_delivery': freeDelivery,
+      'is_new': isNew,
+      'average_rating': averageRating,
+      'total_orders': totalOrders,
+      'total_reviews': totalReviews,
+      'views_count': viewsCount,
+      'favorites_count': favoritesCount,
+      'top_discount': topDiscount?.toJson(),
+      'location': location?.toJson(),
+      'active_campaigns': activeCampaigns,
     };
   }
 
@@ -256,9 +325,16 @@ class RestaurantModel {
     }
   }
 
-  /// Helper to parse time string (HH:mm:ss or HH:mm) to TimeOfDay
+  /// Helper to parse time string (HH:mm:ss, HH:mm, or ISO 8601) to TimeOfDay
   TimeOfDay? _parseTimeOfDay(String timeString) {
     try {
+      // Handle ISO 8601 datetime format (e.g., "2025-11-19T09:00:00.000000Z")
+      if (timeString.contains('T')) {
+        final dateTime = DateTime.parse(timeString);
+        return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+      }
+
+      // Handle simple time format (HH:mm:ss or HH:mm)
       final parts = timeString.split(':');
       if (parts.length >= 2) {
         final hour = int.parse(parts[0]);
@@ -326,6 +402,212 @@ class Schedule {
       'day_of_week': dayOfWeek,
       'open_time': openTime,
       'close_time': closeTime,
+      'deleted_at': deletedAt,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
+  }
+}
+
+class RestaurantDiscount {
+  final int id;
+  final String discountableType;
+  final int discountableId;
+  final String name;
+  final String? code;
+  final String? description;
+  final String type;
+  final String value;
+  final String? maxDiscountAmount;
+  final String? minOrderAmount;
+  final int? buyQuantity;
+  final int? getQuantity;
+  final String startDate;
+  final String endDate;
+  final bool isActive;
+  final bool isCurrentlyActive;
+  final int? usageLimit;
+  final int usageCount;
+  final int? usageLimitPerUser;
+  final int? remainingUsage;
+  final List<String>? applicableDays;
+  final String? applicableTimeStart;
+  final String? applicableTimeEnd;
+  final List<String>? applicableCategories;
+  final List<String>? excludedCategories;
+  final String? badgeText;
+  final String? badgeColor;
+  final int priority;
+  final bool isFeatured;
+  final bool showOnListing;
+  final String? termsAndConditions;
+  final String createdAt;
+  final String updatedAt;
+
+  RestaurantDiscount({
+    required this.id,
+    required this.discountableType,
+    required this.discountableId,
+    required this.name,
+    this.code,
+    this.description,
+    required this.type,
+    required this.value,
+    this.maxDiscountAmount,
+    this.minOrderAmount,
+    this.buyQuantity,
+    this.getQuantity,
+    required this.startDate,
+    required this.endDate,
+    required this.isActive,
+    required this.isCurrentlyActive,
+    this.usageLimit,
+    required this.usageCount,
+    this.usageLimitPerUser,
+    this.remainingUsage,
+    this.applicableDays,
+    this.applicableTimeStart,
+    this.applicableTimeEnd,
+    this.applicableCategories,
+    this.excludedCategories,
+    this.badgeText,
+    this.badgeColor,
+    required this.priority,
+    required this.isFeatured,
+    required this.showOnListing,
+    this.termsAndConditions,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory RestaurantDiscount.fromJson(Map<String, dynamic> json) {
+    return RestaurantDiscount(
+      id: json['id'] ?? 0,
+      discountableType: json['discountable_type']?.toString() ?? '',
+      discountableId: json['discountable_id'] ?? 0,
+      name: json['name']?.toString() ?? '',
+      code: json['code']?.toString(),
+      description: json['description']?.toString(),
+      type: json['type']?.toString() ?? '',
+      value: json['value']?.toString() ?? '0',
+      maxDiscountAmount: json['max_discount_amount']?.toString(),
+      minOrderAmount: json['min_order_amount']?.toString(),
+      buyQuantity: json['buy_quantity'],
+      getQuantity: json['get_quantity'],
+      startDate: json['start_date']?.toString() ?? '',
+      endDate: json['end_date']?.toString() ?? '',
+      isActive: json['is_active'] == true || json['is_active'] == 1,
+      isCurrentlyActive: json['is_currently_active'] == true || json['is_currently_active'] == 1,
+      usageLimit: json['usage_limit'],
+      usageCount: json['usage_count'] ?? 0,
+      usageLimitPerUser: json['usage_limit_per_user'],
+      remainingUsage: json['remaining_usage'],
+      applicableDays: json['applicable_days'] != null
+          ? (json['applicable_days'] as List).map((d) => d.toString()).toList()
+          : null,
+      applicableTimeStart: json['applicable_time_start']?.toString(),
+      applicableTimeEnd: json['applicable_time_end']?.toString(),
+      applicableCategories: json['applicable_categories'] != null
+          ? (json['applicable_categories'] as List).map((c) => c.toString()).toList()
+          : null,
+      excludedCategories: json['excluded_categories'] != null
+          ? (json['excluded_categories'] as List).map((c) => c.toString()).toList()
+          : null,
+      badgeText: json['badge_text']?.toString(),
+      badgeColor: json['badge_color']?.toString(),
+      priority: json['priority'] ?? 0,
+      isFeatured: json['is_featured'] == true || json['is_featured'] == 1,
+      showOnListing: json['show_on_listing'] == true || json['show_on_listing'] == 1,
+      termsAndConditions: json['terms_and_conditions']?.toString(),
+      createdAt: json['created_at']?.toString() ?? '',
+      updatedAt: json['updated_at']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'discountable_type': discountableType,
+      'discountable_id': discountableId,
+      'name': name,
+      'code': code,
+      'description': description,
+      'type': type,
+      'value': value,
+      'max_discount_amount': maxDiscountAmount,
+      'min_order_amount': minOrderAmount,
+      'buy_quantity': buyQuantity,
+      'get_quantity': getQuantity,
+      'start_date': startDate,
+      'end_date': endDate,
+      'is_active': isActive,
+      'is_currently_active': isCurrentlyActive,
+      'usage_limit': usageLimit,
+      'usage_count': usageCount,
+      'usage_limit_per_user': usageLimitPerUser,
+      'remaining_usage': remainingUsage,
+      'applicable_days': applicableDays,
+      'applicable_time_start': applicableTimeStart,
+      'applicable_time_end': applicableTimeEnd,
+      'applicable_categories': applicableCategories,
+      'excluded_categories': excludedCategories,
+      'badge_text': badgeText,
+      'badge_color': badgeColor,
+      'priority': priority,
+      'is_featured': isFeatured,
+      'show_on_listing': showOnListing,
+      'terms_and_conditions': termsAndConditions,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
+  }
+}
+
+class RestaurantLocation {
+  final int id;
+  final String name;
+  final String latitude;
+  final String longitude;
+  final String locationableType;
+  final int locationableId;
+  final String? deletedAt;
+  final String createdAt;
+  final String updatedAt;
+
+  RestaurantLocation({
+    required this.id,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    required this.locationableType,
+    required this.locationableId,
+    this.deletedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory RestaurantLocation.fromJson(Map<String, dynamic> json) {
+    return RestaurantLocation(
+      id: json['id'] ?? 0,
+      name: json['name']?.toString() ?? '',
+      latitude: json['latitude']?.toString() ?? '0.0',
+      longitude: json['longitude']?.toString() ?? '0.0',
+      locationableType: json['locationable_type']?.toString() ?? '',
+      locationableId: json['locationable_id'] ?? 0,
+      deletedAt: json['deleted_at']?.toString(),
+      createdAt: json['created_at']?.toString() ?? '',
+      updatedAt: json['updated_at']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'latitude': latitude,
+      'longitude': longitude,
+      'locationable_type': locationableType,
+      'locationable_id': locationableId,
       'deleted_at': deletedAt,
       'created_at': createdAt,
       'updated_at': updatedAt,

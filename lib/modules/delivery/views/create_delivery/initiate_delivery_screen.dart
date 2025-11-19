@@ -1,5 +1,6 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/utils/widgets/base64_image.dart';
+import 'package:gosharpsharp/modules/delivery/views/widgets/delivery_instructions_bottom_sheet.dart';
 import 'package:intl_phone_field/phone_number.dart';
 
 class InitiateDeliveryScreen extends StatelessWidget {
@@ -502,8 +503,8 @@ class InitiateDeliveryScreen extends StatelessWidget {
                             ),
                             SizedBox(width: 3.w),
                             customText(
-                              "(Required)",
-                              color: AppColors.redColor,
+                              "(Optional)",
+                              color: AppColors.greyColor,
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w500,
                             ),
@@ -514,6 +515,8 @@ class InitiateDeliveryScreen extends StatelessWidget {
                           painter: DottedBorderPainter(),
                           child: InkWell(
                             onTap: () {
+                              // Unfocus any active text field to prevent unwanted focus shifts
+                              FocusManager.instance.primaryFocus?.unfocus();
                               showModalBottomSheet(
                                 context: context,
                                 shape: const RoundedRectangleBorder(
@@ -624,13 +627,13 @@ class InitiateDeliveryScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 8.h),
                         CustomRoundedInputField(
-                          title: "Item name",
-                          label: "Name of the item you're sending",
+                          title: "Description",
+                          label: "Describe the item you're sending",
                           showLabel: true,
                           hasTitle: true,
-                          isRequired: true,
+                          isRequired: false,
                           controller:
-                              ordersController.deliveryItemNameController,
+                              ordersController.deliveryItemDescriptionController,
                         ),
                       ],
                     ),
@@ -646,23 +649,16 @@ class InitiateDeliveryScreen extends StatelessWidget {
                                   .receiverPhoneController
                                   .text
                                   .isNotEmpty) {
-                            // Check if item name is filled
-                            if (ordersController
-                                .deliveryItemNameController
-                                .text
-                                .isEmpty) {
-                              showToast(
-                                message: "Please enter the item name",
-                                isError: true,
-                              );
-                              return;
-                            }
-
-                            // Create the parcel delivery - sends item data directly from form fields
-                            ordersController.callDeliveryEndpoint(context);
-
-                            // The bottomsheet will be shown automatically in callDeliveryEndpoint
-                            // after successful delivery creation (navigates to RIDE_SELECTION_SCREEN)
+                            // Show delivery instructions bottomsheet BEFORE creating delivery
+                            showAnyBottomSheet(
+                              child: DeliveryInstructionsBottomSheet(
+                                onContinue: () {
+                                  // After user accepts instructions, create the delivery
+                                  ordersController.callDeliveryEndpoint(context);
+                                },
+                                isLoading: ordersController.submittingDelivery,
+                              ),
+                            );
                           }
                         },
                         title: ordersController.submittingDelivery

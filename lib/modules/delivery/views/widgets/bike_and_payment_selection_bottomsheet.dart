@@ -1,4 +1,5 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/core/models/courier_type_model.dart';
 
 class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
   final VoidCallback onProceed;
@@ -11,68 +12,99 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<DeliveriesController>(builder: (ordersController) {
+      // Get settings controller to access user profile and wallet balance
+      final settingsController = Get.find<SettingsController>();
+      final walletBalance = settingsController.userProfile?.walletBalance ?? 0.0;
+
       return Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Center(
-                child: Container(
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2.r),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Fixed header
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+              child: Column(
+                children: [
+                  // Header handle
+                  Center(
+                    child: Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
                   ),
-                ),
+                  SizedBox(height: 16.h),
+                  Center(
+                    child: customText(
+                      "Select Bike & Payment",
+                      color: AppColors.blackColor,
+                      fontSize: 22.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 16.h),
-              Center(
-                child: customText(
-                  "Select Bike & Payment",
-                  color: AppColors.blackColor,
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 20.h),
+            ),
 
-              // Bike Selection Section
+            // Scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+              // Courier Selection Section
               customText(
-                "Select Bike Type",
+                "Select Courier Type",
                 color: AppColors.blackColor,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
               ),
               SizedBox(height: 12.h),
 
-              // Mock bike options
-              _buildBikeOption(
-                context,
-                ordersController,
-                title: "Local Bike",
-                subtitle: "Best for small packages",
-                price: "₦500",
-                bikeType: "local",
-                bikeIcon: PngAssets.localRideIcon,
-              ),
-              SizedBox(height: 10.h),
-              _buildBikeOption(
-                context,
-                ordersController,
-                title: "Express Bike",
-                subtitle: "Faster delivery",
-                price: "₦800",
-                bikeType: "express",
-                bikeIcon: PngAssets.expressRideIcon,
-              ),
+              // Display courier types from API
+              if (ordersController.selectedDeliveryResponseModel != null &&
+                  ordersController.selectedDeliveryResponseModel!.courierTypes.isNotEmpty)
+                ...List.generate(
+                  ordersController.selectedDeliveryResponseModel!.courierTypes.length,
+                  (index) {
+                    final courierType = ordersController
+                        .selectedDeliveryResponseModel!.courierTypes[index];
+                    return Column(
+                      children: [
+                        _buildCourierOption(
+                          context,
+                          ordersController,
+                          courierType: courierType,
+                        ),
+                        if (index <
+                            ordersController.selectedDeliveryResponseModel!
+                                    .courierTypes.length -
+                                1)
+                          SizedBox(height: 10.h),
+                      ],
+                    );
+                  },
+                )
+              else
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.h),
+                  child: customText(
+                    "No courier types available",
+                    color: AppColors.greyColor,
+                    fontSize: 14.sp,
+                  ),
+                ),
 
               SizedBox(height: 24.h),
 
@@ -85,12 +117,12 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
               ),
               SizedBox(height: 12.h),
 
-              // Mock payment options
+              // Payment options
               _buildPaymentOption(
                 context,
                 ordersController,
                 title: "Pay with Wallet",
-                subtitle: "Use your GoSharpSharp wallet",
+                subtitle: "Balance: ${formatToCurrency(walletBalance)}",
                 paymentType: "wallet",
                 paymentIcon: SvgAssets.walletIcon,
               ),
@@ -99,16 +131,8 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
                 ordersController,
                 title: "Cash on Delivery",
                 subtitle: "Pay when item is delivered",
-                paymentType: "cash",
+                paymentType: "cash_on_delivery",
                 paymentIcon: null, // Using Material icon
-              ),
-              _buildPaymentOption(
-                context,
-                ordersController,
-                title: "Pay with Paystack",
-                subtitle: "Pay with debit/credit card",
-                paymentType: "paystack",
-                paymentIcon: SvgAssets.paystackIcon,
               ),
 
               SizedBox(height: 24.h),
@@ -116,11 +140,13 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
               // Proceed Button
               CustomButton(
                 width: 1.sw,
-                height:55.h,
+                height: 55.h,
                 onPressed: () {
-                  if (ordersController.selectedBikeType == null) {
+                  if (ordersController.confirmingDelivery) return;
+
+                  if (ordersController.selectedCourierType == null) {
                     showToast(
-                      message: "Please select a bike type",
+                      message: "Please select a courier type",
                       isError: true,
                     );
                     return;
@@ -132,35 +158,47 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
                     );
                     return;
                   }
-                  Get.back();
+                  // Don't close bottomsheet - let the API call complete first
                   onProceed();
                 },
-                title: "Proceed",
+                title: "Confirm Delivery",
+                isBusy: ordersController.confirmingDelivery,
                 backgroundColor: AppColors.primaryColor,
                 fontColor: AppColors.whiteColor,
               ),
               SizedBox(height: 10.h),
-            ],
-          ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     });
   }
 
-  Widget _buildBikeOption(
+  Widget _buildCourierOption(
     BuildContext context,
     DeliveriesController controller, {
-    required String title,
-    required String subtitle,
-    required String price,
-    required String bikeType,
-    required String bikeIcon,
+    required DeliveryCourierType courierType,
   }) {
-    final isSelected = controller.selectedBikeType == bikeType;
+    final isSelected = controller.selectedCourierType?.id == courierType.id;
+
+    // Get bike icon based on courier type name
+    String bikeIcon = PngAssets.localRideIcon;
+    final lowerName = courierType.name.toLowerCase();
+
+    if (lowerName.contains('express') || lowerName.contains('motorcycle')) {
+      bikeIcon = PngAssets.expressRideIcon;
+    } else if (lowerName.contains('van') || lowerName.contains('cargo')) {
+      bikeIcon = PngAssets.localRideIcon; // Use appropriate icon
+    } else if (lowerName.contains('bicycle') || lowerName.contains('bike')) {
+      bikeIcon = PngAssets.localRideIcon;
+    }
 
     return InkWell(
       onTap: () {
-        controller.setSelectedBikeType(bikeType);
+        controller.setSelectedCourierType(courierType);
       },
       child: Container(
         padding: EdgeInsets.all(12.sp),
@@ -194,16 +232,18 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   customText(
-                    title,
+                    courierType.name,
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w500,
                     color: AppColors.blackColor,
                   ),
                   SizedBox(height: 2.h),
                   customText(
-                    subtitle,
+                    courierType.description ?? "Standard delivery",
                     fontSize: 12.sp,
                     color: Colors.grey[600]!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -212,7 +252,7 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 customText(
-                  price,
+                  "₦${courierType.subtotal.toStringAsFixed(2)}",
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.blackColor,

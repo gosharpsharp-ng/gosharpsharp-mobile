@@ -1,6 +1,10 @@
 import 'dart:io';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/core/widgets/category_container.dart';
+import 'package:gosharpsharp/core/widgets/filter_chip_widget.dart';
+import 'package:gosharpsharp/core/widgets/food_type_bottom_sheet.dart';
+import 'package:gosharpsharp/core/widgets/food_type_category_item.dart';
 import 'package:gosharpsharp/core/widgets/skeleton_loaders.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:upgrader/upgrader.dart';
@@ -40,7 +44,7 @@ class DashboardScreen extends StatelessWidget {
                       color: AppColors.backgroundColor,
                       padding: EdgeInsets.symmetric(
                         vertical: 0.h,
-                        horizontal: 10.w,
+                        horizontal: 5.w,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -69,6 +73,8 @@ class DashboardScreen extends StatelessWidget {
                                   color: AppColors.transparent,
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Visibility(
                                         visible:
@@ -93,15 +99,15 @@ class DashboardScreen extends StatelessWidget {
                                                         ?.avatar ??
                                                     '',
                                               ),
-                                          radius: 22.r,
+                                          radius: 18.r,
                                         ),
                                       ),
                                       SizedBox(width: 5.w),
                                       // SizedBox(width: 8.sp),
                                       customText(
                                         "Hi ${settingsController.userProfile?.fname ?? ''}",
-                                        fontSize: 20.sp,
-                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ],
                                   ),
@@ -285,7 +291,7 @@ class DashboardScreen extends StatelessWidget {
                         color: AppColors.backgroundColor,
                         padding: EdgeInsets.symmetric(
                           horizontal: 20.w,
-                          vertical: 10.h,
+                          vertical: 5.h,
                         ),
                         child: Column(
                           children: [
@@ -337,16 +343,16 @@ class DashboardScreen extends StatelessWidget {
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                              vertical: 5.sp,
+                              vertical: 0.sp,
                               horizontal: 10.sp,
                             ),
-                            color: AppColors.backgroundColor,
+                            color: AppColors.whiteColor,
                             child: SingleChildScrollView(
                               child: Column(
                                 children: [
-                                  SizedBox(height: 15.h),
+                                  SizedBox(height: 5.h),
 
-                                  // // Categories Section
+                                  // Categories Section with Icons
                                   Container(
                                     width: 1.sw,
                                     child: SingleChildScrollView(
@@ -358,6 +364,15 @@ class DashboardScreen extends StatelessWidget {
                                             .map(
                                               (category) => CategoryContainer(
                                                 name: category,
+                                                icon:
+                                                    dashboardController
+                                                        .categoryIcons[category] ??
+                                                    Icons.restaurant,
+                                                isSelected:
+                                                    dashboardController
+                                                        .selectedCategory
+                                                        .value ==
+                                                    category,
                                                 onPressed: () {
                                                   dashboardController
                                                       .updateSelectedCategory(
@@ -367,6 +382,117 @@ class DashboardScreen extends StatelessWidget {
                                               ),
                                             )
                                             .toList(),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 12.h),
+
+                                  // Food Type Categories Row
+                                  Container(
+                                    width: 1.sw,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: dashboardController
+                                            .foodTypeCategories
+                                            .map(
+                                              (
+                                                category,
+                                              ) => FoodTypeCategoryItem(
+                                                name: category['name']!,
+                                                image: category['image']!,
+                                                isSelected:
+                                                    dashboardController
+                                                        .selectedFoodType
+                                                        .value ==
+                                                    category['name'],
+                                                onPressed: () {
+                                                  dashboardController
+                                                      .updateSelectedFoodType(
+                                                        category['name']!,
+                                                      );
+                                                },
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 12.h),
+
+                                  // Filter Chips Row
+                                  Container(
+                                    width: 1.sw,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 5.w,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          // Discounts/Promotions filter
+                                          FilterChipWidget(
+                                            label: "Discounts",
+                                            icon: Icons.local_offer_outlined,
+                                            isSelected: dashboardController
+                                                .hasDiscountFilter
+                                                .value,
+                                            onPressed: () {
+                                              dashboardController
+                                                  .toggleDiscountFilter();
+                                            },
+                                          ),
+                                          // Free Delivery filter
+                                          FilterChipWidget(
+                                            label: "Free Delivery",
+                                            icon: Icons.local_shipping_outlined,
+                                            isSelected: dashboardController
+                                                .hasFreeDeliveryFilter
+                                                .value,
+                                            onPressed: () {
+                                              dashboardController
+                                                  .toggleFreeDeliveryFilter();
+                                            },
+                                          ),
+                                          // Food Type filter (opens bottomsheet)
+                                          FilterChipWidget(
+                                            label:
+                                                dashboardController
+                                                    .selectedFoodType
+                                                    .value
+                                                    .isEmpty
+                                                ? "Food Type"
+                                                : dashboardController
+                                                      .selectedFoodType
+                                                      .value,
+                                            icon:
+                                                Icons.restaurant_menu_outlined,
+                                            isSelected: dashboardController
+                                                .selectedFoodType
+                                                .value
+                                                .isNotEmpty,
+                                            onPressed: () {
+                                              showFoodTypeBottomSheet(
+                                                context,
+                                                dashboardController,
+                                              );
+                                            },
+                                          ),
+                                          // Clear all filters (only show if filters are active)
+                                          if (dashboardController
+                                              .hasActiveFilters)
+                                            FilterChipWidget(
+                                              label: "Clear All",
+                                              icon: Icons.clear_all,
+                                              isSelected: false,
+                                              onPressed: () {
+                                                dashboardController
+                                                    .clearAllFilters();
+                                              },
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -387,7 +513,7 @@ class DashboardScreen extends StatelessWidget {
                                   SizedBox(height: 10.h),
                                   dashboardController.isLoadingRestaurants
                                       ? Container(
-                                          height: 120.h,
+                                          height: 0.h,
                                           child: SingleChildScrollView(
                                             scrollDirection: Axis.horizontal,
                                             child: Row(
@@ -676,13 +802,21 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            !controller.hasValidLocation()
-                ? Icons.location_off
-                : Icons.restaurant,
-            size: 60.sp,
-            color: AppColors.obscureTextColor.withAlpha(127),
-          ),
+          !controller.hasValidLocation()
+              ? Icon(
+                  Icons.location_off,
+                  size: 60.sp,
+                  color: AppColors.obscureTextColor.withAlpha(127),
+                )
+              : SvgPicture.asset(
+                  SvgAssets.restaurantIcon,
+                  height: 60.sp,
+                  width: 60.sp,
+                  colorFilter: ColorFilter.mode(
+                    AppColors.obscureTextColor.withAlpha(127),
+                    BlendMode.srcIn,
+                  ),
+                ),
           SizedBox(height: 15.h),
           customText(
             !controller.hasValidLocation()
@@ -697,9 +831,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           customText(
-            message.isNotEmpty
-                ? message
-                : "We're working on adding more restaurants to your area",
+            message.isNotEmpty ? message : "Pull down to refresh",
             fontSize: 14.sp,
             color: AppColors.obscureTextColor,
             textAlign: TextAlign.center,
@@ -738,25 +870,6 @@ class DashboardScreen extends StatelessWidget {
               ),
               child: customText(
                 "Select Delivery Address",
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.whiteColor,
-              ),
-            )
-          else
-            ElevatedButton(
-              onPressed: () {
-                controller.fetchRestaurants();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-              ),
-              child: customText(
-                "Refresh",
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColors.whiteColor,
@@ -807,43 +920,6 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-class CategoryContainer extends StatelessWidget {
-  final String image;
-  final String name;
-  final VoidCallback? onPressed;
-
-  const CategoryContainer({
-    super.key,
-    this.name = "Lunch",
-    this.image = PngAssets.food,
-    this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
-        margin: EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(image, height: 65.sp, width: 65.sp),
-            SizedBox(height: 5.h),
-            customText(
-              name,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.blackColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class BrandsContainer extends StatelessWidget {
   final RestaurantModel restaurant;
   final VoidCallback? onPressed;
@@ -878,9 +954,12 @@ class BrandsContainer extends StatelessWidget {
                 children: [
                   ClipOval(
                     child:
-                        restaurant.logo != null && restaurant.logo!.isNotEmpty
+                        (restaurant.logoUrl != null &&
+                                restaurant.logoUrl!.isNotEmpty) ||
+                            (restaurant.logo != null &&
+                                restaurant.logo!.isNotEmpty)
                         ? CachedNetworkImage(
-                            imageUrl: restaurant.logo!,
+                            imageUrl: restaurant.logoUrl ?? restaurant.logo!,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
                               color: AppColors.backgroundColor,
@@ -986,15 +1065,21 @@ class RestaurantContainer extends StatelessWidget {
               children: [
                 // Restaurant image
                 Container(
-                  height: 200.sp,
+                  height: 170.sp,
                   width: 1.sw,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
                     color: AppColors.backgroundColor,
                     image: DecorationImage(
                       image:
-                          restaurant.banner != null &&
-                              restaurant.banner!.isNotEmpty
+                          restaurant.bannerUrl != null &&
+                              restaurant.bannerUrl!.isNotEmpty
+                          ? NetworkImage(restaurant.bannerUrl!)
+                          : restaurant.logoUrl != null &&
+                                restaurant.logoUrl!.isNotEmpty
+                          ? NetworkImage(restaurant.logoUrl!)
+                          : restaurant.banner != null &&
+                                restaurant.banner!.isNotEmpty
                           ? NetworkImage(restaurant.banner!)
                           : restaurant.logo != null &&
                                 restaurant.logo!.isNotEmpty
@@ -1056,25 +1141,138 @@ class RestaurantContainer extends StatelessWidget {
                             ),
                           ),
                         ),
-                      // Featured badge
-                      if (restaurant.isFeatured == 1)
+                      // Top badges row
+                      Positioned(
+                        top: 8.h,
+                        left: 8.w,
+                        right: 8.w,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Custom badges on the left
+                            if (restaurant.badges != null &&
+                                restaurant.badges!.isNotEmpty)
+                              Wrap(
+                                spacing: 4.w,
+                                runSpacing: 4.h,
+                                children: restaurant.badges!.map((badge) {
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                      vertical: 4.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondaryColor,
+                                      borderRadius: BorderRadius.circular(6.r),
+                                    ),
+                                    child: customText(
+                                      badge.toUpperCase(),
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.whiteColor,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            Spacer(),
+                            // Featured and Sponsored badges on the right
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (restaurant.isFeaturedBool)
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                      vertical: 4.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryColor,
+                                      borderRadius: BorderRadius.circular(6.r),
+                                    ),
+                                    child: customText(
+                                      "FEATURED",
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.whiteColor,
+                                    ),
+                                  ),
+                                if (restaurant.isSponsored)
+                                  Container(
+                                    margin: EdgeInsets.only(top: 4.h),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                      vertical: 4.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.amberColor,
+                                      borderRadius: BorderRadius.circular(6.r),
+                                    ),
+                                    child: customText(
+                                      "SPONSORED",
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.whiteColor,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Discount overlay at bottom left
+                      if (restaurant.topDiscount != null &&
+                          restaurant.topDiscount!.isCurrentlyActive &&
+                          restaurant.topDiscount!.badgeText != null)
                         Positioned(
-                          top: 10.h,
-                          right: 10.w,
+                          bottom: 8.h,
+                          left: 8.w,
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 8.w,
-                              vertical: 4.h,
+                              horizontal: 10.w,
+                              vertical: 6.h,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(8.r),
+                              color: AppColors.redColor,
+                              borderRadius: BorderRadius.circular(6.r),
                             ),
                             child: customText(
-                              "Featured",
+                              restaurant.topDiscount!.badgeText!,
                               fontSize: 10.sp,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: AppColors.whiteColor,
+                            ),
+                          ),
+                        ),
+                      // Free delivery badge at bottom right
+                      if (restaurant.freeDelivery)
+                        Positioned(
+                          bottom: 8.h,
+                          right: 8.w,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.greenColor,
+                              borderRadius: BorderRadius.circular(6.r),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.local_shipping_outlined,
+                                  size: 12.sp,
+                                  color: AppColors.whiteColor,
+                                ),
+                                SizedBox(width: 4.w),
+                                customText(
+                                  "FREE DELIVERY",
+                                  fontSize: 9.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -1260,7 +1458,7 @@ class FavRestaurantContainer extends StatelessWidget {
               children: [
                 // Restaurant image
                 Container(
-                  height: 200.sp,
+                  height: 170.sp,
                   width: 1.sw,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
@@ -1330,26 +1528,91 @@ class FavRestaurantContainer extends StatelessWidget {
                             ),
                           ),
                         ),
-                      // Featured badge
-                      if (favourite.favoritable?.isFeatured == 1)
+                      // Top badges row
+                      if (favourite.favoritable != null)
                         Positioned(
-                          top: 10.h,
-                          right: 10.w,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8.w,
-                              vertical: 4.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: customText(
-                              "Featured",
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.whiteColor,
-                            ),
+                          top: 8.h,
+                          left: 8.w,
+                          right: 8.w,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Custom badges on the left
+                              if (favourite.favoritable!.badges != null &&
+                                  favourite.favoritable!.badges!.isNotEmpty)
+                                Wrap(
+                                  spacing: 4.w,
+                                  runSpacing: 4.h,
+                                  children: favourite.favoritable!.badges!.map((
+                                    badge,
+                                  ) {
+                                    return Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.w,
+                                        vertical: 4.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.secondaryColor,
+                                        borderRadius: BorderRadius.circular(
+                                          6.r,
+                                        ),
+                                      ),
+                                      child: customText(
+                                        badge.toUpperCase(),
+                                        fontSize: 9.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.whiteColor,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              Spacer(),
+                              // Featured and Sponsored badges on the right
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  if (favourite.favoritable!.isFeaturedBool)
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.w,
+                                        vertical: 4.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryColor,
+                                        borderRadius: BorderRadius.circular(
+                                          6.r,
+                                        ),
+                                      ),
+                                      child: customText(
+                                        "FEATURED",
+                                        fontSize: 9.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.whiteColor,
+                                      ),
+                                    ),
+                                  if (favourite.favoritable!.isSponsored)
+                                    Container(
+                                      margin: EdgeInsets.only(top: 4.h),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.w,
+                                        vertical: 4.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.amberColor,
+                                        borderRadius: BorderRadius.circular(
+                                          6.r,
+                                        ),
+                                      ),
+                                      child: customText(
+                                        "SPONSORED",
+                                        fontSize: 9.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.whiteColor,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                     ],

@@ -5,13 +5,20 @@ class DeliverySuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get delivery from arguments if passed
+    final args = Get.arguments as Map<String, dynamic>?;
+    final deliveryFromArgs = args?['delivery'] as DeliveryModel?;
+
     return GetBuilder<DeliveriesController>(
       builder: (ordersController) {
+        // Use delivery from arguments or fall back to selectedDelivery
+        final currentDelivery = deliveryFromArgs ?? ordersController.selectedDelivery;
+
         return WillPopScope(
           onWillPop: () async {
-            Get.back();
-            Get.back();
-            return true;
+            // Go back to app navigation screen when back button is pressed
+            Get.offAllNamed(Routes.APP_NAVIGATION);
+            return false;
           },
           child: Scaffold(
             appBar: flatAppBar(bgColor: AppColors.backgroundColor),
@@ -49,55 +56,78 @@ class DeliverySuccessScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                           fontSize: 18.sp,
                         ),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 40.h),
                         CustomButton(
+                          width: double.infinity,
                           onPressed: () async {
-                            ordersController.fetchDeliveries();
-                            // Navigate to tracking screen - WebSocket joining handled by screen's initState
-                            Get.offNamedUntil(Routes.DELIVERY_TRACKING_SCREEN, (
-                              route,
-                            ) {
-                              final routeName = route.settings.name;
-                              return routeName !=
-                                      Routes.DELIVERY_SUMMARY_SCREEN &&
-                                  routeName !=
-                                      Routes.DELIVERY_ITEM_INPUT_SCREEN &&
-                                  routeName !=
-                                      Routes.INITIATE_DELIVERY_SCREEN &&
-                                  routeName != Routes.DELIVERY_SUCCESS_SCREEN;
-                            });
-                            ordersController
-                                .drawPolyLineFromOriginToDestination(
-                                  context,
-                                  originLatitude: ordersController
-                                      .selectedDelivery!
-                                      .pickUpLocation
-                                      .latitude,
-                                  originLongitude: ordersController
-                                      .selectedDelivery!
-                                      .pickUpLocation
-                                      .longitude,
-                                  originAddress: ordersController
-                                      .selectedDelivery!
-                                      .pickUpLocation
-                                      .name,
-                                  destinationLatitude: ordersController
-                                      .selectedDelivery!
-                                      .destinationLocation
-                                      .latitude,
-                                  destinationLongitude: ordersController
-                                      .selectedDelivery!
-                                      .destinationLocation
-                                      .longitude,
-                                  destinationAddress: ordersController
-                                      .selectedDelivery!
-                                      .destinationLocation
-                                      .name,
+                            // Check if delivery data exists
+                            if (currentDelivery == null) {
+                              showToast(
+                                message:
+                                    'Unable to track delivery. Please try again.',
+                                isError: true,
+                              );
+                              return;
+                            }
+
+                            try {
+                              // First, load all parcel deliveries to ensure we have the latest data
+                              await ordersController.fetchParcelDeliveries();
+
+                              // Find the delivery in the loaded list
+                              final foundDelivery = ordersController.allParcelDeliveries
+                                  .firstWhere(
+                                    (delivery) => delivery.id == currentDelivery.id,
+                                    orElse: () => currentDelivery,
+                                  );
+
+                              // Set the selected delivery to ensure it's available in the controller
+                              ordersController.selectedDelivery = foundDelivery;
+                              ordersController.update();
+
+                              // Fetch latest delivery data from API to get real-time status
+                              await ordersController.getParcelDeliveryById(
+                                foundDelivery.id,
+                              );
+
+                              // Check if fetch was successful
+                              if (ordersController.selectedParcelDelivery == null) {
+                                showToast(
+                                  message: 'Unable to load delivery details',
+                                  isError: true,
                                 );
+                                return;
+                              }
+
+                              // Navigate to parcel delivery details screen
+                              // The details screen will automatically redirect to tracking screen
+                              // if the status is confirmed/accepted/picked/in_transit
+                              // Keep APP_NAVIGATION in the stack
+                              Get.until((route) => route.settings.name == Routes.APP_NAVIGATION);
+                              Get.toNamed(Routes.PARCEL_DELIVERY_DETAILS_SCREEN);
+                            } catch (e) {
+                              showToast(
+                                message: 'Error loading delivery: $e',
+                                isError: true,
+                              );
+                            }
                           },
-                          title: "View Progress",
-                          // isBusy: ordersController.fetchingDeliveries,
+                          title: "Track Delivery",
                           backgroundColor: AppColors.primaryColor,
+                        ),
+                        SizedBox(height: 25.h),
+                        CustomButton(
+                          width: double.infinity,
+                          onPressed: () {
+                            // Refresh deliveries list to show the new delivery
+                            ordersController.fetchParcelDeliveries();
+                            // Go to app navigation screen - clears entire delivery creation stack
+                            Get.offAllNamed(Routes.APP_NAVIGATION);
+                          },
+                          title: "Go Home",
+                          backgroundColor: AppColors.whiteColor,
+                          fontColor: AppColors.primaryColor,
+                          borderColor: AppColors.primaryColor,
                         ),
                       ],
                     ),

@@ -1,5 +1,4 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:intl_phone_field/phone_number.dart';
 
 class SignInController extends GetxController {
   final authService = serviceLocator<AuthenticationService>();
@@ -19,36 +18,14 @@ class SignInController extends GetxController {
     update();
   }
 
-  bool signInWithEmail = true;
-
-  toggleSignInWithEmail() {
-    signInWithEmail = !signInWithEmail;
-    loginController.clear();
-    update();
-  }
-
   TextEditingController loginController = TextEditingController();
-
-  setPhoneNumber(val) {
-    loginController.text = val;
-    update();
-  }
-
-  PhoneNumber? filledPhoneNumber;
-  setFilledPhoneNumber(PhoneNumber num) {
-    filledPhoneNumber = num;
-    update();
-  }
-
   TextEditingController passwordController = TextEditingController();
   signIn() async {
     if (signInFormKey.currentState!.validate()) {
       setLoadingState(true);
       try {
         dynamic data = {
-          'login': signInWithEmail
-              ? loginController.text
-              : filledPhoneNumber?.completeNumber ?? "",
+          'login': loginController.text,
           'password': passwordController.text,
         };
         APIResponse response = await authService.login(data);
@@ -58,7 +35,6 @@ class SignInController extends GetxController {
         if (response.status.toLowerCase() == "success") {
           loginController.clear();
           passwordController.clear();
-          filledPhoneNumber=null;
           update();
           final getStorage = GetStorage();
           getStorage.write("token", response.data['auth_token']);

@@ -31,9 +31,7 @@ class TransactionDetailSummaryItem extends StatelessWidget {
                 customText(
                   value,
                   color: AppColors.blackColor,
-                  fontFamily: title == "Amount"
-                      ? 'HelveticaNeue'
-                      : "HelveticaNeue",
+                  fontStyle: GoogleFonts.inter().fontStyle,
                   fontSize: 14.sp,
                   fontWeight:
                       title == "Amount" ? FontWeight.w600 : FontWeight.w500,
@@ -53,9 +51,7 @@ class TransactionDetailSummaryItem extends StatelessWidget {
                   value,
                   color: AppColors.blackColor,
                   fontSize: 14.sp,
-                  fontFamily: title == "Amount"
-                      ? 'HelveticaNeue'
-                      : "HelveticaNeue",
+                 fontStyle: GoogleFonts.inter().fontStyle,
                   fontWeight:
                       title == "Amount" ? FontWeight.w600 : FontWeight.w500,
                   overflow: TextOverflow.visible,

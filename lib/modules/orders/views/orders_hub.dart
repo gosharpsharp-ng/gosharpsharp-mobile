@@ -14,10 +14,13 @@ class OrdersHub extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<CartController>(
+      init: Get.isRegistered<CartController>() ? null : CartController(),
       builder: (cartController) {
         return GetBuilder<OrdersController>(
+          init: Get.isRegistered<OrdersController>() ? null : OrdersController(),
           builder: (ordersController) {
             return GetBuilder<DeliveriesController>(
+              init: Get.isRegistered<DeliveriesController>() ? null : DeliveriesController(),
               builder: (deliveriesController) {
                 return Scaffold(
                   backgroundColor: AppColors.backgroundColor,

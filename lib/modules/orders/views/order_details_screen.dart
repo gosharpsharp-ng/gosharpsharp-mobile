@@ -339,27 +339,12 @@ class OrderDetailsScreen extends GetView<OrdersController> {
 
                   SizedBox(height: 12.h),
 
-                  // Track Order Button - show for all statuses except cancelled
-                  if (!['cancelled', 'rejected'].contains(order.status.toLowerCase()))
-                    Container(
-                      width: double.infinity,
-                      margin: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: CustomButton(
-                        title: 'Track Order',
-                        backgroundColor: AppColors.primaryColor,
-                        fontColor: AppColors.whiteColor,
-                        width: double.infinity,
-                        height: 50,
-                        fontSize: 16,
-                        onPressed: () {
-                          // Navigate to order status tracking screen
-                          Get.to(
-                            () => OrderStatusTrackingScreen(order: order),
-                            transition: Transition.rightToLeft,
-                          );
-                        },
-                      ),
-                    ),
+                  // Action Buttons based on order status
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: _buildActionButtons(order, ordersController),
+                  ),
 
                   SizedBox(height: 80.h),
                 ],
@@ -368,6 +353,244 @@ class OrderDetailsScreen extends GetView<OrdersController> {
           ),
         );
       },
+    );
+  }
+
+  // Build action buttons based on order status
+  Widget _buildActionButtons(OrderModel order, OrdersController ordersController) {
+    final status = order.status.toLowerCase();
+
+    // For pending orders, show Continue Payment, Cancel and Dispute options
+    if (status == 'pending') {
+      return Column(
+        children: [
+          CustomButton(
+            title: 'Continue Payment',
+            backgroundColor: AppColors.primaryColor,
+            fontColor: AppColors.whiteColor,
+            width: double.infinity,
+            height: 50,
+            fontSize: 16,
+            onPressed: () {
+              // Navigate to payment screen
+              // TODO: Implement payment continuation
+              showToast(
+                message: "Payment continuation coming soon",
+                isError: false,
+              );
+            },
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  title: 'Cancel Order',
+                  backgroundColor: AppColors.whiteColor,
+                  fontColor: AppColors.redColor,
+                  height: 50,
+                  fontSize: 14,
+                  borderColor: AppColors.redColor,
+                  onPressed: () {
+                    _showCancelDialog(order);
+                  },
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: CustomButton(
+                  title: 'Dispute Order',
+                  backgroundColor: AppColors.whiteColor,
+                  fontColor: AppColors.orangeColor,
+                  height: 50,
+                  fontSize: 14,
+                  borderColor: AppColors.orangeColor,
+                  onPressed: () {
+                    _showDisputeDialog(order);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    // For cancelled/rejected orders, don't show any action buttons
+    if (['cancelled', 'rejected'].contains(status)) {
+      return const SizedBox.shrink();
+    }
+
+    // For paid and active orders (preparing, ready, in_transit, etc.), show Track Order button
+    return CustomButton(
+      title: 'Track Order',
+      backgroundColor: AppColors.primaryColor,
+      fontColor: AppColors.whiteColor,
+      width: double.infinity,
+      height: 50,
+      fontSize: 16,
+      isBusy: ordersController.isLoadingOrderDetails,
+      onPressed: () async {
+        // Fetch latest order details before tracking
+        await _fetchLatestOrderAndTrack(order, ordersController);
+      },
+    );
+  }
+
+  // Fetch latest order details and navigate to tracking
+  Future<void> _fetchLatestOrderAndTrack(OrderModel order, OrdersController ordersController) async {
+    try {
+      // Show loading state
+      ordersController.setLoadingOrderDetails(true);
+
+      // Fetch latest order details
+      await ordersController.getOrderById(order.id);
+
+      // Get the updated order
+      final updatedOrder = ordersController.selectedOrder;
+
+      if (updatedOrder != null) {
+        // Navigate to tracking with latest data
+        Get.to(
+          () => OrderStatusTrackingScreen(order: updatedOrder),
+          transition: Transition.rightToLeft,
+        );
+      } else {
+        showToast(
+          message: "Could not load latest order details",
+          isError: true,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error fetching latest order details: $e');
+      showToast(
+        message: "Could not load latest order details. Please try again.",
+        isError: true,
+      );
+    } finally {
+      ordersController.setLoadingOrderDetails(false);
+    }
+  }
+
+  // Show cancel order dialog
+  void _showCancelDialog(OrderModel order) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: customText(
+          'Cancel Order',
+          fontSize: 18.sp,
+          fontWeight: FontWeight.w600,
+          color: AppColors.blackColor,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            customText(
+              'Are you sure you want to cancel this order?',
+              fontSize: 14.sp,
+              color: AppColors.greyColor,
+            ),
+            SizedBox(height: 12.h),
+            customText(
+              'Order #${order.orderNumber}',
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.blackColor,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: customText(
+              'Go Back',
+              fontSize: 14.sp,
+              color: AppColors.greyColor,
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              // TODO: Implement cancel order logic
+              showToast(
+                message: "Cancel order feature coming soon",
+                isError: false,
+              );
+            },
+            child: customText(
+              'Yes, Cancel',
+              fontSize: 14.sp,
+              color: AppColors.redColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Show dispute dialog
+  void _showDisputeDialog(OrderModel order) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: customText(
+          'Dispute Order',
+          fontSize: 18.sp,
+          fontWeight: FontWeight.w600,
+          color: AppColors.blackColor,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            customText(
+              'Are you sure you want to dispute this order?',
+              fontSize: 14.sp,
+              color: AppColors.greyColor,
+            ),
+            SizedBox(height: 12.h),
+            customText(
+              'Order #${order.orderNumber}',
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.blackColor,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: customText(
+              'Go Back',
+              fontSize: 14.sp,
+              color: AppColors.greyColor,
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              // TODO: Implement dispute logic
+              showToast(
+                message: "Dispute feature coming soon",
+                isError: false,
+              );
+            },
+            child: customText(
+              'Yes, Dispute',
+              fontSize: 14.sp,
+              color: AppColors.orangeColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -389,42 +612,6 @@ class OrderDetailsScreen extends GetView<OrdersController> {
         return 'Cancelled';
       default:
         return status.toUpperCase();
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return AppColors.greenColor;
-      case 'pending':
-        return Colors.orange;
-      case 'preparing':
-        return Colors.blue;
-      case 'ready':
-        return AppColors.greenColor;
-      case 'in_transit':
-        return AppColors.primaryColor;
-      case 'completed':
-        return Colors.grey;
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return AppColors.greyColor;
-    }
-  }
-
-  IconData _getNextActionIcon(String currentStatus) {
-    switch (currentStatus.toLowerCase()) {
-      case 'pending':
-        return Icons.restaurant_menu;
-      case 'preparing':
-        return Icons.check_circle_outline;
-      case 'ready':
-        return Icons.local_shipping_outlined;
-      case 'in_transit':
-        return Icons.done_all;
-      default:
-        return Icons.arrow_forward;
     }
   }
 

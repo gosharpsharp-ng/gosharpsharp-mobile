@@ -1,5 +1,5 @@
 class PngAssets {
-  static const String onboardingImage = 'assets/imgs/onboarding_image.png';
+  static const String onboardingImage = 'assets/imgs/onboarding_one.png';
   static const String onboardingImage2 = 'assets/imgs/gosharpsharp.jpg';
   static const String goSharpSharpIcon = 'assets/icons/gosharp_icon.png';
   static const String goSharpSharpTextLogo =
@@ -66,7 +66,8 @@ class SvgAssets {
   static const String shareIcon = 'assets/svgs/share.svg';
   static const String locationIcon = 'assets/svgs/location.svg';
   static const String notificationIcon = 'assets/svgs/notification.svg';
-  static const String emptyNotificationIcon = 'assets/svgs/empty_notification.svg';
+  static const String emptyNotificationIcon =
+      'assets/svgs/empty_notification.svg';
   static const String leafIcon = 'assets/svgs/leaf.svg';
   static const String readNotificationIcon =
       'assets/svgs/read_notification.svg';
@@ -83,4 +84,5 @@ class SvgAssets {
   static const String profileIcon = 'assets/svgs/profile.svg';
   static const String securityIcon = 'assets/svgs/security.svg';
   static const String supportIcon = 'assets/svgs/support.svg';
+  static const String restaurantIcon = 'assets/svgs/restaurant_icon.svg';
 }

@@ -1,6 +1,5 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:intl/intl.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class FundWalletAmountScreen extends StatelessWidget {
   const FundWalletAmountScreen({super.key});
@@ -8,13 +7,6 @@ class FundWalletAmountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<WalletController>(builder: (walletController) {
-      WebViewController collectionsWebViewController =
-          createWebViewController(successCallback: () {
-        Get.back();
-        walletController.clearFundingFields();
-        walletController.getTransactions();
-        walletController.getWalletBalance();
-      });
       return Form(
         key: walletController.fundWalletFormKey,
         child: Scaffold(
@@ -95,18 +87,38 @@ class FundWalletAmountScreen extends StatelessWidget {
                           await walletController.fundWallet();
                           if (walletController.payStackAuthorizationData !=
                               null) {
-                            showWebViewDialog(context,
-                                controller: collectionsWebViewController,
-                                onDialogClosed: () {
-                              walletController.clearFundingFields();
-                              walletController.getTransactions();
-                              walletController.getWalletBalance();
-                              Get.back();
-                            },
-                                title: "Paystack",
-                                url: walletController.payStackAuthorizationData
-                                        ?.authorizationUrl ??
-                                    "");
+                            if (!context.mounted) return;
+                            showPaymentWebViewDialog(
+                              context,
+                              url: walletController.payStackAuthorizationData
+                                      ?.authorizationUrl ??
+                                  "",
+                              title: "Paystack Payment",
+                              onSuccess: () {
+                                // Get the amount before clearing fields
+                                final amount = walletController.amountEntryController.text;
+                                walletController.clearFundingFields();
+                                // Navigate to success screen (wallet will refresh there)
+                                Get.offNamedUntil(
+                                  Routes.FUND_WALLET_SUCCESS_SCREEN,
+                                  (route) => route.settings.name == Routes.APP_NAVIGATION,
+                                  arguments: {
+                                    'amount': amount,
+                                  },
+                                );
+                              },
+                              onFailure: (String reason) {
+                                walletController.clearFundingFields();
+                                // Navigate to failure screen with specific reason
+                                Get.offNamedUntil(
+                                  Routes.FUND_WALLET_FAILURE_SCREEN,
+                                  (route) => route.settings.name == Routes.APP_NAVIGATION,
+                                  arguments: {
+                                    'message': reason,
+                                  },
+                                );
+                              },
+                            );
                           }
                         },
                         isBusy: walletController.fundingWallet,

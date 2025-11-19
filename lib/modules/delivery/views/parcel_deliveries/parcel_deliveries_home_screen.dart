@@ -29,6 +29,85 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
               children: [
                 SizedBox(height: 20.h),
 
+                // Status Filter Tabs
+                Container(
+                  height: 45.h,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: deliveriesController.deliveryStatuses.length,
+                    separatorBuilder: (context, index) => SizedBox(width: 16.w),
+                    itemBuilder: (context, index) {
+                      final status = deliveriesController.deliveryStatuses[index];
+                      final isSelected = deliveriesController.selectedDeliveryStatus == status;
+                      final deliveryCount = deliveriesController.getDeliveryCountByStatus(status);
+                      final displayName = _getStatusDisplayName(status);
+
+                      return InkWell(
+                        onTap: () async {
+                          deliveriesController.setSelectedDeliveryStatus(status);
+                          // Reload deliveries when switching tabs
+                          await deliveriesController.refreshParcelDeliveries();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20.w,
+                            vertical: 12.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primaryColor
+                                : AppColors.whiteColor,
+                            borderRadius: BorderRadius.circular(25.r),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primaryColor
+                                  : AppColors.greyColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              customText(
+                                displayName,
+                                color: isSelected
+                                    ? AppColors.whiteColor
+                                    : AppColors.blackColor,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              if (deliveryCount > 0) ...[
+                                SizedBox(width: 8.w),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.w,
+                                    vertical: 2.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.whiteColor
+                                        : AppColors.primaryColor,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                  ),
+                                  child: customText(
+                                    deliveryCount.toString(),
+                                    color: isSelected
+                                        ? AppColors.primaryColor
+                                        : AppColors.whiteColor,
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: 24.h),
+
                 // Parcel Deliveries List
                 Expanded(
                   child: RefreshIndicator(
@@ -48,20 +127,20 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
                               child: SkeletonLoaders.orderItem(count: 1),
                             ),
                           )
-                        : deliveriesController.allParcelDeliveries.isEmpty
+                        : deliveriesController.filteredParcelDeliveries.isEmpty
                         ? ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: [
                               SizedBox(height: 100.h),
-                              _buildEmptyState(),
+                              _buildEmptyState(deliveriesController.selectedDeliveryStatus),
                             ],
                           )
                         : ListView.separated(
                             physics: const AlwaysScrollableScrollPhysics(),
-                            itemCount: deliveriesController.allParcelDeliveries.length,
+                            itemCount: deliveriesController.filteredParcelDeliveries.length,
                             separatorBuilder: (context, index) => SizedBox(height: 12.h),
                             itemBuilder: (context, index) {
-                              final parcelDelivery = deliveriesController.allParcelDeliveries[index];
+                              final parcelDelivery = deliveriesController.filteredParcelDeliveries[index];
                               return ParcelDeliveryCard(
                                 parcelDelivery: parcelDelivery,
                                 onTap: () {
@@ -81,7 +160,7 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String status) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -90,18 +169,18 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
             width: 80.w,
             height: 80.h,
             decoration: BoxDecoration(
-              color: AppColors.greyColor.withOpacity(0.1),
+              color: AppColors.greyColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.local_shipping_outlined,
+              _getStatusIconForEmpty(status),
               size: 40.sp,
               color: AppColors.greyColor,
             ),
           ),
           SizedBox(height: 16.h),
           customText(
-            "No parcel deliveries",
+            "No ${_getStatusDisplayName(status).toLowerCase()} deliveries",
             color: AppColors.greyColor,
             overflow: TextOverflow.visible,
             fontSize: 16.sp,
@@ -109,7 +188,7 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
           ),
           SizedBox(height: 8.h),
           customText(
-            "Your parcel deliveries will appear here",
+            _getEmptyStateMessage(status),
             color: AppColors.greyColor,
             overflow: TextOverflow.visible,
             fontSize: 14.sp,
@@ -118,6 +197,73 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
         ],
       ),
     );
+  }
+
+  String _getStatusDisplayName(String status) {
+    switch (status.toLowerCase()) {
+      case 'all':
+        return 'All';
+      case 'pending':
+        return 'Pending';
+      case 'confirmed':
+        return 'Confirmed';
+      case 'accepted':
+        return 'Accepted';
+      case 'picked':
+        return 'Picked Up';
+      case 'in_transit':
+        return 'In Transit';
+      case 'delivered':
+        return 'Delivered';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  IconData _getStatusIconForEmpty(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Icons.schedule;
+      case 'confirmed':
+        return Icons.check_circle_outline;
+      case 'accepted':
+        return Icons.person_add_alt_1;
+      case 'picked':
+        return Icons.local_shipping_outlined;
+      case 'in_transit':
+        return Icons.local_shipping;
+      case 'delivered':
+        return Icons.done_all;
+      case 'cancelled':
+        return Icons.cancel_outlined;
+      default:
+        return Icons.local_shipping_outlined;
+    }
+  }
+
+  String _getEmptyStateMessage(String status) {
+    switch (status.toLowerCase()) {
+      case 'all':
+        return 'Your parcel deliveries will appear here';
+      case 'pending':
+        return 'Deliveries awaiting confirmation will appear here';
+      case 'confirmed':
+        return 'Confirmed deliveries waiting for rider assignment will appear here';
+      case 'accepted':
+        return 'Deliveries accepted by riders will appear here';
+      case 'picked':
+        return 'Picked up deliveries will be listed here';
+      case 'in_transit':
+        return 'Deliveries currently in transit will appear here';
+      case 'delivered':
+        return 'Successfully delivered parcels will be listed here';
+      case 'cancelled':
+        return 'Cancelled deliveries will appear here';
+      default:
+        return 'Your parcel deliveries will appear here';
+    }
   }
 }
 
@@ -181,7 +327,7 @@ class ParcelDeliveryCard extends StatelessWidget {
                     ),
                   ),
                   customText(
-                    _formatCurrency(parcelDelivery['cost'] ?? '0'),
+                    _formatCurrency(parcelDelivery['cost']?.toString() ?? '0'),
                     color: AppColors.blackColor,
                     fontSize: 20.sp,
                     fontWeight: FontWeight.w700,
