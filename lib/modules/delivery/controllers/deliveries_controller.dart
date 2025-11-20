@@ -50,31 +50,57 @@ class DeliveriesController extends GetxController {
   }
 
   Future<void> rateDelivery(BuildContext context) async {
-    if (deliveryRatingFormKey.currentState!.validate()) {
-      ratingDelivery = true;
-      update();
-      final dynamic data = {
-        "points": rating,
-        "review": ratingReviewController.text,
-      };
+    if (rating <= 0) {
+      if (context.mounted) {
+        ModernSnackBar.showInfo(context, message: "Please select a rating");
+      }
+      return;
+    }
+
+    ratingDelivery = true;
+    update();
+
+    final dynamic data = {
+      "points": rating.toInt(),
+    };
+
+    try {
       // Call the API - Use rateParcelDelivery for customer mobile app
       APIResponse response = await deliveryService.rateParcelDelivery(
         data: data,
         deliveryId: selectedDelivery!.id,
       );
-      // Handle response
-      showToast(
-        message: response.message,
-        isError: response.status != "success",
-      );
+
       ratingDelivery = false;
       update();
+
       if (response.status == "success") {
+        // Update the delivery with the rating
+        await getDelivery();
+
         rating = 0.0;
-        ratingReviewController.clear();
         update();
-        Navigator.pop(context);
-        Navigator.pop(context);
+
+        if (context.mounted) {
+          ModernSnackBar.showSuccess(
+            context,
+            message: "Rating submitted successfully",
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ModernSnackBar.showError(context, message: response.message);
+        }
+      }
+    } catch (e) {
+      ratingDelivery = false;
+      update();
+      customDebugPrint("Failed to rate delivery: $e");
+      if (context.mounted) {
+        ModernSnackBar.showError(
+          context,
+          message: "Failed to submit rating",
+        );
       }
     }
   }

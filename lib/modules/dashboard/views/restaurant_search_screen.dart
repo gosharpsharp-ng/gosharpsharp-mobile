@@ -10,14 +10,6 @@ class RestaurantSearchScreen extends StatefulWidget {
 }
 
 class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +26,7 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
               // Search Bar Section
               Container(
                 color: AppColors.backgroundColor,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                  vertical: 10.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
                 child: Column(
                   children: [
                     // Title
@@ -54,31 +43,12 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
                     SizedBox(height: 15.h),
                     // Search Input
                     CustomOutlinedRoundedInputField(
-                      controller: _searchController,
-                      borderRadius: 12.r,
+                      controller: dashboardController.searchController,
+                      borderRadius: 25.r,
                       isSearch: true,
                       prefixWidget: Icon(Icons.search, size: 25.sp),
-                      suffixWidget: Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 5.h,
-                          horizontal: 5.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withAlpha(180),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: SvgPicture.asset(
-                          SvgAssets.filterIcon,
-                          colorFilter: ColorFilter.mode(
-                            AppColors.whiteColor,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value.toLowerCase();
-                        });
+                      onFieldSubmitted: (value) {
+                        dashboardController.updateSearchQuery(value);
                       },
                     ),
                     SizedBox(height: 10.h),
@@ -104,7 +74,7 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Show all restaurants when search is empty
-                          if (_searchQuery.isEmpty) ...[
+                          if (dashboardController.searchQuery.value.isEmpty) ...[
                             Padding(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 10.w,
@@ -144,7 +114,7 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
                           else
                             _buildRestaurantList(
                               dashboardController,
-                              _searchQuery,
+                              dashboardController.searchQuery.value,
                             ),
 
                           SizedBox(height: 30.h),
@@ -161,10 +131,7 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
     );
   }
 
-  Widget _buildRestaurantList(
-    DashboardController controller,
-    String query,
-  ) {
+  Widget _buildRestaurantList(DashboardController controller, String query) {
     // Filter restaurants based on search query
     List<RestaurantModel> filteredRestaurants = controller.restaurants;
 
@@ -230,8 +197,8 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
             !controller.hasValidLocation()
                 ? "Location Required"
                 : !controller.shouldShowRestaurants()
-                    ? "Service Not Available"
-                    : "No Restaurants Available",
+                ? "Service Not Available"
+                : "No Restaurants Available",
             fontSize: 18.sp,
             fontWeight: FontWeight.w600,
             color: AppColors.blackColor,
@@ -239,9 +206,7 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
           ),
           SizedBox(height: 8.h),
           customText(
-            message.isNotEmpty
-                ? message
-                : "Pull down to refresh",
+            message.isNotEmpty ? message : "Pull down to refresh",
             fontSize: 14.sp,
             color: AppColors.obscureTextColor,
             textAlign: TextAlign.center,
@@ -254,14 +219,14 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
               child: customText(
                 "Enable Location",
-                fontSize: 14.sp,
+                fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColors.whiteColor,
               ),
@@ -273,16 +238,40 @@ class _RestaurantSearchScreenState extends State<RestaurantSearchScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
               child: customText(
                 "Select Delivery Address",
-                fontSize: 14.sp,
+                fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColors.whiteColor,
+              ),
+            )
+          else
+            ElevatedButton.icon(
+              onPressed: () async {
+                await controller.fetchRestaurants();
+              },
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: AppColors.blackColor,
+                size: 20.sp,
+              ),
+              label: customText(
+                "Refresh",
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.blackColor,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.yellowColor,
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
               ),
             ),
         ],
@@ -351,26 +340,27 @@ class RestaurantContainer extends StatelessWidget {
               children: [
                 // Restaurant image
                 Container(
-                  height: 200.sp,
+                  height: 170.sp,
                   width: 1.sw,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.r),
                     color: AppColors.backgroundColor,
                     image: DecorationImage(
-                      image: restaurant.bannerUrl != null &&
+                      image:
+                          restaurant.bannerUrl != null &&
                               restaurant.bannerUrl!.isNotEmpty
                           ? NetworkImage(restaurant.bannerUrl!)
                           : restaurant.logoUrl != null &&
-                                  restaurant.logoUrl!.isNotEmpty
-                              ? NetworkImage(restaurant.logoUrl!)
-                              : restaurant.banner != null &&
-                                      restaurant.banner!.isNotEmpty
-                                  ? NetworkImage(restaurant.banner!)
-                                  : restaurant.logo != null &&
-                                          restaurant.logo!.isNotEmpty
-                                      ? NetworkImage(restaurant.logo!)
-                                      : AssetImage("assets/images/placeholder.png")
-                                          as ImageProvider,
+                                restaurant.logoUrl!.isNotEmpty
+                          ? NetworkImage(restaurant.logoUrl!)
+                          : restaurant.banner != null &&
+                                restaurant.banner!.isNotEmpty
+                          ? NetworkImage(restaurant.banner!)
+                          : restaurant.logo != null &&
+                                restaurant.logo!.isNotEmpty
+                          ? NetworkImage(restaurant.logo!)
+                          : AssetImage("assets/images/placeholder.png")
+                                as ImageProvider,
                       fit: BoxFit.cover,
                       onError: (exception, stackTrace) {
                         // Handle image loading error
@@ -426,25 +416,105 @@ class RestaurantContainer extends StatelessWidget {
                             ),
                           ),
                         ),
-                      // Featured badge
-                      if (restaurant.isFeatured == 1)
+                      // Featured and Sponsored badges on the right
+                      Positioned(
+                        top: 8.h,
+                        right: 8.w,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            if (restaurant.isFeaturedBool)
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 4.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor,
+                                  borderRadius: BorderRadius.circular(6.r),
+                                ),
+                                child: customText(
+                                  "FEATURED",
+                                  fontSize: 9.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ),
+                            if (restaurant.isSponsored)
+                              Container(
+                                margin: EdgeInsets.only(top: 4.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 4.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.amberColor,
+                                  borderRadius: BorderRadius.circular(6.r),
+                                ),
+                                child: customText(
+                                  "SPONSORED",
+                                  fontSize: 9.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      // Discount overlay at bottom left
+                      if (restaurant.topDiscount != null &&
+                          restaurant.topDiscount!.isCurrentlyActive &&
+                          restaurant.topDiscount!.badgeText != null)
                         Positioned(
-                          top: 10.h,
-                          right: 10.w,
+                          bottom: 8.h,
+                          left: 8.w,
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 8.w,
-                              vertical: 4.h,
+                              horizontal: 10.w,
+                              vertical: 6.h,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(8.r),
+                              color: AppColors.redColor,
+                              borderRadius: BorderRadius.circular(6.r),
                             ),
                             child: customText(
-                              "Featured",
+                              restaurant.topDiscount!.badgeText!,
                               fontSize: 10.sp,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: AppColors.whiteColor,
+                            ),
+                          ),
+                        ),
+                      // Free delivery badge at bottom right
+                      if (restaurant.freeDelivery)
+                        Positioned(
+                          bottom: 8.h,
+                          right: 8.w,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.greenColor,
+                              borderRadius: BorderRadius.circular(6.r),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.local_shipping_outlined,
+                                  size: 12.sp,
+                                  color: AppColors.whiteColor,
+                                ),
+                                SizedBox(width: 4.w),
+                                customText(
+                                  "FREE DELIVERY",
+                                  fontSize: 9.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -482,7 +552,7 @@ class RestaurantContainer extends StatelessWidget {
                     // Favorite button
                     InkWell(
                       onTap: () async {
-                        await controller.toggleFavorite(restaurant);
+                        await controller.toggleFavorite(restaurant, context);
                       },
                       child: Container(
                         padding: EdgeInsets.all(8.sp),

@@ -81,72 +81,74 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         ),
                       ),
                       child: RefreshIndicator(
-                        onRefresh: () => _refreshRestaurantDetails(dashboardController),
+                        onRefresh: () =>
+                            _refreshRestaurantDetails(dashboardController),
                         color: AppColors.primaryColor,
                         child: SingleChildScrollView(
                           physics: AlwaysScrollableScrollPhysics(),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-
-
-                            // Restaurant Description
-                            if (restaurant.description != null &&
-                                restaurant.description!.isNotEmpty)
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    customText(
-                                      restaurant.name,
-                                      fontSize: 24.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.blackColor,
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    if (restaurant.cuisineType != null)
+                              // Restaurant Description
+                              if (restaurant.description != null &&
+                                  restaurant.description!.isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 20.w,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
                                       customText(
-                                        restaurant.cuisineType!,
+                                        restaurant.name,
+                                        fontSize: 24.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.blackColor,
+                                      ),
+                                      SizedBox(height: 4.h),
+                                      if (restaurant.cuisineType != null)
+                                        customText(
+                                          restaurant.cuisineType!,
+                                          fontSize: 14.sp,
+                                          color: AppColors.obscureTextColor,
+                                        ),
+                                      customText(
+                                        restaurant.description!,
                                         fontSize: 14.sp,
                                         color: AppColors.obscureTextColor,
+                                        maxLines: 3,
                                       ),
-                                    customText(
-                                      restaurant.description!,
-                                      fontSize: 14.sp,
-                                      color: AppColors.obscureTextColor,
-                                      maxLines: 3,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
 
-                            if (restaurant.description != null &&
-                                restaurant.description!.isNotEmpty)
+                              if (restaurant.description != null &&
+                                  restaurant.description!.isNotEmpty)
+                                SizedBox(height: 20.h),
+
+                              // Contact Info and Status
+                              _buildContactInfo(restaurant),
+
+                              SizedBox(height: 30.h),
+
+                              // Category Tabs
+                              _buildCategoryTabs(),
+
                               SizedBox(height: 20.h),
 
-                            // Contact Info and Status
-                            _buildContactInfo(restaurant),
+                              // Menu Section Header
+                              _buildMenuHeader(dashboardController),
 
-                            SizedBox(height: 30.h),
+                              SizedBox(height: 15.h),
 
-                            // Category Tabs
-                            _buildCategoryTabs(),
+                              // Menu Items
+                              _buildMenuItems(
+                                dashboardController,
+                                cartController,
+                              ),
 
-                            SizedBox(height: 20.h),
-
-                            // Menu Section Header
-                            _buildMenuHeader(dashboardController),
-
-                            SizedBox(height: 15.h),
-
-                            // Menu Items
-                            _buildMenuItems(
-                              dashboardController,
-                              cartController,
-                            ),
-
-                            SizedBox(height: 30.h),
+                              SizedBox(height: 30.h),
                             ],
                           ),
                         ),
@@ -175,7 +177,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           width: 1.sw,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: restaurant.bannerUrl != null && restaurant.bannerUrl!.isNotEmpty
+              image:
+                  restaurant.bannerUrl != null &&
+                      restaurant.bannerUrl!.isNotEmpty
                   ? NetworkImage(restaurant.bannerUrl!)
                   : restaurant.logoUrl != null && restaurant.logoUrl!.isNotEmpty
                   ? NetworkImage(restaurant.logoUrl!)
@@ -245,8 +249,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           dashboardController.isFavorite(restaurant.id)
                               ? Icons.favorite
                               : Icons.favorite_border,
-                          color:
-                              dashboardController.isFavorite(restaurant.id)
+                          color: dashboardController.isFavorite(restaurant.id)
                               ? Colors.red
                               : AppColors.whiteColor,
                           size: 20.sp,
@@ -268,23 +271,28 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     radius: 40.r,
                     backgroundColor: AppColors.primaryColor,
                     backgroundImage:
-                    (restaurant.logoUrl != null && restaurant.logoUrl!.isNotEmpty)
+                        (restaurant.logoUrl != null &&
+                            restaurant.logoUrl!.isNotEmpty)
                         ? NetworkImage(restaurant.logoUrl!)
-                        : (restaurant.logo != null && restaurant.logo!.isNotEmpty)
+                        : (restaurant.logo != null &&
+                              restaurant.logo!.isNotEmpty)
                         ? NetworkImage(restaurant.logo!)
                         : null,
-                    child: (restaurant.logoUrl == null || restaurant.logoUrl!.isEmpty) &&
-                           (restaurant.logo == null || restaurant.logo!.isEmpty)
+                    child:
+                        (restaurant.logoUrl == null ||
+                                restaurant.logoUrl!.isEmpty) &&
+                            (restaurant.logo == null ||
+                                restaurant.logo!.isEmpty)
                         ? Text(
-                      restaurant.name.isNotEmpty
-                          ? restaurant.name[0].toUpperCase()
-                          : "R",
-                      style: TextStyle(
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.whiteColor,
-                      ),
-                    )
+                            restaurant.name.isNotEmpty
+                                ? restaurant.name[0].toUpperCase()
+                                : "R",
+                            style: TextStyle(
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.whiteColor,
+                            ),
+                          )
                         : null,
                   ),
                 ),
@@ -292,8 +300,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             ],
           ),
         ),
-
-
       ],
     );
   }
@@ -579,7 +585,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         decoration: BoxDecoration(
           color: AppColors.whiteColor,
           // borderRadius: BorderRadius.circular(12.r),
-          border: Border(bottom: BorderSide(color: AppColors.obscureTextColor,width: 0.2)),
+          border: Border(
+            bottom: BorderSide(color: AppColors.obscureTextColor, width: 0.2),
+          ),
           // boxShadow: [
           //   BoxShadow(
           //     color: Colors.black.withOpacity(0.05),
@@ -591,8 +599,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max
-          ,
+          mainAxisSize: MainAxisSize.max,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -638,6 +645,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         fontWeight: FontWeight.w500,
                         color: AppColors.blackColor,
                       ),
+
                       // SizedBox(height: 4.h),
                       //
                       // // Category badge
@@ -657,7 +665,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                       //     fontWeight: FontWeight.w500,
                       //   ),
                       // ),
-
                       SizedBox(height: 4.h),
 
                       if (menuItem.description != null &&
@@ -725,8 +732,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     ),
                   ],
                 ),
-
-
               ],
             ),
             SizedBox(height: 5.h),
@@ -787,8 +792,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           color: isCurrentlyAdding
               ? AppColors.obscureTextColor
               : isInCart
-                  ? AppColors.primaryColor
-                  : AppColors.lightGreyColor,
+              ? AppColors.primaryColor
+              : AppColors.lightGreyColor,
           shape: BoxShape.circle,
         ),
         child: isCurrentlyAdding
@@ -817,7 +822,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     DashboardController controller,
   ) async {
     try {
-      await controller.toggleFavorite(restaurant);
+      await controller.toggleFavorite(restaurant, context);
     } catch (e) {
       debugPrint('Error toggling favorite: $e');
     }
@@ -850,5 +855,4 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       await controller.refreshRestaurantDetails(restaurant.id.toString());
     }
   }
-
 }

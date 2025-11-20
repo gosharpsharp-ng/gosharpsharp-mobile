@@ -91,6 +91,9 @@ class OrderModel {
   final DeliveryLocationModel? deliveryLocation;
   final List<dynamic> transactions;
   final dynamic discount;
+  final String? deliveryCode;
+  final dynamic riderRating;
+  final dynamic restaurantRating;
 
   OrderModel({
     required this.id,
@@ -129,6 +132,9 @@ class OrderModel {
     this.deliveryLocation,
     this.transactions = const [],
     this.discount,
+    this.deliveryCode,
+    this.riderRating,
+    this.restaurantRating,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -191,6 +197,9 @@ class OrderModel {
           : null,
       transactions: json['transactions'] ?? [],
       discount: json['discount'],
+      deliveryCode: json['delivery_code']?.toString(),
+      riderRating: json['rider_rating'],
+      restaurantRating: json['restaurant_rating'],
     );
   }
 
@@ -231,6 +240,9 @@ class OrderModel {
       'delivery_location': deliveryLocation?.toJson(),
       'transactions': transactions,
       'discount': discount,
+      'delivery_code': deliveryCode,
+      'rider_rating': riderRating,
+      'restaurant_rating': restaurantRating,
     };
   }
 
@@ -271,6 +283,9 @@ class OrderModel {
     DeliveryLocationModel? deliveryLocation,
     List<dynamic>? transactions,
     dynamic discount,
+    String? deliveryCode,
+    dynamic riderRating,
+    dynamic restaurantRating,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -309,6 +324,9 @@ class OrderModel {
       deliveryLocation: deliveryLocation ?? this.deliveryLocation,
       transactions: transactions ?? this.transactions,
       discount: discount ?? this.discount,
+      deliveryCode: deliveryCode ?? this.deliveryCode,
+      riderRating: riderRating ?? this.riderRating,
+      restaurantRating: restaurantRating ?? this.restaurantRating,
     );
   }
 

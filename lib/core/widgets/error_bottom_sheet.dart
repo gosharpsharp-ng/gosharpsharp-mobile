@@ -40,109 +40,133 @@ class _ErrorBottomSheetState extends State<ErrorBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(20.w),
+      width: 1.sw,
+      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 32.h),
       decoration: BoxDecoration(
         color: AppColors.whiteColor,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20.r),
-          topRight: Radius.circular(20.r),
+          topLeft: Radius.circular(24.r),
+          topRight: Radius.circular(24.r),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: EdgeInsets.only(bottom: 20.h),
-            width: 40.w,
-            height: 4.h,
-            decoration: BoxDecoration(
-              color: AppColors.obscureTextColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2.r),
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.blackColor.withAlpha(25),
+            blurRadius: 20,
+            offset: Offset(0, -4),
           ),
-
-          // Error icon with animated container
-          Container(
-            width: 80.w,
-            height: 80.w,
-            decoration: BoxDecoration(
-              color: AppColors.redColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.error_outline_rounded,
-              color: AppColors.redColor,
-              size: 48.sp,
-            ),
-          ),
-
-          SizedBox(height: 16.h),
-
-          // Title
-          customText(
-            widget.title,
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.blackColor,
-            textAlign: TextAlign.center,
-          ),
-
-          SizedBox(height: 8.h),
-
-          // Error message
-          customText(
-            widget.message,
-            fontSize: 14.sp,
-            color: AppColors.greyColor,
-            textAlign: TextAlign.center,
-            maxLines: 5,
-          ),
-
-          SizedBox(height: 24.h),
-
-          // Action buttons
-          if (widget.actionButtonText != null && widget.onActionPressed != null)
-            Row(
-              children: [
-                Expanded(
-                  child: CustomButton(
-                    title: "Cancel",
-                    backgroundColor: AppColors.whiteColor,
-                    fontColor: AppColors.greyColor,
-                    borderColor: AppColors.greyColor,
-                    height: 45,
-                    fontSize: 14,
-                    onPressed: () => Get.back(),
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: CustomButton(
-                    title: widget.actionButtonText!,
-                    backgroundColor: AppColors.redColor,
-                    fontColor: AppColors.whiteColor,
-                    height: 45,
-                    fontSize: 14,
-                    onPressed: () {
-                      Get.back();
-                      widget.onActionPressed?.call();
-                    },
-                  ),
-                ),
-              ],
-            )
-          else
-            CustomButton(
-              title: "Got it",
-              backgroundColor: AppColors.primaryColor,
-              fontColor: AppColors.whiteColor,
-              height: 45,
-              width: 150,
-              fontSize: 14,
-              onPressed: () => Get.back(),
-            ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: EdgeInsets.only(bottom: 24.h),
+              width: 48.w,
+              height: 5.h,
+              decoration: BoxDecoration(
+                color: AppColors.obscureTextColor.withAlpha(80),
+                borderRadius: BorderRadius.circular(3.r),
+              ),
+            ),
+
+            // Error icon with animated container
+            Container(
+              width: 90.w,
+              height: 90.w,
+              decoration: BoxDecoration(
+                color: AppColors.redColor.withAlpha(30),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.redColor,
+                size: 52.sp,
+              ),
+            ),
+
+            SizedBox(height: 20.h),
+
+            // Title
+            Container(
+              width: 1.sw,
+              child: customText(
+                widget.title,
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColors.blackColor,
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+            SizedBox(height: 12.h),
+
+            // Error message
+            Container(
+              width: 1.sw,
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
+              child: customText(
+                widget.message,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w400,
+                color: AppColors.greyColor,
+                textAlign: TextAlign.center,
+                maxLines: 6,
+                height: 1.4,
+              ),
+            ),
+
+            SizedBox(height: 32.h),
+
+            // Action buttons
+            if (widget.actionButtonText != null && widget.onActionPressed != null)
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      title: "Cancel",
+                      backgroundColor: AppColors.whiteColor,
+                      fontColor: AppColors.greyColor,
+                      borderColor: AppColors.greyColor.withAlpha(150),
+                      height: 50,
+                      fontSize: 15,
+                      onPressed: () => Get.back(),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: CustomButton(
+                      title: widget.actionButtonText!,
+                      backgroundColor: AppColors.redColor,
+                      fontColor: AppColors.whiteColor,
+                      height: 50,
+                      fontSize: 15,
+                      onPressed: () {
+                        Get.back();
+                        widget.onActionPressed?.call();
+                      },
+                    ),
+                  ),
+                ],
+              )
+            else
+              SizedBox(
+                width: 1.sw,
+                child: CustomButton(
+                  title: "Got it",
+                  backgroundColor: AppColors.primaryColor,
+                  fontColor: AppColors.whiteColor,
+                  height: 52,
+                  width: double.infinity,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  onPressed: () => Get.back(),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
