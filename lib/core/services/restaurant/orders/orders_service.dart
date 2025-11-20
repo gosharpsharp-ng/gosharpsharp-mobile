@@ -18,4 +18,11 @@ class OrdersService extends CoreService {
   Future<APIResponse> createOrder(dynamic data) async {
     return await generalPatch("/customers/orders/menu/create-and-pay", data);
   }
+
+  Future<APIResponse> rateOrder({
+    required dynamic data,
+    required int orderId,
+  }) async {
+    return await send("/customers/orders/menu/$orderId/rating", data);
+  }
 }

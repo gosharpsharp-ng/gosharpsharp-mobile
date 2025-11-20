@@ -605,6 +605,7 @@ class CustomOutlinedRoundedInputField extends StatefulWidget {
   final Widget? suffixWidget;
   final bool obscureText;
   final Function(dynamic)? onChanged;
+  final Function(String)? onFieldSubmitted;
   final bool isRequired;
   final bool isCurrency;
   final bool isSearch;
@@ -645,6 +646,7 @@ class CustomOutlinedRoundedInputField extends StatefulWidget {
     this.prefixWidget,
     this.authPrefix,
     this.onChanged,
+    this.onFieldSubmitted,
     this.regex,
     this.suffixWidget = const SizedBox.shrink(),
     this.fontSize = 14,
@@ -698,8 +700,10 @@ class _CustomOutlinedRoundedInputFieldState
               maxLines: widget.maxLines,
               minLines: 1,
               keyboardType: widget.keyboardType,
+              textInputAction: widget.isSearch ? TextInputAction.search : TextInputAction.done,
               inputFormatters: widget.formatter,
               onChanged: widget.onChanged,
+              onFieldSubmitted: widget.onFieldSubmitted,
               validator: !widget.isRequired
                   ? null
                   : widget.useCustomValidator

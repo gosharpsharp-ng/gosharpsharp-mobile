@@ -1,3 +1,4 @@
+import 'package:gosharpsharp/core/models/categories_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 /// Shows a styled and animated food type bottom sheet
@@ -42,17 +43,11 @@ class _FoodTypeBottomSheetState extends State<FoodTypeBottomSheet>
     );
 
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
     _animationController.forward();
@@ -72,14 +67,11 @@ class _FoodTypeBottomSheetState extends State<FoodTypeBottomSheet>
         return Transform.scale(
           scale: _scaleAnimation.value,
           alignment: Alignment.bottomCenter,
-          child: Opacity(
-            opacity: _fadeAnimation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _fadeAnimation.value, child: child),
         );
       },
       child: Container(
-        height: 0.6.sh,
+        height: 0.65.sh,
         decoration: BoxDecoration(
           color: AppColors.whiteColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
@@ -115,10 +107,7 @@ class _FoodTypeBottomSheetState extends State<FoodTypeBottomSheet>
             ),
             // Header with slide-in animation
             TweenAnimationBuilder<Offset>(
-              tween: Tween<Offset>(
-                begin: Offset(0, -20),
-                end: Offset.zero,
-              ),
+              tween: Tween<Offset>(begin: Offset(0, -20), end: Offset.zero),
               duration: Duration(milliseconds: 400),
               curve: Curves.easeOut,
               builder: (context, offset, child) {
@@ -176,41 +165,38 @@ class _FoodTypeBottomSheetState extends State<FoodTypeBottomSheet>
                 ),
               ),
             ),
-            Divider(
-              height: 1,
-              color: AppColors.greyColor.withAlpha(51),
-            ),
+            Divider(height: 1, color: AppColors.greyColor.withAlpha(51)),
+            SizedBox(height: 8.h),
             // Grid of food types with staggered animation
             Expanded(
               child: Padding(
-                padding: EdgeInsets.all(16.sp),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
                 child: GetBuilder<DashboardController>(
                   builder: (ctrl) {
                     return GridView.builder(
+                      physics: BouncingScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 0.85,
-                        crossAxisSpacing: 12.w,
-                        mainAxisSpacing: 12.h,
+                        crossAxisCount: 4,
+                        childAspectRatio: 0.82,
+                        crossAxisSpacing: 10.w,
+                        mainAxisSpacing: 16.h,
                       ),
-                      itemCount: ctrl.foodTypeCategories.length,
+                      itemCount: ctrl.menuCategories.length,
                       itemBuilder: (context, index) {
-                        final category = ctrl.foodTypeCategories[index];
+                        final category = ctrl.menuCategories[index];
                         final isSelected =
-                            ctrl.selectedFoodType.value == category['name'];
+                            ctrl.selectedFoodType.value == category.name;
 
                         // Staggered animation for each item
                         return TweenAnimationBuilder<double>(
                           tween: Tween<double>(begin: 0, end: 1),
-                          duration: Duration(
-                            milliseconds: 300 + (index * 50),
-                          ),
+                          duration: Duration(milliseconds: 300 + (index * 50)),
                           curve: Curves.easeOutBack,
                           builder: (context, value, child) {
                             return Transform.scale(
                               scale: value,
                               child: Opacity(
-                                opacity: value,
+                                opacity: value.clamp(0.0, 1.0),
                                 child: child,
                               ),
                             );
@@ -236,143 +222,160 @@ class _FoodTypeBottomSheetState extends State<FoodTypeBottomSheet>
 
   Widget _buildFoodTypeItem(
     BuildContext context,
-    Map<String, String> category,
+    CategoryModel category,
     bool isSelected,
     DashboardController ctrl,
   ) {
     return InkWell(
       onTap: () {
-        ctrl.updateSelectedFoodType(category['name']!);
+        ctrl.updateSelectedFoodType(category.name);
         Navigator.pop(context);
       },
-      borderRadius: BorderRadius.circular(16.r),
-      splashColor: AppColors.primaryColor.withAlpha(30),
-      highlightColor: AppColors.primaryColor.withAlpha(15),
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(begin: 1, end: isSelected ? 1.05 : 1),
-        duration: Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        builder: (context, scale, child) {
-          return Transform.scale(
-            scale: scale,
-            child: child,
-          );
-        },
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          padding: EdgeInsets.all(8.sp),
-          decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(14.r),
+      splashColor: AppColors.primaryColor.withAlpha(20),
+      highlightColor: AppColors.primaryColor.withAlpha(10),
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryColor.withAlpha(26)
+              : AppColors.backgroundColor,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
             color: isSelected
-                ? AppColors.primaryColor.withAlpha(26)
-                : AppColors.backgroundColor,
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.primaryColor
-                  : AppColors.greyColor.withAlpha(30),
-              width: isSelected ? 2 : 1,
+                ? AppColors.primaryColor
+                : AppColors.greyColor.withAlpha(0),
+            width: isSelected ? 1.5 : 0,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Image with tilt animation when selected
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: isSelected ? -0.1 : 0),
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  builder: (context, rotation, child) {
+                    return Transform.rotate(
+                      angle: rotation,
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 300),
+                        padding: EdgeInsets.all(isSelected ? 2.sp : 0),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isSelected
+                              ? AppColors.primaryColor.withAlpha(30)
+                              : AppColors.transparent,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(28.r),
+                          child:
+                              category.iconUrl != null &&
+                                  category.iconUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: category.iconUrl!,
+                                  height: 44.sp,
+                                  width: 44.sp,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    height: 44.sp,
+                                    width: 44.sp,
+                                    color: AppColors.greyColor.withAlpha(51),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        height: 44.sp,
+                                        width: 44.sp,
+                                        color: AppColors.backgroundColor,
+                                        child: Icon(
+                                          Icons.restaurant,
+                                          size: 22.sp,
+                                          color: AppColors.primaryColor,
+                                        ),
+                                      ),
+                                )
+                              : Container(
+                                  height: 44.sp,
+                                  width: 44.sp,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.backgroundColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.restaurant,
+                                    size: 22.sp,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                // Check icon at bottom right
+                if (isSelected)
+                  Positioned(
+                    bottom: -2.sp,
+                    right: -2.sp,
+                    child: AnimatedScale(
+                      scale: isSelected ? 1.0 : 0.0,
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.elasticOut,
+                      child: Container(
+                        padding: EdgeInsets.all(2.sp),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.whiteColor,
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryColor.withAlpha(60),
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.check,
+                          color: AppColors.whiteColor,
+                          size: 10.sp,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primaryColor.withAlpha(51),
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: AppColors.blackColor.withAlpha(10),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Image with tilt animation when selected
-              TweenAnimationBuilder<double>(
-                tween: Tween<double>(
-                  begin: 0,
-                  end: isSelected ? -0.08 : 0,
-                ),
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                builder: (context, rotation, child) {
-                  return Transform.rotate(
-                    angle: rotation,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        AnimatedContainer(
-                          duration: Duration(milliseconds: 300),
-                          padding: EdgeInsets.all(isSelected ? 3.sp : 0),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isSelected
-                                ? AppColors.primaryColor.withAlpha(38)
-                                : AppColors.transparent,
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(30.r),
-                            child: Image.asset(
-                              category['image']!,
-                              height: 50.sp,
-                              width: 50.sp,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        // Check overlay with animation
-                        AnimatedScale(
-                          scale: isSelected ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.elasticOut,
-                          child: AnimatedOpacity(
-                            opacity: isSelected ? 1.0 : 0.0,
-                            duration: Duration(milliseconds: 200),
-                            child: Container(
-                              height: 50.sp,
-                              width: 50.sp,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.blackColor.withAlpha(180),
-                              ),
-                              child: Icon(
-                                Icons.check,
-                                color: AppColors.whiteColor,
-                                size: 24.sp,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+            SizedBox(height: 6.h),
+            AnimatedDefaultTextStyle(
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              style: TextStyle(
+                fontSize: 9.5.sp,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.primaryColor
+                    : AppColors.blackColor,
+                height: 1.2,
               ),
-              SizedBox(height: 8.h),
-              AnimatedDefaultTextStyle(
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected
-                      ? AppColors.primaryColor
-                      : AppColors.blackColor,
-                ),
-                child: Text(
-                  category['name']!,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              child: customText(
+                category.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

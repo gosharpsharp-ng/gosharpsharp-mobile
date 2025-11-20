@@ -62,17 +62,9 @@ class DashboardController extends GetxController {
   RxBool hasFreeDeliveryFilter = false.obs;
   RxString selectedFoodType = ''.obs;
 
-  // Food type categories with images (dummy data for now)
-  List<Map<String, String>> get foodTypeCategories => [
-    {'name': 'Pizza', 'image': 'assets/imgs/chow1.png'},
-    {'name': 'Burger', 'image': 'assets/imgs/chow2.png'},
-    {'name': 'Chinese', 'image': 'assets/imgs/chow3.png'},
-    {'name': 'African', 'image': 'assets/imgs/food.png'},
-    {'name': 'Fast Food', 'image': 'assets/imgs/chow1.png'},
-    {'name': 'Desserts', 'image': 'assets/imgs/chow2.png'},
-    {'name': 'Drinks', 'image': 'assets/imgs/chow3.png'},
-    {'name': 'Healthy', 'image': 'assets/imgs/food.png'},
-  ];
+  // Search query state
+  RxString searchQuery = ''.obs;
+  final TextEditingController searchController = TextEditingController();
 
   // Category icons mapping
   Map<String, IconData> get categoryIcons => {
@@ -116,7 +108,9 @@ class DashboardController extends GetxController {
     // Listen to location changes and refetch restaurants
     ever(locationController.selectedLocation, (location) {
       if (location.isNotEmpty && location != 'Choose Location to continue') {
-        debugPrint('📍 Location changed to: $location - Refetching restaurants...');
+        debugPrint(
+          '📍 Location changed to: $location - Refetching restaurants...',
+        );
         fetchRestaurants();
         fetchFavoriteRestaurants();
       }
@@ -188,10 +182,33 @@ class DashboardController extends GetxController {
         setRestaurantsLoadingState(false);
         return;
       }
-      dynamic filter = {
+      Map<String, dynamic> filter = {
         "longitude": coordinates['longitude'],
-        "latitude": coordinates['latitude']
+        "latitude": coordinates['latitude'],
       };
+
+      // Add promotion filter if enabled
+      if (hasDiscountFilter.value) {
+        filter['on_promo'] = true;
+      }
+
+      // Add search query if not empty
+      if (searchQuery.value.isNotEmpty) {
+        filter['search'] = searchQuery.value;
+      }
+
+      // Add category filter if a specific food type is selected
+      if (selectedFoodType.value.isNotEmpty) {
+        // Try to find the category ID from menuCategories
+        final matchingCategory = menuCategories.firstWhere(
+          (cat) =>
+              cat.name.toLowerCase() == selectedFoodType.value.toLowerCase(),
+          orElse: () => CategoryModel(id: 0, name: '', description: ''),
+        );
+        if (matchingCategory.id != 0) {
+          filter['category_id'] = matchingCategory.id;
+        }
+      }
 
       APIResponse response = await restaurantService.getRestaurants(filter);
 
@@ -211,10 +228,12 @@ class DashboardController extends GetxController {
           // This might come from a separate field in the restaurant data
         }
       } else {
-        showToast(message: response.message, isError: true);
+        customDebugPrint("Failed to fetch restaurants: ${response.message}");
+        restaurants = [];
       }
     } catch (e) {
-      showToast(message: "Failed to fetch restaurants: $e", isError: true);
+      customDebugPrint("Failed to fetch restaurants: $e");
+      restaurants = [];
     } finally {
       setRestaurantsLoadingState(false);
     }
@@ -235,7 +254,9 @@ class DashboardController extends GetxController {
               .where((json) => json != null)
               .map((json) {
                 try {
-                  return FavouriteRestaurantModel.fromJson(json as Map<String, dynamic>);
+                  return FavouriteRestaurantModel.fromJson(
+                    json as Map<String, dynamic>,
+                  );
                 } catch (e, stackTrace) {
                   // Log parsing error for debugging
                   debugPrint('❌ Error parsing favorite restaurant: $e');
@@ -256,20 +277,21 @@ class DashboardController extends GetxController {
             }
           }
 
-          debugPrint('✅ Loaded ${favoriteRestaurants.length} favorite restaurants');
+          debugPrint(
+            '✅ Loaded ${favoriteRestaurants.length} favorite restaurants',
+          );
           debugPrint('🔖 Favorite restaurant IDs: $_favoriteRestaurantIds');
         } else {
           favoriteRestaurants = [];
         }
       } else {
-        showToast(message: response.message, isError: true);
+        // Silent fail - favorites are not critical for app functionality
+        debugPrint('⚠️ Failed to fetch favorites: ${response.message}');
         favoriteRestaurants = [];
       }
     } catch (e) {
-      showToast(
-        message: "Failed to fetch favorite restaurants: $e",
-        isError: true,
-      );
+      // Silent fail - favorites are not critical, just log the error
+      debugPrint('❌ Error fetching favorites: $e');
       favoriteRestaurants = [];
     } finally {
       setFavoritesLoadingState(false);
@@ -311,11 +333,11 @@ class DashboardController extends GetxController {
           menuItems = [];
         }
       } else {
-        showToast(message: response.message, isError: true);
+        customDebugPrint("Failed to fetch menu items: ${response.message}");
         menuItems = [];
       }
     } catch (e) {
-      showToast(message: "Failed to fetch menu items: $e", isError: true);
+      customDebugPrint("Failed to fetch menu items: $e");
       menuItems = [];
     } finally {
       setMenusLoadingState(false);
@@ -325,22 +347,66 @@ class DashboardController extends GetxController {
   // Fetch menu categories
   Future<void> fetchMenuCategories() async {
     try {
+      debugPrint('📋 Fetching menu categories...');
       APIResponse response = await restaurantService.getMenuCategories({
         'page': 1,
         'per_page': 50,
       });
 
-      if (response.status.toLowerCase() == "success") {
-        menuCategories = (response.data['data'] as List)
-            .map((json) => CategoryModel.fromJson(json))
-            .toList();
+      debugPrint('📋 Menu categories response status: ${response.status}');
+      debugPrint('📋 Menu categories response data: ${response.data}');
 
-        // Update categories list for UI
-        categories = ['All'];
-        categories.addAll(menuCategories.map((cat) => cat.name));
+      if (response.status.toLowerCase() == "success") {
+        if (response.data != null) {
+          // Handle paginated response: data is nested under response.data['data']['data']
+          var categoriesData = response.data['data'];
+
+          if (categoriesData != null) {
+            // Check if it's paginated (has 'data' property) or direct array
+            var categoryList =
+                categoriesData is Map && categoriesData.containsKey('data')
+                ? categoriesData['data']
+                : categoriesData;
+
+            if (categoryList is List) {
+              menuCategories = categoryList
+                  .map((json) => CategoryModel.fromJson(json))
+                  .toList();
+
+              debugPrint('✅ Loaded ${menuCategories.length} menu categories');
+              for (var cat in menuCategories) {
+                debugPrint(
+                  '   - ${cat.name} (ID: ${cat.id}, Icon: ${cat.iconUrl})',
+                );
+              }
+
+              // Update categories list for UI
+              categories = ['All'];
+              categories.addAll(menuCategories.map((cat) => cat.name));
+
+              // Trigger UI update
+              update();
+            } else {
+              debugPrint('⚠️ Category list is not an array: $categoryList');
+              menuCategories = [];
+            }
+          } else {
+            debugPrint('⚠️ No categories data found in response');
+            menuCategories = [];
+          }
+        } else {
+          debugPrint('⚠️ Response data is null');
+          menuCategories = [];
+        }
+      } else {
+        debugPrint('❌ Failed to fetch menu categories: ${response.message}');
+        menuCategories = [];
       }
-    } catch (e) {
-      showToast(message: "Failed to fetch menu categories: $e", isError: true);
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error fetching menu categories: $e');
+      debugPrint('Stack trace: $stackTrace');
+      // Silent fail - categories will just not show, no need to interrupt user
+      menuCategories = [];
     }
   }
 
@@ -357,30 +423,46 @@ class DashboardController extends GetxController {
   }
 
   // Toggle favorite restaurant
-  Future<void> toggleFavorite(RestaurantModel restaurant) async {
+  Future<void> toggleFavorite(RestaurantModel restaurant, BuildContext context) async {
     try {
       APIResponse response = await restaurantService.toggleFavouriteRestaurant({
         'id': restaurant.id,
       });
 
       if (response.status.toLowerCase() == "success") {
-        if (_favoriteRestaurantIds.contains(restaurant.id)) {
+        final bool wasRemoved = _favoriteRestaurantIds.contains(restaurant.id);
+
+        if (wasRemoved) {
           _favoriteRestaurantIds.remove(restaurant.id);
           favoriteRestaurants.removeWhere((r) => r.id == restaurant.id);
-          showToast(message: "Removed from favorites", isError: false);
         } else {
           _favoriteRestaurantIds.add(restaurant.id);
           fetchFavoriteRestaurants();
-          showToast(message: "Added to favorites", isError: false);
         }
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           update();
         });
+
+        // Show feedback after state update
+        if (context.mounted) {
+          if (wasRemoved) {
+            ModernSnackBar.showInfo(
+              context,
+              message: "Removed from favorites",
+            );
+          } else {
+            ModernSnackBar.showSuccess(
+              context,
+              message: "Added to favorites",
+            );
+          }
+        }
       } else {
-        showToast(message: response.message, isError: true);
+        customDebugPrint("Failed to toggle favorite: ${response.message}");
       }
     } catch (e) {
-      showToast(message: "Failed to update favorites: $e", isError: true);
+      customDebugPrint("Failed to toggle favorite: $e");
     }
   }
 
@@ -402,10 +484,11 @@ class DashboardController extends GetxController {
   }
 
   // Filter restaurants by category and walking distance
+  // Note: Promotion, search, and category filters are now handled server-side
   List<RestaurantModel> getFilteredRestaurants() {
     List<RestaurantModel> filteredRestaurants = restaurants;
 
-    // Filter by walking distance first (if enabled)
+    // Filter by walking distance (client-side only)
     if (isWalkingDistanceFilter.value) {
       filteredRestaurants = filteredRestaurants.where((restaurant) {
         try {
@@ -419,7 +502,7 @@ class DashboardController extends GetxController {
       }).toList();
     }
 
-    // Filter by category
+    // Filter by category (client-side only)
     if (selectedCategory.value != 'All') {
       filteredRestaurants = filteredRestaurants
           .where(
@@ -430,27 +513,10 @@ class DashboardController extends GetxController {
           .toList();
     }
 
-    // Filter by discount/promotions
-    if (hasDiscountFilter.value) {
-      filteredRestaurants = filteredRestaurants.where((restaurant) {
-        return restaurant.topDiscount != null &&
-            restaurant.topDiscount!.isCurrentlyActive;
-      }).toList();
-    }
-
-    // Filter by free delivery
+    // Filter by free delivery (client-side only)
     if (hasFreeDeliveryFilter.value) {
       filteredRestaurants = filteredRestaurants.where((restaurant) {
         return restaurant.freeDelivery;
-      }).toList();
-    }
-
-    // Filter by food type (cuisine type match)
-    if (selectedFoodType.value.isNotEmpty) {
-      filteredRestaurants = filteredRestaurants.where((restaurant) {
-        final cuisineType = restaurant.cuisineType?.toLowerCase() ?? '';
-        final foodType = selectedFoodType.value.toLowerCase();
-        return cuisineType.contains(foodType) || foodType.contains(cuisineType);
       }).toList();
     }
 
@@ -513,9 +579,8 @@ class DashboardController extends GetxController {
   // Toggle discount filter
   void toggleDiscountFilter() {
     hasDiscountFilter.value = !hasDiscountFilter.value;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      update();
-    });
+    // Refetch restaurants with the promotion filter
+    fetchRestaurants();
   }
 
   // Toggle free delivery filter
@@ -533,9 +598,21 @@ class DashboardController extends GetxController {
     } else {
       selectedFoodType.value = foodType;
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      update();
-    });
+    // Refetch restaurants with the new category filter
+    fetchRestaurants();
+  }
+
+  // Update search query and refetch restaurants
+  void updateSearchQuery(String query) {
+    searchQuery.value = query;
+    // Refetch restaurants with the new search query
+    fetchRestaurants();
+  }
+
+  // Clear search query
+  void clearSearch() {
+    searchQuery.value = '';
+    fetchRestaurants();
   }
 
   // Clear all filters
@@ -544,10 +621,10 @@ class DashboardController extends GetxController {
     hasDiscountFilter.value = false;
     hasFreeDeliveryFilter.value = false;
     selectedFoodType.value = '';
+    searchQuery.value = '';
     isWalkingDistanceFilter.value = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      update();
-    });
+    // Refetch restaurants without any filters
+    fetchRestaurants();
   }
 
   // Check if any filter is active
@@ -556,6 +633,7 @@ class DashboardController extends GetxController {
       hasDiscountFilter.value ||
       hasFreeDeliveryFilter.value ||
       selectedFoodType.value.isNotEmpty ||
+      searchQuery.value.isNotEmpty ||
       isWalkingDistanceFilter.value;
 
   // Refresh all data
@@ -576,12 +654,11 @@ class DashboardController extends GetxController {
 
       if (response.status.toLowerCase() == "success") {
         return RestaurantModel.fromJson(response.data);
+      } else {
+        customDebugPrint("Failed to fetch restaurant details: ${response.message}");
       }
     } catch (e) {
-      showToast(
-        message: "Failed to fetch restaurant details: $e",
-        isError: true,
-      );
+      customDebugPrint("Failed to fetch restaurant details: $e");
     }
     return null;
   }
@@ -593,12 +670,11 @@ class DashboardController extends GetxController {
 
       if (response.status.toLowerCase() == "success") {
         return MenuItemModel.fromJson(response.data);
+      } else {
+        customDebugPrint("Failed to fetch menu item details: ${response.message}");
       }
     } catch (e) {
-      showToast(
-        message: "Failed to fetch menu item details: $e",
-        isError: true,
-      );
+      customDebugPrint("Failed to fetch menu item details: $e");
     }
     return null;
   }
@@ -617,6 +693,18 @@ class DashboardController extends GetxController {
       return "Not Published";
     }
     return "Available";
+  }
+
+  // Get top-rated restaurants (those with best_rated or top_seller badges)
+  List<RestaurantModel> getTopRatedRestaurants() {
+    return restaurants.where((restaurant) {
+      if (restaurant.badges == null || restaurant.badges!.isEmpty) {
+        return false;
+      }
+      return restaurant.badges!.any((badge) =>
+          badge.toLowerCase().contains('best_rated') ||
+          badge.toLowerCase().contains('top_seller'));
+    }).toList();
   }
 
   // Helper method to check if restaurant is within walking distance
@@ -695,5 +783,11 @@ class DashboardController extends GetxController {
     } catch (e) {
       return "Location service unavailable";
     }
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
   }
 }

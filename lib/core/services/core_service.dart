@@ -8,6 +8,8 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 
 class CoreService extends GetConnect {
   final _dio = dio_pack.Dio();
+  bool _hasUnauthorizedErrorOccurred = false; // Instance-level flag to track 401 errors
+  bool _isHandlingUnauthorized = false; // Flag to prevent multiple redirects
 
   CoreService() {
     // _dio.options.baseUrl = dotenv.env['BASE_URL']!;
@@ -19,12 +21,11 @@ class CoreService extends GetConnect {
   Map<String, String> multipartHeaders = {};
 
   void setConfig() {
-    bool hasUnauthorizedErrorOccurred = false; // Flag to track 401 errors
 
     _dio.interceptors.add(
       dio_pack.InterceptorsWrapper(
         onRequest: (options, handler) {
-          if (hasUnauthorizedErrorOccurred) {
+          if (_hasUnauthorizedErrorOccurred) {
             // If a 401 error has occurred, cancel this request
             return handler.reject(
               dio_pack.DioException(
@@ -152,15 +153,21 @@ class CoreService extends GetConnect {
             );
           }
           if (error.response?.statusCode == 401) {
-            if (Get.currentRoute != Routes.SIGN_IN) {
+            // Set flag to cancel all subsequent requests
+            _hasUnauthorizedErrorOccurred = true;
+
+            // Only handle unauthorized access once
+            if (!_isHandlingUnauthorized && Get.currentRoute != Routes.SIGN_IN) {
+              _isHandlingUnauthorized = true;
               handleUnauthorizedAccess();
             }
-            // Cancel this error
+
+            // Cancel this error to prevent it from propagating
             return handler.reject(
               dio_pack.DioException(
                 requestOptions: error.requestOptions,
                 type: dio_pack.DioExceptionType.cancel,
-                error: 'Request cancelled due to 401 error',
+                error: 'Session expired',
               ),
             );
           }
@@ -172,11 +179,14 @@ class CoreService extends GetConnect {
 
   void handleUnauthorizedAccess() {
     getStorage.remove('token'); // Clear token
-    showToast(
-      isError: true,
-      message: "Your session has expired. Please log in again.",
-    );
-    Get.offAllNamed(Routes.SIGN_IN);
+    customDebugPrint("Session expired - redirecting to login");
+
+    // Use a slight delay to ensure all pending requests are cancelled
+    Future.delayed(Duration(milliseconds: 100), () {
+      if (Get.currentRoute != Routes.SIGN_IN) {
+        Get.offAllNamed(Routes.SIGN_IN);
+      }
+    });
   }
 
   /// Helper method to safely parse API response data

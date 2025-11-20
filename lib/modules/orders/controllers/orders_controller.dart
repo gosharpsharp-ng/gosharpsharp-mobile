@@ -404,6 +404,101 @@ class OrdersController extends GetxController {
     await getOrders();
   }
 
+  // Rating state
+  double riderRating = 0.0;
+  double restaurantRating = 0.0;
+  bool ratingOrder = false;
+
+  setRiderRating(double value) {
+    riderRating = value;
+    update();
+  }
+
+  setRestaurantRating(double value) {
+    restaurantRating = value;
+    update();
+  }
+
+  resetRatingFields() {
+    riderRating = 0.0;
+    restaurantRating = 0.0;
+    update();
+  }
+
+  // Rate order - target can be 'delivery' (for rider) or 'order' (for restaurant)
+  Future<void> rateOrder(BuildContext context, String target) async {
+    final rating = target == 'delivery' ? riderRating : restaurantRating;
+
+    if (rating <= 0) {
+      if (context.mounted) {
+        ModernSnackBar.showInfo(context, message: "Please select a rating");
+      }
+      return;
+    }
+
+    ratingOrder = true;
+    update();
+
+    final dynamic data = {
+      "points": rating.toInt(),
+      "target": target,
+    };
+
+    try {
+      final response = await _ordersService.rateOrder(
+        data: data,
+        orderId: selectedOrder!.id,
+      );
+
+      ratingOrder = false;
+      update();
+
+      if (response.status == "success") {
+        // Update the order with the rating
+        await getOrders();
+
+        // Update selected order
+        if (selectedOrder != null) {
+          final updatedOrder = allOrders.firstWhereOrNull(
+            (order) => order.id == selectedOrder!.id,
+          );
+          if (updatedOrder != null) {
+            selectedOrder = updatedOrder;
+          }
+        }
+
+        // Reset the specific rating
+        if (target == 'delivery') {
+          riderRating = 0.0;
+        } else {
+          restaurantRating = 0.0;
+        }
+        update();
+
+        if (context.mounted) {
+          ModernSnackBar.showSuccess(
+            context,
+            message: "Rating submitted successfully",
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ModernSnackBar.showError(context, message: response.message);
+        }
+      }
+    } catch (e) {
+      ratingOrder = false;
+      update();
+      customDebugPrint("Failed to rate order: $e");
+      if (context.mounted) {
+        ModernSnackBar.showError(
+          context,
+          message: "Failed to submit rating",
+        );
+      }
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();

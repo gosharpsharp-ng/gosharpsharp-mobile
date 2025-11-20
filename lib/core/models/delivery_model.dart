@@ -20,6 +20,7 @@ class DeliveryModel {
   final String updatedAt;
   final String? timestamp;
   final Rating? rating;
+  final String? deliveryCode;
 
   DeliveryModel({
     required this.id,
@@ -40,6 +41,7 @@ class DeliveryModel {
     required this.updatedAt,
     this.timestamp,
     this.rating,
+    this.deliveryCode,
   });
 
   factory DeliveryModel.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,7 @@ class DeliveryModel {
       updatedAt: json['updated_at'] ?? '',
       timestamp: json['timestamp'],
       rating: json['rating'] != null ? Rating.fromJson(json['rating']) : null,
+      deliveryCode: json['delivery_code']?.toString(),
     );
   }
 
@@ -97,6 +100,7 @@ class DeliveryModel {
       'updated_at': updatedAt,
       'timestamp': timestamp,
       'rating': rating?.toJson(),
+      'delivery_code': deliveryCode,
     };
   }
 
