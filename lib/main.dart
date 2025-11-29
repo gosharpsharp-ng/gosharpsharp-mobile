@@ -5,26 +5,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   await ScreenUtil.ensureScreenSize();
-  // await Get.putAsync(() => AuthProvider().init());
-  // Get.put(DeliveryNotificationServiceManager());
-  // await Get.find<DeliveryNotificationServiceManager>().initializeServices();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
   setupServiceLocator();
 
-  /// 1.1.2: set navigator key to ZegoUIKitPrebuiltCallInvitationService
-  // ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
-
-  // call the useSystemCallingUI
-  // ZegoUIKit().initLog().then((value) {
-  //   ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI(
-  //     [ZegoUIKitSignalingPlugin()],
-  //   );
-  //
-  //   runApp(GoSharpSharp(navigatorKey: navigatorKey));
-  // });
   runApp(GoSharpSharp(navigatorKey: navigatorKey));
 }
 

@@ -3,8 +3,8 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 class DashboardBindings extends Bindings {
   @override
   void dependencies() {
-    Get.put(
-      DashboardController(),
-    );
+    if (!Get.isRegistered<DashboardController>()) {
+      Get.put<DashboardController>(DashboardController(), permanent: true);
+    }
   }
 }

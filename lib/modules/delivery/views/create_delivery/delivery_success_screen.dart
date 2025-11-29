@@ -71,23 +71,9 @@ class DeliverySuccessScreen extends StatelessWidget {
                             }
 
                             try {
-                              // First, load all parcel deliveries to ensure we have the latest data
-                              await ordersController.fetchParcelDeliveries();
-
-                              // Find the delivery in the loaded list
-                              final foundDelivery = ordersController.allParcelDeliveries
-                                  .firstWhere(
-                                    (delivery) => delivery.id == currentDelivery.id,
-                                    orElse: () => currentDelivery,
-                                  );
-
-                              // Set the selected delivery to ensure it's available in the controller
-                              ordersController.selectedDelivery = foundDelivery;
-                              ordersController.update();
-
                               // Fetch latest delivery data from API to get real-time status
                               await ordersController.getParcelDeliveryById(
-                                foundDelivery.id,
+                                currentDelivery.id,
                               );
 
                               // Check if fetch was successful
@@ -102,8 +88,7 @@ class DeliverySuccessScreen extends StatelessWidget {
                               // Navigate to parcel delivery details screen
                               // The details screen will automatically redirect to tracking screen
                               // if the status is confirmed/accepted/picked/in_transit
-                              // Keep APP_NAVIGATION in the stack
-                              Get.until((route) => route.settings.name == Routes.APP_NAVIGATION);
+                              Get.offAllNamed(Routes.APP_NAVIGATION);
                               Get.toNamed(Routes.PARCEL_DELIVERY_DETAILS_SCREEN);
                             } catch (e) {
                               showToast(

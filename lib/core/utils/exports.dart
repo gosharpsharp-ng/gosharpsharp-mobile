@@ -143,9 +143,6 @@ export 'package:gosharpsharp/modules/delivery/views/widgets/currier_type_contain
 export 'package:gosharpsharp/modules/delivery/views/details_and_tracking/search_deliveries_screen.dart';
 export 'package:gosharpsharp/core/services/websocket/websocket_service.dart';
 
-export 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
-export 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
-
 export 'package:gosharpsharp/core/services/websocket/websocket_service_manager.dart';
 
 export 'package:gosharpsharp/core/utils/widgets/location_display_widget.dart';

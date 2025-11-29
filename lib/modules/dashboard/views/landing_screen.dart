@@ -125,6 +125,10 @@ class _CircularMenuState extends State<CircularMenu>
         icon: PngAssets.rider,
         color: AppColors.primaryColor,
         onTap: () {
+          // Prepare the controller for a new delivery
+          if (Get.isRegistered<DeliveriesController>()) {
+            Get.find<DeliveriesController>().prepareForNewDelivery();
+          }
           // Navigate to parcel delivery flow
           Get.toNamed(Routes.INITIATE_DELIVERY_SCREEN);
         },
