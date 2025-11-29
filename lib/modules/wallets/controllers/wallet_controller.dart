@@ -205,12 +205,12 @@ class WalletController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // transactionsScrollController.addListener(_transactionsScrollListener);
-    // if (getStorage.read("walletBalanceVisibility") == null) {
-    //   getStorage.write("walletBalanceVisibility", false);
-    //   walletBalanceVisibility = getStorage.read("walletBalanceVisibility");
-    // }
-    // update();
+    transactionsScrollController.addListener(_transactionsScrollListener);
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
     getWalletBalance();
     getTransactions();
   }

@@ -53,37 +53,7 @@ class DeliveryContactOptionBottomSheet extends StatelessWidget {
             SizedBox(
               height: 20.h,
             ),
-            Row(
-              children: [
-                // ZegoSendCallInvitationButton(
-                //   isVideoCall: false,
-                //   buttonSize: Size(35.sp, 35.sp),
-                //   notificationTitle: "Calling Rider",
-                //   iconSize: Size(35.sp, 35.sp),
-                //   networkLoadingConfig: ZegoNetworkLoadingConfig(progressColor: AppColors.primaryColor,iconColor: AppColors.whiteColor),
-                //   invitees: [
-                //     ZegoUIKitUser(
-                //       id: ordersController.selectedDelivery?.rider?.id
-                //               .toString() ??
-                //           "",
-                //       name:
-                //           "Client: ${ordersController.selectedDelivery?.rider?.firstName ?? ""} ${ordersController.selectedDelivery?.rider?.lastName ?? ""}",
-                //     ),
-                //   ],
-                // ),
-                SizedBox(
-                  width: 25.sp,
-                ),
-                customText("Call in-app",
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.blackColor),
-              ],
-            ),
-            SizedBox(
-              height: 5.h,
-            ),
-            Divider(),
+            const Divider(),
             SizedBox(
               height: 5.h,
             ),

@@ -56,7 +56,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     }
   }
 
-
   double _calculateTotalPrice(MenuItemModel? menuItem) {
     if (menuItem == null) return 0.0;
     return menuItem.price * quantity;
@@ -249,29 +248,35 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                         children: [
                                           // Plate Size
                                           if (menuItem.plateSize != null &&
-                                              menuItem.plateSize!.isNotEmpty) ...[
+                                              menuItem
+                                                  .plateSize!
+                                                  .isNotEmpty) ...[
                                             Container(
                                               padding: EdgeInsets.symmetric(
                                                 horizontal: 10.w,
                                                 vertical: 6.h,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: AppColors.primaryColor.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(8.r),
+                                                color: AppColors.primaryColor
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.r),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Icon(
                                                     Icons.restaurant,
-                                                    color: AppColors.primaryColor,
+                                                    color:
+                                                        AppColors.primaryColor,
                                                     size: 16.sp,
                                                   ),
                                                   SizedBox(width: 4.w),
                                                   customText(
                                                     menuItem.plateSize!,
                                                     fontSize: 13.sp,
-                                                    color: AppColors.primaryColor,
+                                                    color:
+                                                        AppColors.primaryColor,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ],
@@ -287,8 +292,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                                 vertical: 6.h,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: AppColors.secondaryColor.withOpacity(0.3),
-                                                borderRadius: BorderRadius.circular(8.r),
+                                                color: AppColors.secondaryColor
+                                                    .withOpacity(0.3),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.r),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -332,7 +339,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                       ),
                                     ],
                                   ),
-
                                 ],
                               ),
                             ),
@@ -418,8 +424,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                     ),
                                     SizedBox(height: 16.h),
                                   ],
-
-                                
                                 ],
                               ),
                             ),
@@ -454,9 +458,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                           onTap: isAddingToCart
                               ? null
                               : () => _handleAddToCartFromButton(
-                                    menuItem,
-                                    cartController,
-                                  ),
+                                  menuItem,
+                                  cartController,
+                                ),
                           child: Container(
                             width: double.infinity,
                             height: 56.h,
@@ -478,8 +482,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                           strokeWidth: 2,
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
-                                            AppColors.whiteColor,
-                                          ),
+                                                AppColors.whiteColor,
+                                              ),
                                         ),
                                       ),
                                       SizedBox(width: 12.w),
@@ -579,8 +583,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
           color: isCurrentlyAdding
               ? AppColors.obscureTextColor
               : isInCart
-                  ? AppColors.primaryColor
-                  : AppColors.lightGreyColor,
+              ? AppColors.primaryColor
+              : AppColors.lightGreyColor,
           shape: BoxShape.circle,
         ),
         child: isCurrentlyAdding
@@ -729,7 +733,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: isInCart ? AppColors.primaryColor.withOpacity(0.1) : AppColors.lightGreyColor,
+        color: isInCart
+            ? AppColors.primaryColor.withOpacity(0.1)
+            : AppColors.lightGreyColor,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: isInCart ? AppColors.primaryColor : Colors.transparent,
@@ -761,16 +767,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                 color: isInCart ? AppColors.primaryColor : AppColors.whiteColor,
                 borderRadius: BorderRadius.circular(6.r),
                 border: Border.all(
-                  color: isInCart ? AppColors.primaryColor : AppColors.greyColor,
+                  color: isInCart
+                      ? AppColors.primaryColor
+                      : AppColors.greyColor,
                   width: 2,
                 ),
               ),
               child: isInCart
-                  ? Icon(
-                      Icons.check,
-                      size: 16.sp,
-                      color: AppColors.whiteColor,
-                    )
+                  ? Icon(Icons.check, size: 16.sp, color: AppColors.whiteColor)
                   : null,
             ),
           ),

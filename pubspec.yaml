@@ -45,11 +45,6 @@ dependencies:
   intl:
   cupertino_icons: ^1.0.8
   skeletonizer: ^2.1.0+1
-  zego_uikit_prebuilt_call: ^4.16.21
-  zego_uikit_signaling_plugin: ^2.8.9
-  zego_express_engine:
-  zego_zim: ^2.20.0+1
-  zego_zpns: ^2.8.0
 
 dev_dependencies:
   flutter_test:

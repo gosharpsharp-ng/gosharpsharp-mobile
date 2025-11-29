@@ -63,46 +63,49 @@ class _SelectLocationState extends State<SelectLocation> {
     }
 
     try {
-      // Try to get last known position first (faster)
+      // Try to get last known position first (instant)
       Position? lastPosition = await Geolocator.getLastKnownPosition();
 
-      if (lastPosition != null) {
+      if (lastPosition != null && mounted) {
         setState(() {
           initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
         });
       }
 
-      // Then get current position with timeout (more accurate)
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10), // 10 second timeout
-        ),
-      );
+      // Use progressive accuracy: try medium first (faster), then low if needed
+      Position? position;
 
-      setState(() {
-        initialPosition = LatLng(position.latitude, position.longitude);
-      });
-    } catch (e) {
-      // If getting position fails, try last known position or use default
+      // Try medium accuracy first - usually sufficient and faster
       try {
-        Position? lastPosition = await Geolocator.getLastKnownPosition();
-        if (lastPosition != null) {
-          setState(() {
-            initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
-          });
-        } else {
-          // Use default location (Abuja, Nigeria)
-          setState(() {
-            initialPosition = const LatLng(9.0820, 8.6753);
-          });
-        }
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
       } catch (e) {
-        // Final fallback to default location
+        debugPrint('Medium accuracy location timed out, trying low accuracy: $e');
+        // Fall back to low accuracy if medium times out
+        try {
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.low,
+              timeLimit: Duration(seconds: 5),
+            ),
+          );
+        } catch (e) {
+          debugPrint('Low accuracy also failed: $e');
+        }
+      }
+
+      if (position != null && mounted) {
         setState(() {
-          initialPosition = const LatLng(9.0820, 8.6753);
+          initialPosition = LatLng(position!.latitude, position.longitude);
         });
       }
+    } catch (e) {
+      debugPrint('Error in _determinePosition: $e');
+      // Last known position should already be set if available
     }
   }
 

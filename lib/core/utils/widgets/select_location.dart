@@ -76,58 +76,50 @@ class _SelectLocationState extends State<SelectLocation> {
     }
 
     try {
-      // Try to get last known position first (faster)
+      // Try to get last known position first (instant)
       Position? lastPosition = await Geolocator.getLastKnownPosition();
 
-      if (lastPosition != null) {
+      if (lastPosition != null && mounted) {
         setState(() {
           initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
         });
       }
 
-      // Then get current position with timeout (more accurate)
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10), // 10 second timeout
-        ),
-      );
+      // Use progressive accuracy: try medium first (faster), then high if needed
+      Position? position;
 
-      setState(() {
-        initialPosition = LatLng(position.latitude, position.longitude);
-      });
-    } catch (e) {
-      // If getting position fails, try last known position or use default
+      // Try medium accuracy first - usually sufficient and faster
       try {
-        Position? lastPosition = await Geolocator.getLastKnownPosition();
-        if (lastPosition != null) {
-          setState(() {
-            initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
-          });
-        } else {
-          // Use default location (Abuja, Nigeria)
-          if (mounted) {
-            showToast(
-              isError: false,
-              message: "Could not get current location. You can search or tap on the map to select your location.",
-            );
-          }
-          setState(() {
-            initialPosition = const LatLng(9.0820, 8.6753);
-          });
-        }
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
       } catch (e) {
-        // Final fallback to default location
-        if (mounted) {
-          showToast(
-            isError: false,
-            message: "Could not get current location. You can search or tap on the map to select your location.",
+        debugPrint('Medium accuracy location timed out, trying low accuracy: $e');
+        // Fall back to low accuracy if medium times out
+        try {
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.low,
+              timeLimit: Duration(seconds: 5),
+            ),
           );
+        } catch (e) {
+          debugPrint('Low accuracy also failed: $e');
         }
+      }
+
+      if (position != null && mounted) {
         setState(() {
-          initialPosition = const LatLng(9.0820, 8.6753);
+          initialPosition = LatLng(position!.latitude, position.longitude);
         });
       }
+    } catch (e) {
+      debugPrint('Error in _determinePosition: $e');
+      // Last known position should already be set if available
+      // No toast needed here - map is already functional
     }
   }
 
@@ -172,18 +164,47 @@ class _SelectLocationState extends State<SelectLocation> {
 
     try {
       // Show loading indicator
-      showToast(
-        isError: false,
-        message: "Getting your current location...",
-      );
+      setState(() {
+        _isLoadingLocation = true;
+      });
 
-      // Get current position with timeout
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
-        ),
-      );
+      Position? position;
+
+      // Try medium accuracy first (faster)
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
+      } catch (e) {
+        debugPrint('Medium accuracy failed: $e');
+        // Try low accuracy as fallback
+        try {
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.low,
+              timeLimit: Duration(seconds: 5),
+            ),
+          );
+        } catch (e) {
+          debugPrint('Low accuracy also failed: $e');
+          // Try last known position as final fallback
+          position = await Geolocator.getLastKnownPosition();
+        }
+      }
+
+      if (position == null) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+        showToast(
+          isError: true,
+          message: "Could not get current location. Please search manually or tap on the map.",
+        );
+        return;
+      }
 
       final currentLatLng = LatLng(position.latitude, position.longitude);
 
@@ -196,6 +217,7 @@ class _SelectLocationState extends State<SelectLocation> {
             position: currentLatLng,
           ),
         };
+        _isLoadingLocation = false;
       });
 
       // Animate camera to current location
@@ -210,6 +232,9 @@ class _SelectLocationState extends State<SelectLocation> {
       await _showLocationDetails(currentLatLng);
     } catch (e) {
       debugPrint('Error getting current location: $e');
+      setState(() {
+        _isLoadingLocation = false;
+      });
       showToast(
         isError: true,
         message: "Failed to get current location. Please try again or search manually.",

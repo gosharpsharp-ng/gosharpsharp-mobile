@@ -1303,9 +1303,6 @@ class CartController extends GetxController {
 
   @override
   void onClose() {
-    // Dispose text editing controllers
-    recipientNameController.dispose();
-    recipientPhoneController.dispose();
     super.onClose();
   }
 }

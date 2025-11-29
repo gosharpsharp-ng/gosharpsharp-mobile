@@ -787,7 +787,6 @@ class DashboardController extends GetxController {
 
   @override
   void onClose() {
-    searchController.dispose();
     super.onClose();
   }
 }

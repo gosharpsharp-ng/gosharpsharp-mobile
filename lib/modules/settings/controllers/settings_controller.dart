@@ -27,20 +27,6 @@ class SettingsController extends GetxController {
     if (response.status == "success") {
       userProfile = UserProfile.fromJson(response.data['user']);
       update();
-      // Initialize the signaling plugin
-      ZegoUIKitPrebuiltCallInvitationService().init(
-        appID: int.parse(Secret.zegoCloudAppID),
-        appSign: Secret.zegoCloudAppSign,
-        userID: userProfile!.id.toString(),
-        userName: "${userProfile!.fname} ${userProfile!.lname}",
-        plugins: [ZegoUIKitSignalingPlugin()],
-        notificationConfig: ZegoCallInvitationNotificationConfig(
-            androidNotificationConfig: ZegoCallAndroidNotificationConfig(
-              showFullScreen: true,
-            ),
-            iOSNotificationConfig:
-                ZegoCallIOSNotificationConfig(appName: "gosharpsharp_mobile")),
-      );
       setProfileFields();
     } else {
       if (getStorage.read("token") != null) {
@@ -255,7 +241,6 @@ class SettingsController extends GetxController {
     DeliveryNotificationServiceManager serviceManager =
         DeliveryNotificationServiceManager();
     serviceManager.disposeServices();
-    ZegoUIKitPrebuiltCallInvitationService().uninit();
   }
 
   bool deletePasswordVisibility = false;
@@ -279,7 +264,6 @@ class SettingsController extends GetxController {
         DeliveryNotificationServiceManager serviceManager =
             DeliveryNotificationServiceManager();
         serviceManager.disposeServices();
-        ZegoUIKitPrebuiltCallInvitationService().uninit();
       } else {
         showToast(message: "could not delete your account", isError: true);
       }
@@ -332,9 +316,9 @@ class SettingsController extends GetxController {
   }
 
   @override
-  void onInit() {
-    super.onInit();
-    // Load profile and notifications when the controller is initialized
+  void onReady() {
+    super.onReady();
+    // Load profile and notifications after the widget tree is built
     getProfile();
     getUnreadNotifications();
   }

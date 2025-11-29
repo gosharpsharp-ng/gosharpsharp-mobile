@@ -794,6 +794,53 @@ class DeliveriesController extends GetxController {
     update();
   }
 
+  /// Prepares the controller for a new delivery by resetting all form fields
+  /// and clearing any previous delivery state. Call this before navigating
+  /// to the InitiateDeliveryScreen.
+  void prepareForNewDelivery() {
+    // Clear all form fields
+    senderNameController.clear();
+    senderAddressController.clear();
+    estimatedDistanceController.clear();
+    receiverNameController.clear();
+    receiverEmailController.clear();
+    receiverPhoneController.clear();
+    receiverAddressController.clear();
+    deliveryItemNameController.clear();
+    deliveryItemDescriptionController.clear();
+    deliveryItemCategoryController.clear();
+    deliveryItemQuantityController.clear();
+
+    // Reset selection states
+    selectedCourierTypePrice = null;
+    selectedCourierType = null;
+    selectedPaymentType = null;
+    selectedPaymentMethod = null;
+    filledPhoneNumber = null;
+    selectedDeliveryResponseModel = null;
+
+    // Clear items and images
+    deliveryItems.clear();
+    imageUploaded = false;
+    parcelImage = null;
+    deliveryItemImages.clear();
+
+    // Clear location data
+    deliverySenderLocation = null;
+    deliveryReceiverLocation = null;
+    distanceDetails = null;
+
+    // Reset loading states
+    submittingDelivery = false;
+    confirmingDelivery = false;
+    gettingDistance = false;
+
+    // Prefill sender details from user profile
+    prefillDeliverySenderDetails();
+
+    update();
+  }
+
   bool? imageUploaded;
   DeliveryItemData? deliveryData;
   addDeliveryItem({bool skipValidation = false}) {
