@@ -35,7 +35,7 @@ class InitiateDeliveryScreen extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            Icons.local_shipping_outlined,
+                            Icons.electric_bike,
                             color: AppColors.primaryColor,
                             size: 20.sp,
                           ),
@@ -632,8 +632,10 @@ class InitiateDeliveryScreen extends StatelessWidget {
                           showLabel: true,
                           hasTitle: true,
                           isRequired: false,
-                          controller:
-                              ordersController.deliveryItemDescriptionController,
+                          maxLines: 4,
+                          keyboardType: TextInputType.multiline,
+                          controller: ordersController
+                              .deliveryItemDescriptionController,
                         ),
                       ],
                     ),
@@ -642,6 +644,9 @@ class InitiateDeliveryScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: CustomButton(
                         onPressed: () {
+                          // Remove focus from any field
+                          FocusScope.of(context).unfocus();
+
                           // Validate all fields
                           if (ordersController.sendingInfoFormKey.currentState!
                                   .validate() &&
@@ -654,7 +659,9 @@ class InitiateDeliveryScreen extends StatelessWidget {
                               child: DeliveryInstructionsBottomSheet(
                                 onContinue: () {
                                   // After user accepts instructions, create the delivery
-                                  ordersController.callDeliveryEndpoint(context);
+                                  ordersController.callDeliveryEndpoint(
+                                    context,
+                                  );
                                 },
                                 isLoading: ordersController.submittingDelivery,
                               ),

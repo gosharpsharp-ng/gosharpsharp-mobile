@@ -36,10 +36,20 @@ class OrderDetailMenuItem extends StatelessWidget {
             child: imageUrl != null && imageUrl!.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(8.r),
-                    child: Image.network(
-                      imageUrl!,
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
+                      placeholder: (context, url) => Center(
+                        child: SizedBox(
+                          width: 16.w,
+                          height: 16.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) {
                         return Icon(
                           Icons.fastfood,
                           color: AppColors.greyColor,
@@ -63,7 +73,7 @@ class OrderDetailMenuItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 customText(
-                  name,
+                  name.capitalizeFirst ?? name,
                   fontSize: 14.sp,
                   color: AppColors.blackColor,
                   fontWeight: FontWeight.w500,
@@ -71,7 +81,7 @@ class OrderDetailMenuItem extends StatelessWidget {
                 if (description != null && description!.isNotEmpty) ...[
                   SizedBox(height: 4.h),
                   customText(
-                    description!,
+                    description!.capitalizeFirst ?? description!,
                     fontSize: 12.sp,
                     color: AppColors.greyColor,
                     fontWeight: FontWeight.normal,
@@ -79,6 +89,14 @@ class OrderDetailMenuItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
+                SizedBox(height: 4.h),
+                // Price moved under description
+                customText(
+                  price,
+                  fontSize: 14.sp,
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
                 SizedBox(height: 4.h),
                 Row(
                   children: [
@@ -106,16 +124,6 @@ class OrderDetailMenuItem extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-
-          SizedBox(width: 8.w),
-
-          // Item price
-          customText(
-            price,
-            fontSize: 14.sp,
-            color: AppColors.blackColor,
-            fontWeight: FontWeight.w600,
           ),
         ],
       ),

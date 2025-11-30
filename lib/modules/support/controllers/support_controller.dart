@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:gosharpsharp/core/models/faq_data_model.dart';
 import 'package:gosharpsharp/core/services/support/support_service.dart';
 

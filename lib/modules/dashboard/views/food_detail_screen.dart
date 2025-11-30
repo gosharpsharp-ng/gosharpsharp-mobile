@@ -1,7 +1,7 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 import 'package:gosharpsharp/core/models/menu_item_model.dart';
-import 'package:gosharpsharp/modules/dashboard/views/widgets/addon_selection_bottom_sheet.dart';
+import 'package:gosharpsharp/modules/cart/views/widgets/package_selection_dialog.dart';
 
 class FoodDetailScreen extends StatefulWidget {
   const FoodDetailScreen({super.key});
@@ -15,16 +15,37 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
   int quantity = 1;
   late TabController _tabController;
   bool isFavorite = false;
-  MenuItemModel? selectedAddon;
+  List<int> selectedAddonIds = []; // Track selected addon IDs
   bool isAddingToCart = false;
+  bool isUpdatingQuantity = false; // Track quantity update state
+  int? addingAddonId; // Track which addon is being added to cart
 
   late final DashboardController dashboardController;
+  late final CartController cartController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     dashboardController = Get.find<DashboardController>();
+    cartController = Get.find<CartController>();
+
+    // Initialize quantity from cart if item exists
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeQuantityFromCart();
+    });
+  }
+
+  void _initializeQuantityFromCart() {
+    final menuItem = dashboardController.selectedMenuItem;
+    if (menuItem != null) {
+      final cartItem = cartController.getCartItemByPurchasableId(menuItem.id);
+      if (cartItem != null) {
+        setState(() {
+          quantity = cartItem.quantity;
+        });
+      }
+    }
   }
 
   @override
@@ -33,32 +54,123 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     super.dispose();
   }
 
-  void _incrementQuantity() {
+  void _incrementQuantity() async {
+    if (isUpdatingQuantity) return;
+
     final menuItem = dashboardController.selectedMenuItem;
-    final maxQuantity = menuItem?.quantity ?? 99;
-    if (quantity < maxQuantity) {
+    if (menuItem == null) return;
+
+    debugPrint('Increment tapped. Current quantity: $quantity');
+
+    // Check if item is already in cart
+    final cartItem = cartController.getCartItemByPurchasableId(menuItem.id);
+
+    if (cartItem != null) {
+      // Check if restaurant is open before updating cart
+      final restaurant = dashboardController.selectedRestaurant;
+      if (restaurant != null && !restaurant.isOpen()) {
+        if (Get.context != null) {
+          ModernSnackBar.showError(
+            Get.context!,
+            message: "${restaurant.name} is closed",
+          );
+        }
+        return;
+      }
+
+      // Item is in cart - update via API
+      setState(() => isUpdatingQuantity = true);
+      try {
+        await cartController.updateCartItemQuantity(
+          cartItem.id,
+          quantity: quantity + 1,
+        );
+        setState(() {
+          quantity++;
+        });
+      } finally {
+        setState(() => isUpdatingQuantity = false);
+      }
+    } else {
+      // Item not in cart - just update local state
       setState(() {
         quantity++;
+        debugPrint('New quantity after increment: $quantity');
       });
-    } else {
-      showToast(
-        message: "Maximum available quantity is $maxQuantity",
-        isError: true,
-      );
     }
   }
 
-  void _decrementQuantity() {
-    if (quantity > 1) {
+  void _decrementQuantity() async {
+    if (isUpdatingQuantity) return;
+
+    final menuItem = dashboardController.selectedMenuItem;
+    if (menuItem == null) return;
+
+    debugPrint('Decrement tapped. Current quantity: $quantity');
+
+    if (quantity <= 1) return;
+
+    // Check if item is already in cart
+    final cartItem = cartController.getCartItemByPurchasableId(menuItem.id);
+
+    if (cartItem != null) {
+      // Check if restaurant is open before updating cart
+      final restaurant = dashboardController.selectedRestaurant;
+      if (restaurant != null && !restaurant.isOpen()) {
+        if (Get.context != null) {
+          ModernSnackBar.showError(
+            Get.context!,
+            message: "${restaurant.name} is closed",
+          );
+        }
+        return;
+      }
+
+      // Item is in cart - update via API
+      setState(() => isUpdatingQuantity = true);
+      try {
+        await cartController.updateCartItemQuantity(
+          cartItem.id,
+          quantity: quantity - 1,
+        );
+        setState(() {
+          quantity--;
+        });
+      } finally {
+        setState(() => isUpdatingQuantity = false);
+      }
+    } else {
+      // Item not in cart - just update local state
       setState(() {
         quantity--;
+        debugPrint('New quantity after decrement: $quantity');
       });
     }
   }
 
   double _calculateTotalPrice(MenuItemModel? menuItem) {
     if (menuItem == null) return 0.0;
-    return menuItem.price * quantity;
+    double total = menuItem.price * quantity;
+
+    // Add packaging price if available
+    if (menuItem.packagingPrice != null && menuItem.packagingPrice! > 0) {
+      total += menuItem.packagingPrice! * quantity;
+    }
+
+    // Add selected addons prices (including their packaging prices)
+    if (menuItem.addonMenus != null) {
+      for (var addon in menuItem.addonMenus!) {
+        if (selectedAddonIds.contains(addon.id)) {
+          total += addon.price * quantity;
+          // Add addon packaging price if available
+          if (addon.packagingPrice != null && addon.packagingPrice! > 0) {
+            total += addon.packagingPrice! * quantity;
+          }
+        }
+      }
+    }
+
+    return total;
   }
 
   @override
@@ -119,9 +231,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Colors.black.withOpacity(0.3),
+                                Colors.black.withValues(alpha: 0.3),
                                 Colors.transparent,
-                                Colors.black.withOpacity(0.6),
+                                Colors.black.withValues(alpha: 0.6),
                               ],
                               stops: [0.0, 0.5, 1.0],
                             ),
@@ -141,11 +253,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                 child: Container(
                                   padding: EdgeInsets.all(8.sp),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.1,
+                                        ),
                                         blurRadius: 8,
                                         offset: Offset(0, 2),
                                       ),
@@ -181,6 +295,29 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                 fontSize: 12.sp,
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+
+                        // Discount badge
+                        if (menuItem.discountBadgeText != null)
+                          Positioned(
+                            bottom: 20.h,
+                            left: 20.w,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 8.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.redColor,
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: customText(
+                                menuItem.discountBadgeText!,
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.whiteColor,
                               ),
                             ),
                           ),
@@ -236,7 +373,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                       ),
                                       SizedBox(height: 4.h),
                                       customText(
-                                        menuItem.name,
+                                        menuItem.name.capitalizeFirst ?? menuItem.name,
                                         fontSize: 20.sp,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.blackColor,
@@ -258,7 +395,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                               ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.primaryColor
-                                                    .withOpacity(0.1),
+                                                    .withValues(alpha: 0.1),
                                                 borderRadius:
                                                     BorderRadius.circular(8.r),
                                               ),
@@ -293,7 +430,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                               ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.secondaryColor
-                                                    .withOpacity(0.3),
+                                                    .withValues(alpha: 0.3),
                                                 borderRadius:
                                                     BorderRadius.circular(8.r),
                                               ),
@@ -324,11 +461,41 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                         fontWeight: FontWeight.normal,
                                         color: AppColors.blackColor,
                                       ),
-                                      // customText(
-                                      //   "per plate",
-                                      //   fontSize: 12.sp,
-                                      //   color: AppColors.obscureTextColor,
-                                      // ),
+                                      // Food Pack (Packaging Price)
+                                      if (menuItem.packagingPrice != null &&
+                                          menuItem.packagingPrice! > 0) ...[
+                                        SizedBox(height: 8.h),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 10.w,
+                                            vertical: 6.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primaryColor
+                                                .withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.shopping_bag_outlined,
+                                                color: AppColors.primaryColor,
+                                                size: 16.sp,
+                                              ),
+                                              SizedBox(width: 4.w),
+                                              customText(
+                                                "Food Pack: ${formatToCurrency(menuItem.packagingPrice!)}",
+                                                fontSize: 13.sp,
+                                                color: AppColors.primaryColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                       SizedBox(height: 5.h),
                                       customText(
                                         menuItem.description?.capitalizeFirst ??
@@ -354,8 +521,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                   padding: EdgeInsets.all(12.w),
                                   decoration: BoxDecoration(
                                     color: availabilityStatus == "Limited Stock"
-                                        ? Colors.orange.withOpacity(0.1)
-                                        : Colors.red.withOpacity(0.1),
+                                        ? Colors.orange.withValues(alpha: 0.1)
+                                        : Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8.r),
                                   ),
                                   child: Row(
@@ -403,24 +570,21 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                   if (menuItem.addonMenus != null &&
                                       menuItem.addonMenus!.isNotEmpty) ...[
                                     customText(
-                                      "Available Add-ons (${menuItem.addonMenus!.length})",
+                                      "Goes well with",
                                       fontSize: 16.sp,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.blackColor,
                                     ),
                                     SizedBox(height: 12.h),
-                                    GetBuilder<CartController>(
-                                      builder: (cartCtrl) => Column(
-                                        children: menuItem.addonMenus!
-                                            .map(
-                                              (addon) => _buildAddonItem(
-                                                addon,
-                                                cartCtrl,
-                                                menuItem,
-                                              ),
-                                            )
-                                            .toList(),
-                                      ),
+                                    Column(
+                                      children: menuItem.addonMenus!
+                                          .map(
+                                            (addon) => _buildAddonItem(
+                                              addon,
+                                              menuItem,
+                                            ),
+                                          )
+                                          .toList(),
                                     ),
                                     SizedBox(height: 16.h),
                                   ],
@@ -446,7 +610,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                   color: AppColors.whiteColor,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: Offset(0, -2),
                     ),
@@ -454,54 +618,167 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                 ),
                 child: SafeArea(
                   child: isAvailable
-                      ? GestureDetector(
-                          onTap: isAddingToCart
-                              ? null
-                              : () => _handleAddToCartFromButton(
-                                  menuItem,
-                                  cartController,
-                                ),
-                          child: Container(
-                            width: double.infinity,
-                            height: 56.h,
-                            decoration: BoxDecoration(
-                              color: isAddingToCart
-                                  ? AppColors.primaryColor.withOpacity(0.6)
-                                  : AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            alignment: Alignment.center,
-                            child: isAddingToCart
-                                ? Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Package selector row (only show if cart has items)
+                            if (!cartController.isCartEmpty) ...[
+                              _buildPackageSelector(cartController),
+                              SizedBox(height: 12.h),
+                            ],
+                            Row(
+                              children: [
+                                // Quantity controls
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.lightGreyColor,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                  ),
+                                  child: Row(
                                     children: [
-                                      SizedBox(
-                                        width: 20.w,
-                                        height: 20.w,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                AppColors.whiteColor,
-                                              ),
+                                      // Decrement button
+                                      GestureDetector(
+                                        onTap: isUpdatingQuantity
+                                            ? null
+                                            : () {
+                                                debugPrint('Decrement button pressed');
+                                                _decrementQuantity();
+                                              },
+                                        behavior: HitTestBehavior.opaque,
+                                        child: Container(
+                                          padding: EdgeInsets.all(12.w),
+                                          child: Icon(
+                                            Icons.remove,
+                                            color: isUpdatingQuantity
+                                                ? AppColors.obscureTextColor
+                                                : (quantity > 1
+                                                    ? AppColors.blackColor
+                                                    : AppColors.obscureTextColor),
+                                            size: 20.sp,
+                                          ),
                                         ),
                                       ),
-                                      SizedBox(width: 12.w),
-                                      customText(
-                                        "Adding to cart...",
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.whiteColor,
+                                      // Quantity display
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16.w,
+                                        ),
+                                        child: isUpdatingQuantity
+                                            ? SizedBox(
+                                                width: 20.w,
+                                                height: 20.w,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<Color>(
+                                                    AppColors.primaryColor,
+                                                  ),
+                                                ),
+                                              )
+                                            : customText(
+                                                quantity.toString(),
+                                                fontSize: 18.sp,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.blackColor,
+                                              ),
+                                      ),
+                                      // Increment button
+                                      GestureDetector(
+                                        onTap: isUpdatingQuantity
+                                            ? null
+                                            : () {
+                                                debugPrint('Increment button pressed');
+                                                _incrementQuantity();
+                                              },
+                                        behavior: HitTestBehavior.opaque,
+                                        child: Container(
+                                          padding: EdgeInsets.all(12.w),
+                                          child: Icon(
+                                            Icons.add,
+                                            color: isUpdatingQuantity
+                                                ? AppColors.obscureTextColor
+                                                : AppColors.blackColor,
+                                            size: 20.sp,
+                                          ),
+                                        ),
                                       ),
                                     ],
-                                  )
-                                : customText(
-                                    "Add to Cart - ${formatToCurrency(menuItem.price + (selectedAddon?.price ?? 0))}",
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.whiteColor,
                                   ),
-                          ),
+                                ),
+                                SizedBox(width: 12.w),
+                                // Add to cart button
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: isAddingToCart
+                                        ? null
+                                        : () => _handleAddToCartWithAddons(
+                                            menuItem,
+                                            cartController,
+                                          ),
+                                    child: Container(
+                                      height: 56.h,
+                                      decoration: BoxDecoration(
+                                        color: isAddingToCart
+                                            ? AppColors.primaryColor.withValues(
+                                                alpha: 0.6,
+                                              )
+                                            : AppColors.primaryColor,
+                                        borderRadius: BorderRadius.circular(12.r),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: isAddingToCart
+                                          ? Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                SizedBox(
+                                                  width: 20.w,
+                                                  height: 20.w,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(
+                                                          AppColors.whiteColor,
+                                                        ),
+                                                  ),
+                                                ),
+                                                SizedBox(width: 12.w),
+                                                customText(
+                                                  "Adding...",
+                                                  fontSize: 16.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.whiteColor,
+                                                ),
+                                              ],
+                                            )
+                                          : Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                customText(
+                                                  "Add to Cart",
+                                                  fontSize: 16.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.whiteColor,
+                                                ),
+                                                customText(
+                                                  formatToCurrency(
+                                                    _calculateTotalPrice(menuItem),
+                                                  ),
+                                                  fontSize: 12.sp,
+                                                  color: AppColors.whiteColor
+                                                      .withValues(alpha: 0.9),
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         )
                       : Container(
                           width: double.infinity,
@@ -527,6 +804,157 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     );
   }
 
+  Widget _buildPackageSelector(CartController cartController) {
+    final currentPackage = cartController.selectedPackageName ?? 'Pack 1';
+    final packageCount = cartController.packageNames.length;
+
+    return GestureDetector(
+      onTap: () async {
+        final result = await Get.dialog<String>(
+          PackageSelectionDialog(
+            existingPackages: cartController.packageNames,
+            currentPackage: cartController.selectedPackageName,
+          ),
+          barrierDismissible: true,
+        );
+
+        if (result != null && result.isNotEmpty) {
+          cartController.setSelectedPackage(result);
+        }
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.inventory_2_outlined,
+              color: AppColors.primaryColor,
+              size: 18.sp,
+            ),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText(
+                    "Adding to:",
+                    fontSize: 11.sp,
+                    color: AppColors.greyColor,
+                  ),
+                  customText(
+                    currentPackage,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+              child: customText(
+                "$packageCount ${packageCount == 1 ? 'pack' : 'packs'}",
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            SizedBox(width: 6.w),
+            GestureDetector(
+              onTap: () => _showPackageInfoBottomSheet(),
+              child: Icon(
+                Icons.info_outline,
+                color: AppColors.greyColor,
+                size: 16.sp,
+              ),
+            ),
+            SizedBox(width: 6.w),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: AppColors.primaryColor,
+              size: 22.sp,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPackageInfoBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 24.sp,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(width: 12.w),
+                  customText(
+                    'What is a Package?',
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+              customText(
+                'A package is a group of items in your cart that will be delivered together. You can have multiple packages to organize orders for different recipients or delivery locations.',
+                fontSize: 14.sp,
+                color: AppColors.blackColor.withValues(alpha: 0.7),
+                maxLines: 10,
+              ),
+              SizedBox(height: 12.h),
+              customText(
+                'When you add items to your cart, they are automatically added to your selected package.',
+                fontSize: 14.sp,
+                color: AppColors.blackColor.withValues(alpha: 0.7),
+                maxLines: 5,
+              ),
+              SizedBox(height: 20.h),
+              SizedBox(
+                width: double.infinity,
+                child: CustomButton(
+                  onPressed: () => Get.back(),
+                  title: 'Got it',
+                  backgroundColor: AppColors.primaryColor,
+                  fontColor: AppColors.whiteColor,
+                  height: 48.h,
+                  borderRadius: 12.r,
+                ),
+              ),
+              SizedBox(height: 10.h),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildDetailRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -545,175 +973,58 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     );
   }
 
-  Widget _buildCartControls(
-    MenuItemModel menuItem,
-    CartController cartController,
-    bool isAvailable,
-    bool isCurrentlyAdding,
-    int cartQuantity,
-  ) {
-    if (!isAvailable) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: AppColors.obscureTextColor,
-          borderRadius: BorderRadius.circular(6.r),
-        ),
-        child: customText(
-          "Unavailable",
-          fontSize: 12.sp,
-          color: AppColors.whiteColor,
-          fontWeight: FontWeight.w500,
-        ),
-      );
-    }
-
-    // Always show Add to Cart button (or cart icon if item is in cart)
-    bool isInCart = cartQuantity > 0;
-
-    return InkWell(
-      onTap: !isCurrentlyAdding
-          ? () => _addToCart(menuItem, cartController)
-          : null,
-      child: Container(
-        width: 32.w,
-        height: 32.w,
-        decoration: BoxDecoration(
-          color: isCurrentlyAdding
-              ? AppColors.obscureTextColor
-              : isInCart
-              ? AppColors.primaryColor
-              : AppColors.lightGreyColor,
-          shape: BoxShape.circle,
-        ),
-        child: isCurrentlyAdding
-            ? SizedBox(
-                width: 16.w,
-                height: 16.w,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.whiteColor,
-                  ),
-                ),
-              )
-            : Icon(
-                Icons.add,
-                color: isInCart ? AppColors.whiteColor : AppColors.blackColor,
-                size: 18.sp,
-              ),
-      ),
-    );
-  }
-
-  void _addToCart(MenuItemModel menuItem, CartController cartController) async {
-    try {
-      // Check if menu item has addons
-      if (menuItem.addonMenus != null && menuItem.addonMenus!.isNotEmpty) {
-        // Show addon selection bottom sheet
-        Get.bottomSheet(
-          AddonSelectionBottomSheet(
-            menuItem: menuItem,
-            onAddToCart: (int? addonMenuId) async {
-              await cartController.addToCart(
-                menuItem.id,
-                1,
-                addonMenuId: addonMenuId,
-                restaurant: dashboardController.selectedRestaurant,
-              );
-            },
-          ),
-          isScrollControlled: true,
-          isDismissible: true,
-          enableDrag: true,
-        );
-      } else {
-        // No addons, add directly to cart
-        await cartController.addToCart(
-          menuItem.id,
-          1,
-          restaurant: dashboardController.selectedRestaurant,
-        );
-      }
-    } catch (e) {
-      debugPrint('Error adding to cart: $e');
-    }
-  }
-
-  void _decreaseQuantity(
-    MenuItemModel menuItem,
-    CartController cartController,
-    int currentQuantity,
-  ) async {
-    try {
-      await cartController.removeFromCart(menuItem.id);
-    } catch (e) {
-      debugPrint('Error decreasing quantity: $e');
-    }
-  }
-
-  void _handleAddToCartFromButton(
+  void _handleAddToCartWithAddons(
     MenuItemModel menuItem,
     CartController cartController,
   ) async {
     if (isAddingToCart) return; // Prevent double-tap
 
+    // Check if restaurant is open before adding to cart
+    final restaurant = dashboardController.selectedRestaurant;
+    debugPrint('Restaurant: ${restaurant?.name}, isOpen: ${restaurant?.isOpen()}');
+    if (restaurant == null || !restaurant.isOpen()) {
+      if (Get.context != null) {
+        ModernSnackBar.showError(
+          Get.context!,
+          message: "${restaurant?.name ?? 'Restaurant'} is closed",
+        );
+      }
+      return;
+    }
+
+    setState(() => isAddingToCart = true);
+
     try {
-      bool addedToCart = false;
-
-      // Check if menu item has addons
-      if (menuItem.addonMenus != null && menuItem.addonMenus!.isNotEmpty) {
-        // Show addon selection bottom sheet
-        final result = await Get.bottomSheet<bool>(
-          AddonSelectionBottomSheet(
-            menuItem: menuItem,
-            onAddToCart: (int? addonMenuId) async {
-              setState(() => isAddingToCart = true);
-              try {
-                await cartController.addToCart(
-                  menuItem.id,
-                  1,
-                  addonMenuId: addonMenuId,
-                  restaurant: dashboardController.selectedRestaurant,
-                );
-                setState(() => isAddingToCart = false);
-                Get.back(result: true); // Pass success back
-              } catch (e) {
-                setState(() => isAddingToCart = false);
-                rethrow;
-              }
-            },
-          ),
-          isScrollControlled: true,
-          isDismissible: true,
-          enableDrag: true,
-        );
-
-        // Only close if item was actually added
-        if (result == true) {
-          addedToCart = true;
+      // Debug logging
+      debugPrint('=== ADD TO CART DEBUG ===');
+      debugPrint('Menu Item ID: ${menuItem.id}');
+      debugPrint('Menu Item Name: ${menuItem.name}');
+      debugPrint('Quantity: $quantity');
+      debugPrint('Selected Addon IDs: $selectedAddonIds');
+      if (menuItem.addonMenus != null) {
+        for (var addon in menuItem.addonMenus!) {
+          debugPrint('Available Addon: id=${addon.id}, name=${addon.name}');
         }
-      } else {
-        // No addons, add directly to cart
-        setState(() => isAddingToCart = true);
-        await cartController.addToCart(
-          menuItem.id,
-          1,
-          restaurant: dashboardController.selectedRestaurant,
-        );
-        setState(() => isAddingToCart = false);
-        addedToCart = true;
       }
+      debugPrint('=========================');
 
-      // Only close screen if successfully added to cart
-      if (addedToCart) {
-        Get.back(); // Close food detail screen
-      }
+      // Use the correct API format with addons list and quantity
+      await cartController.addToCart(
+        menuItem.id,
+        quantity, // Use the local quantity state
+        addonIds: selectedAddonIds.isNotEmpty ? selectedAddonIds : null,
+        restaurant: restaurant,
+      );
+
+      // Reset state after successful add
+      setState(() {
+        isAddingToCart = false;
+        quantity = 1; // Reset quantity
+        selectedAddonIds.clear(); // Clear selected addons
+      });
     } catch (e) {
       setState(() => isAddingToCart = false);
-      debugPrint('Error adding to cart from button: $e');
-      // Show error toast
+      debugPrint('Error adding to cart: $e');
       showToast(
         isError: true,
         message: "Failed to add item to cart. Please try again.",
@@ -723,60 +1034,48 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
 
   Widget _buildAddonItem(
     MenuItemModel addon,
-    CartController cartController,
     MenuItemModel mainItem,
   ) {
-    // Check if addon is in cart
-    final isInCart = cartController.isAddonInCart(mainItem.id, addon.id);
+    // Check if this addon is already in the cart
+    final isInCart = cartController.getCartItemByPurchasableId(addon.id) != null;
+    final isAddingThisAddon = addingAddonId == addon.id;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: isInCart
-            ? AppColors.primaryColor.withOpacity(0.1)
-            : AppColors.lightGreyColor,
+        color: AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: isInCart ? AppColors.primaryColor : Colors.transparent,
-          width: 1.5,
+          color: AppColors.greyColor.withValues(alpha: 0.2),
+          width: 1,
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Checkbox
-          GestureDetector(
-            onTap: () async {
-              if (isInCart) {
-                // Remove from cart
-                await cartController.removeAddonFromCart(mainItem.id, addon.id);
-              } else {
-                // Add to cart with restaurant validation
-                await cartController.addToCart(
-                  mainItem.id,
-                  1,
-                  addonMenuId: addon.id,
-                  restaurant: dashboardController.selectedRestaurant,
-                );
-              }
-            },
-            child: Container(
-              width: 24.w,
-              height: 24.w,
-              decoration: BoxDecoration(
-                color: isInCart ? AppColors.primaryColor : AppColors.whiteColor,
-                borderRadius: BorderRadius.circular(6.r),
-                border: Border.all(
-                  color: isInCart
-                      ? AppColors.primaryColor
-                      : AppColors.greyColor,
-                  width: 2,
-                ),
-              ),
-              child: isInCart
-                  ? Icon(Icons.check, size: 16.sp, color: AppColors.whiteColor)
+          // Addon image
+          Container(
+            width: 100.w,
+            height: 100.w,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.r),
+              color: AppColors.backgroundColor,
+              image: addon.files.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(addon.files[0].url),
+                      fit: BoxFit.cover,
+                      onError: (exception, stackTrace) {},
+                    )
                   : null,
             ),
+            child: addon.files.isEmpty
+                ? Icon(
+                    Icons.restaurant,
+                    color: AppColors.obscureTextColor,
+                    size: 30.sp,
+                  )
+                : null,
           ),
           SizedBox(width: 12.w),
           // Addon details
@@ -785,17 +1084,90 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 customText(
-                  addon.name,
-                  fontSize: 14.sp,
+                  addon.name.capitalizeFirst ?? addon.name,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.blackColor,
+                  maxLines: 2,
                 ),
-                SizedBox(height: 2.h),
+                if (addon.description != null && addon.description!.isNotEmpty) ...[
+                  SizedBox(height: 4.h),
+                  customText(
+                    addon.description!.capitalizeFirst ?? addon.description!,
+                    fontSize: 12.sp,
+                    color: AppColors.obscureTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                SizedBox(height: 8.h),
+                // Price without + prefix
                 customText(
-                  formatToCurrency(addon.price),
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.normal,
+                  formatToCurrency(addon.price + (addon.packagingPrice ?? 0)),
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.primaryColor,
+                ),
+                SizedBox(height: 8.h),
+                // Add button - adds addon directly to cart
+                InkWell(
+                  onTap: isAddingThisAddon ? null : () => _addAddonToCart(addon),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isAddingThisAddon
+                          ? AppColors.primaryColor.withValues(alpha: 0.7)
+                          : isInCart
+                              ? AppColors.primaryColor
+                              : AppColors.whiteColor,
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(
+                        color: AppColors.primaryColor,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isAddingThisAddon)
+                          SizedBox(
+                            width: 16.sp,
+                            height: 16.sp,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.whiteColor,
+                              ),
+                            ),
+                          )
+                        else
+                          Icon(
+                            isInCart ? Icons.check : Icons.add,
+                            size: 16.sp,
+                            color: isInCart
+                                ? AppColors.whiteColor
+                                : AppColors.primaryColor,
+                          ),
+                        SizedBox(width: 4.w),
+                        customText(
+                          isAddingThisAddon
+                              ? "Adding..."
+                              : isInCart
+                                  ? "Added"
+                                  : "Add",
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: isAddingThisAddon || isInCart
+                              ? AppColors.whiteColor
+                              : AppColors.primaryColor,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -803,5 +1175,49 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
         ],
       ),
     );
+  }
+
+  /// Add addon directly to cart as a separate item with quantity 1
+  Future<void> _addAddonToCart(MenuItemModel addon) async {
+    final restaurant = dashboardController.selectedRestaurant;
+
+    if (restaurant == null || !restaurant.isOpen()) {
+      if (Get.context != null) {
+        ModernSnackBar.showError(
+          Get.context!,
+          message: "${restaurant?.name ?? 'Restaurant'} is closed",
+        );
+      }
+      return;
+    }
+
+    // Set loading state for this specific addon
+    setState(() {
+      addingAddonId = addon.id;
+    });
+
+    try {
+      // Add addon to cart with quantity 1
+      // Uses the same package logic as main item (will use selected package or prompt for package selection)
+      await cartController.addToCart(
+        addon.id,
+        1, // Quantity of 1 for addon
+        restaurant: restaurant,
+      );
+
+      // Refresh UI to show "Added" state
+      setState(() {
+        addingAddonId = null;
+      });
+    } catch (e) {
+      debugPrint('Error adding addon to cart: $e');
+      setState(() {
+        addingAddonId = null;
+      });
+      showToast(
+        isError: true,
+        message: "Failed to add item to cart. Please try again.",
+      );
+    }
   }
 }

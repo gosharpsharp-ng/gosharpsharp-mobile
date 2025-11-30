@@ -9,6 +9,10 @@ import 'package:gosharpsharp/modules/cart/views/widgets/add_to_cart_success_bott
 
 class CartController extends GetxController {
   final cartService = serviceLocator<RestaurantCartService>();
+  final profileService = serviceLocator<ProfileService>();
+
+  // User profile
+  UserProfile? userProfile;
 
   // Loading states
   bool _isLoading = false;
@@ -47,6 +51,7 @@ class CartController extends GetxController {
 
   // Cart data - Updated structure
   List<CartPackage> _packages = [];
+  Cart? _cart; // Store the full cart object to access price breakdown
   RxString selectedPaymentMethod = 'Cash'.obs;
   RxString instructions = ''.obs;
 
@@ -54,6 +59,7 @@ class CartController extends GetxController {
   String? _selectedPackageName;
 
   List<CartPackage> get packages => _packages;
+  Cart? get cart => _cart;
   List<String> get packageNames => _packages.map((p) => p.name).toList();
   String? get selectedPackageName => _selectedPackageName;
 
@@ -106,7 +112,8 @@ class CartController extends GetxController {
   // Send to Someone Else feature
   bool _isSendingToSomeoneElse = false;
   final TextEditingController recipientNameController = TextEditingController();
-  final TextEditingController recipientPhoneController = TextEditingController();
+  final TextEditingController recipientPhoneController =
+      TextEditingController();
 
   bool get isSendingToSomeoneElse => _isSendingToSomeoneElse;
 
@@ -124,7 +131,24 @@ class CartController extends GetxController {
   void onInit() {
     super.onInit();
     _loadSavedLocation();
+    _loadUserProfile();
     fetchCart();
+  }
+
+  // Load user profile to auto-fill recipient fields
+  Future<void> _loadUserProfile() async {
+    try {
+      APIResponse response = await profileService.getProfile();
+      if (response.status == "success") {
+        userProfile = UserProfile.fromJson(response.data['user']);
+        debugPrint(
+          '👤 CartController: Loaded user profile: ${userProfile?.fname} ${userProfile?.lname}',
+        );
+        update();
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading user profile in CartController: $e');
+    }
   }
 
   // Load the customer's saved location from storage
@@ -163,28 +187,31 @@ class CartController extends GetxController {
           customDebugPrint(response.data);
 
           // Parse the Cart object from response
-          final Cart cart = Cart.fromJson(response.data as Map<String, dynamic>);
+          _cart = Cart.fromJson(response.data as Map<String, dynamic>);
 
           // Extract packages
-          _packages = cart.packages;
+          _packages = _cart!.packages;
 
           // Set default package if cart is not empty and no package selected
           if (_packages.isNotEmpty && _selectedPackageName == null) {
             _selectedPackageName = _packages.first.name;
           }
         } else {
+          _cart = null;
           _packages = [];
           _selectedPackageName = null;
         }
         update(); // Trigger UI update
       } else {
         showToast(message: response.message, isError: true);
+        _cart = null;
         _packages = [];
         _selectedPackageName = null;
         update(); // Trigger UI update
       }
     } catch (e) {
       showToast(message: "Failed to fetch cart: $e", isError: true);
+      _cart = null;
       _packages = [];
       _selectedPackageName = null;
       update(); // Trigger UI update
@@ -201,16 +228,17 @@ class CartController extends GetxController {
       if (response.status.toLowerCase() == "success") {
         if (response.data != null) {
           // Parse the Cart object from response
-          final Cart cart = Cart.fromJson(response.data as Map<String, dynamic>);
+          _cart = Cart.fromJson(response.data as Map<String, dynamic>);
 
           // Extract packages
-          _packages = cart.packages;
+          _packages = _cart!.packages;
 
           // Set default package if cart is not empty and no package selected
           if (_packages.isNotEmpty && _selectedPackageName == null) {
             _selectedPackageName = _packages.first.name;
           }
         } else {
+          _cart = null;
           _packages = [];
           _selectedPackageName = null;
         }
@@ -229,8 +257,10 @@ class CartController extends GetxController {
     int? addonMenuId,
     List<int>? addonIds,
     String? packageName,
-    bool skipDialog = false, // Skip dialog when explicitly providing packageName
-    bool autoIncrementIfExists = false, // Auto-increment quantity if item exists (for programmatic adds)
+    bool skipDialog =
+        false, // Skip dialog when explicitly providing packageName
+    bool autoIncrementIfExists =
+        false, // Auto-increment quantity if item exists (for programmatic adds)
     RestaurantModel? restaurant, // Restaurant to validate operating hours
   }) async {
     try {
@@ -239,7 +269,8 @@ class CartController extends GetxController {
         final hours = restaurant.getOperatingHoursText();
         _showErrorBottomSheet(
           title: 'Restaurant Closed',
-          message: '${restaurant.name} is currently closed.\n\nOperating hours: $hours',
+          message:
+              '${restaurant.name} is currently closed.\n\nOperating hours: $hours',
           autoDismiss: true,
         );
         return;
@@ -254,11 +285,7 @@ class CartController extends GetxController {
           if (item != null) {
             // Item exists, auto-increment its quantity
             final newQuantity = item.quantity + quantity;
-            await updateCartItemQuantity(
-              item.id,
-              quantity: newQuantity,
-              packageName: package.name,
-            );
+            await updateCartItemQuantity(item.id, quantity: newQuantity);
             return;
           }
         }
@@ -269,25 +296,48 @@ class CartController extends GetxController {
       // 2. No package is currently selected by user
       // 3. Dialog is not skipped
       if (packageName == null && _selectedPackageName == null && !skipDialog) {
-        await showPackageSelectionAndAddToCart(menuId, quantity, addonIds: addonIds, restaurant: restaurant);
+        await showPackageSelectionAndAddToCart(
+          menuId,
+          quantity,
+          addonIds: addonIds,
+          restaurant: restaurant,
+        );
         return;
       }
 
       // Determine package name with priority:
       // 1. Explicitly provided packageName
-      // 2. User-selected package (_selectedPackageName)
+      // 2. User-selected package (_selectedPackageName) - ONLY if cart is not empty and package exists
       // 3. First item: Pack 1
       // 4. Existing packages: use first
       // 5. Fallback: Pack 1
       String finalPackageName;
       if (packageName != null) {
         finalPackageName = packageName;
-      } else if (_selectedPackageName != null) {
+      } else if (isCartEmpty) {
+        // Cart is empty - always use Pack 1 for new cart
+        // Also clear any stale selected package name
+        if (_selectedPackageName != null) {
+          debugPrint(
+            '🧹 Clearing stale selected package: $_selectedPackageName (cart is empty)',
+          );
+          _selectedPackageName = null;
+        }
+        finalPackageName = 'Pack 1';
+      } else if (_selectedPackageName != null &&
+          packageNames.contains(_selectedPackageName)) {
+        // Use selected package only if it exists in the current cart
         finalPackageName = _selectedPackageName!;
         debugPrint('📦 Using selected package: $_selectedPackageName');
-      } else if (isCartEmpty) {
-        // First item in cart, default to Pack 1
-        finalPackageName = 'Pack 1';
+      } else if (_selectedPackageName != null) {
+        // Selected package doesn't exist in cart - clear it and use first available or Pack 1
+        debugPrint(
+          '🧹 Clearing invalid selected package: $_selectedPackageName (not in cart)',
+        );
+        _selectedPackageName = null;
+        finalPackageName = packageNames.isNotEmpty
+            ? packageNames.first
+            : 'Pack 1';
       } else if (packageNames.isNotEmpty) {
         // Use existing package
         finalPackageName = packageNames.first;
@@ -298,18 +348,23 @@ class CartController extends GetxController {
 
       // IMPORTANT: Check if item already exists in the selected package
       // If it exists, increment quantity instead of creating duplicate
-      final existingItem = _findItemInPackage(menuId, finalPackageName, addonIds);
+      final existingItem = _findItemInPackage(
+        menuId,
+        finalPackageName,
+        addonIds,
+      );
 
       if (existingItem != null) {
         // Item with same addons exists in this package, increase quantity instead
         final newQuantity = existingItem.quantity + quantity;
-        debugPrint('📦 Item already exists in package "$finalPackageName", incrementing quantity to $newQuantity');
-        // Note: Don't send addons when updating quantity - they're already set on the item
-        await updateCartItemQuantity(
-          existingItem.id,
-          quantity: newQuantity,
-          packageName: finalPackageName,
+        debugPrint(
+          '📦 Item already exists in package "$finalPackageName", incrementing quantity to $newQuantity',
         );
+        // Note: Don't send addons when updating quantity - they're already set on the item
+        await updateCartItemQuantity(existingItem.id, quantity: newQuantity);
+        // Show success bottom sheet for updated item
+        final itemName = existingItem.purchasable.name;
+        _showAddToCartSuccessBottomSheet(itemName, newQuantity);
         return;
       }
 
@@ -331,7 +386,20 @@ class CartController extends GetxController {
         data['addons'] = [addonMenuId];
       }
 
+      // Debug logging for API request
+      debugPrint('=== CART API REQUEST ===');
+      debugPrint('Endpoint: /menu-cart/items');
+      debugPrint('Request Data: $data');
+      debugPrint('========================');
+
       APIResponse response = await cartService.addToMenuCart(data);
+
+      // Debug logging for API response
+      debugPrint('=== CART API RESPONSE ===');
+      debugPrint('Status: ${response.status}');
+      debugPrint('Message: ${response.message}');
+      debugPrint('Data: ${response.data}');
+      debugPrint('=========================');
 
       if (response.status.toLowerCase() == "success") {
         // Refresh cart after adding item
@@ -376,7 +444,11 @@ class CartController extends GetxController {
   }
 
   // Helper method to find item in a specific package with matching addons
-  CartItem? _findItemInPackage(int menuId, String packageName, List<int>? addonIds) {
+  CartItem? _findItemInPackage(
+    int menuId,
+    String packageName,
+    List<int>? addonIds,
+  ) {
     try {
       // Find the package
       final package = _packages.firstWhere(
@@ -385,7 +457,9 @@ class CartController extends GetxController {
       );
 
       // Find item with matching menu ID in this package
-      final matchingItems = package.items.where((item) => item.purchasableId == menuId);
+      final matchingItems = package.items.where(
+        (item) => item.purchasableId == menuId,
+      );
 
       if (matchingItems.isEmpty) return null;
 
@@ -460,42 +534,20 @@ class CartController extends GetxController {
   }
 
   // Update cart item (quantity and/or addons)
-  // Note: package_name is REQUIRED since every cart item is always in a package
   // quantity is optional (only needed when updating quantity)
   // addonIds is optional (only needed when updating addons)
-  Future<void> updateCartItemQuantity(int itemId, {dynamic quantity, List<int>? addonIds, String? packageName}) async {
+  Future<void> updateCartItemQuantity(
+    int itemId, {
+    dynamic quantity,
+    List<int>? addonIds,
+  }) async {
+    CartItem? cartItem;
+    int? oldQuantity;
+
     try {
       setUpdatingCartState(true);
 
-      // Find the item to get its package if not provided
-      String? finalPackageName = packageName;
-
-      if (finalPackageName == null) {
-        // Find the item in packages to get its package name
-        bool found = false;
-        for (var package in _packages) {
-          for (var cartItem in package.items) {
-            if (cartItem.id == itemId) {
-              finalPackageName = package.name;
-              found = true;
-              break;
-            }
-          }
-          if (found) break;
-        }
-
-        if (finalPackageName == null) {
-          _showErrorBottomSheet(
-            title: 'Item Not Found',
-            message: 'The item you\'re trying to update could not be found in your cart.',
-            autoDismiss: true,
-          );
-          return;
-        }
-      }
-
-      // Find the cart item to get the purchasable_id
-      CartItem? cartItem;
+      // Find the cart item
       for (var package in _packages) {
         for (var item in package.items) {
           if (item.id == itemId) {
@@ -509,45 +561,51 @@ class CartController extends GetxController {
       if (cartItem == null) {
         _showErrorBottomSheet(
           title: 'Item Not Found',
-          message: 'The item you\'re trying to update could not be found in your cart.',
+          message:
+              'The item you\'re trying to update could not be found in your cart.',
           autoDismiss: true,
         );
+        setUpdatingCartState(false);
         return;
       }
 
       // Store old quantity for rollback if needed
-      final oldQuantity = cartItem.quantity;
+      oldQuantity = cartItem.quantity;
 
       // Optimistic update - update UI immediately
       if (quantity != null) {
-        final newQuantity = quantity is int ? quantity : int.parse(quantity.toString());
+        final newQuantity = quantity is int
+            ? quantity
+            : int.parse(quantity.toString());
         cartItem.quantity = newQuantity;
         update(); // Update UI immediately
       }
 
-      Map<String, dynamic> data = {
-        'package_name': finalPackageName, // Always include package name (REQUIRED)
-      };
+      Map<String, dynamic> data = {};
 
-      // Only add quantity if explicitly provided (optional)
+      // Only add quantity if explicitly provided
       if (quantity != null) {
         // Parse to int if it's a string, otherwise use as is
-        data['quantity'] = quantity is int ? quantity : int.parse(quantity.toString());
+        data['quantity'] = quantity is int
+            ? quantity
+            : int.parse(quantity.toString());
       }
-      // Only add addons if explicitly provided (optional)
+
+      // Only add addons if explicitly provided
       if (addonIds != null) {
         data['addons'] = addonIds;
       }
 
       // Use the correct endpoint for updating cart item
-
+      customDebugPrint("=== UPDATING CART ITEM ===");
       customDebugPrint("cart item id: $itemId");
       customDebugPrint("purchasable id: ${cartItem.purchasableId}");
-      customDebugPrint("Request route: /menu-cart/items/${cartItem.purchasableId}");
+      customDebugPrint("Request route: /menu-cart/items/$itemId/update");
       customDebugPrint("Request body: ${data.toString()}");
+      customDebugPrint("==========================");
 
       APIResponse response = await cartService.updateMenuCart(
-        id: cartItem.id, // Use purchasable ID instead of cart item ID
+        id: cartItem.id,
         data: data,
       );
 
@@ -559,9 +617,27 @@ class CartController extends GetxController {
         showToast(message: "Cart updated successfully", isError: false);
         // Silently refresh cart in background without showing loader
         await _fetchCartSilently();
+
+        // Debug: Check if cart was cleared unexpectedly after refresh
+        if (_packages.isEmpty && oldQuantity > 0) {
+          customDebugPrint(
+            "⚠️ WARNING: Cart appears empty after quantity update!",
+          );
+          customDebugPrint(
+            "⚠️ This may indicate a backend issue with the update endpoint",
+          );
+        }
       } else {
+        // Rollback optimistic update on failure
+        if (quantity != null) {
+          cartItem.quantity = oldQuantity;
+          update();
+        }
+
         customDebugPrint("=== ERROR UPDATING CART ===");
-        customDebugPrint("Route called: /menu-cart/items/${cartItem.purchasableId}");
+        customDebugPrint(
+          "Route called: /menu-cart/items/${cartItem.id}/update",
+        );
         customDebugPrint("Request body sent: ${data.toString()}");
         customDebugPrint("Error Status: ${response.status}");
         customDebugPrint("Error Message: ${response.message}");
@@ -569,11 +645,19 @@ class CartController extends GetxController {
         customDebugPrint("=========================");
         _showErrorBottomSheet(
           title: 'Update Failed',
-          message: response.message.isNotEmpty ? response.message : 'Unable to update cart item. Please try again.',
+          message: response.message.isNotEmpty
+              ? response.message
+              : 'Unable to update cart item. Please try again.',
           autoDismiss: true,
         );
       }
     } catch (e, stackTrace) {
+      // Rollback optimistic update on exception
+      if (quantity != null && cartItem != null && oldQuantity != null) {
+        cartItem.quantity = oldQuantity;
+        update();
+      }
+
       customDebugPrint("Exception updating cart: $e");
       customDebugPrint("Stack trace: $stackTrace");
       _showErrorBottomSheet(
@@ -613,7 +697,9 @@ class CartController extends GetxController {
       } else {
         _showErrorBottomSheet(
           title: 'Remove Failed',
-          message: response.message.isNotEmpty ? response.message : 'Unable to remove item from cart. Please try again.',
+          message: response.message.isNotEmpty
+              ? response.message
+              : 'Unable to remove item from cart. Please try again.',
           autoDismiss: true,
         );
       }
@@ -656,21 +742,52 @@ class CartController extends GetxController {
     }
   }
 
-  // Getters for cart calculations
+  // Getters for cart calculations - Use API price_breakdown if available
   double get subtotal {
-    // Calculate subtotal from all packages
+    if (_cart?.priceBreakdown != null) {
+      return _cart!.priceBreakdown!.subtotal;
+    }
+    // Fallback: Calculate subtotal from all packages
     return _packages.fold(0.0, (sum, package) {
       return sum + (double.tryParse(package.cost) ?? 0.0);
     });
   }
 
-  double get deliveryFee => 600.00;
-  double get serviceCharge => 200.00;
-  double get total => subtotal + deliveryFee + serviceCharge;
+  double get packagingPrice {
+    return _cart?.priceBreakdown?.packagingPrice ?? 0.0;
+  }
+
+  double get commission {
+    return _cart?.priceBreakdown?.commission ?? 0.0;
+  }
+
+  double get tax {
+    return _cart?.priceBreakdown?.tax ?? 0.0;
+  }
+
+  double get deliveryFee {
+    return _cart?.priceBreakdown?.deliveryFee ?? 5.0;
+  }
+
+  double get total {
+    if (_cart?.priceBreakdown != null) {
+      return _cart!.priceBreakdown!.total;
+    }
+    // Fallback calculation
+    return subtotal + deliveryFee;
+  }
+
+  String get currency {
+    return _cart?.priceBreakdown?.currency ?? 'NGN';
+  }
+
+  // Legacy getter for backward compatibility
+  double get serviceCharge => commission + tax;
 
   int get itemCount {
     return _packages.fold(0, (sum, package) {
-      return sum + package.items.fold(0, (itemSum, item) => itemSum + item.quantity);
+      return sum +
+          package.items.fold(0, (itemSum, item) => itemSum + item.quantity);
     });
   }
 
@@ -713,7 +830,9 @@ class CartController extends GetxController {
         'delivery_address': currentLocation.value,
         'latitude': selectedLatitude,
         'longitude': selectedLongitude,
-        'note': 'Order placed via mobile app',
+        'note': instructions.value.isNotEmpty
+            ? instructions.value
+            : 'Order placed via mobile app',
       };
 
       APIResponse response = await cartService.createOrder(orderData);
@@ -723,7 +842,10 @@ class CartController extends GetxController {
         showToast(message: "Order placed successfully", isError: false);
 
         // Extract order details from response
-        final orderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
+        final orderNumber =
+            response.data['order_number'] ??
+            response.data['id']?.toString() ??
+            'N/A';
         final orderId = response.data['id'];
 
         // Refresh the cart after successful order
@@ -760,6 +882,22 @@ class CartController extends GetxController {
     try {
       setLoadingState(true);
 
+      // Prepare receiver object
+      Map<String, String> receiver = {};
+      if (isSendingToSomeoneElse && recipientNameController.text.isNotEmpty) {
+        receiver = {
+          'name': recipientNameController.text.trim(),
+          'phone_number': recipientPhoneController.text.trim(),
+        };
+      } else {
+        // Use current user's info
+        receiver = {
+          'name': '${userProfile?.fname ?? ''} ${userProfile?.lname ?? ''}'
+              .trim(),
+          'phone_number': userProfile?.phone ?? '',
+        };
+      }
+
       // Prepare order data with wallet payment method using selected location and instructions
       dynamic orderData = {
         'delivery_address': currentLocation.value,
@@ -768,7 +906,8 @@ class CartController extends GetxController {
         'note': instructions?.isNotEmpty == true
             ? instructions
             : 'Order placed via mobile app',
-        'payment_method': 'wallet',
+        'receiver': receiver,
+        'payment_method_code': 'wallet',
       };
       APIResponse response = await cartService.createOrder(orderData);
 
@@ -780,7 +919,10 @@ class CartController extends GetxController {
         );
 
         // Extract order details from response
-        final orderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
+        final orderNumber =
+            response.data['order_number'] ??
+            response.data['id']?.toString() ??
+            'N/A';
         final orderId = response.data['id'];
 
         // Refresh the cart after successful order
@@ -823,6 +965,22 @@ class CartController extends GetxController {
     try {
       setLoadingState(true);
 
+      // Prepare receiver object
+      Map<String, String> receiver = {};
+      if (isSendingToSomeoneElse && recipientNameController.text.isNotEmpty) {
+        receiver = {
+          'name': recipientNameController.text.trim(),
+          'phone_number': recipientPhoneController.text.trim(),
+        };
+      } else {
+        // Use current user's info
+        receiver = {
+          'name': '${userProfile?.fname ?? ''} ${userProfile?.lname ?? ''}'
+              .trim(),
+          'phone_number': userProfile?.phone ?? '',
+        };
+      }
+
       // Prepare order data with Paystack payment method using selected location and instructions
       dynamic orderData = {
         'delivery_address': currentLocation.value,
@@ -831,7 +989,8 @@ class CartController extends GetxController {
         'note': instructions?.isNotEmpty == true
             ? instructions
             : 'Order placed via mobile app',
-        'payment_method': 'paystack',
+        'receiver': receiver,
+        'payment_method_code': 'paystack',
       };
 
       APIResponse response = await cartService.createOrder(orderData);
@@ -847,7 +1006,10 @@ class CartController extends GetxController {
         );
 
         // Extract order details from response
-        lastOrderNumber = response.data['order_number'] ?? response.data['id']?.toString() ?? 'N/A';
+        lastOrderNumber =
+            response.data['order_number'] ??
+            response.data['id']?.toString() ??
+            'N/A';
 
         // Refresh the cart after successful order
         await refreshCart();
@@ -939,7 +1101,8 @@ class CartController extends GetxController {
       for (var package in _packages) {
         for (var item in package.items) {
           if (packageId != null) {
-            if (item.purchasableId == menuId && item.cartPackageId == packageId) {
+            if (item.purchasableId == menuId &&
+                item.cartPackageId == packageId) {
               return item;
             }
           } else {
@@ -1269,10 +1432,7 @@ class CartController extends GetxController {
   // Show add to cart success bottom sheet
   void _showAddToCartSuccessBottomSheet(String itemName, int quantity) {
     Get.bottomSheet(
-      AddToCartSuccessBottomSheet(
-        itemName: itemName,
-        quantity: quantity,
-      ),
+      AddToCartSuccessBottomSheet(itemName: itemName, quantity: quantity),
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
@@ -1303,6 +1463,9 @@ class CartController extends GetxController {
 
   @override
   void onClose() {
+    // Dispose text editing controllers
+    recipientNameController.dispose();
+    recipientPhoneController.dispose();
     super.onClose();
   }
 }

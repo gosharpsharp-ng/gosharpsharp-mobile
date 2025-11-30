@@ -27,11 +27,27 @@ class SettingsController extends GetxController {
     if (response.status == "success") {
       userProfile = UserProfile.fromJson(response.data['user']);
       update();
+      // Initialize the signaling plugin
+      // ZegoUIKitPrebuiltCallInvitationService().init(
+      //   appID: int.parse(Secret.zegoCloudAppID),
+      //   appSign: Secret.zegoCloudAppSign,
+      //   userID: userProfile!.id.toString(),
+      //   userName: "${userProfile!.fname} ${userProfile!.lname}",
+      //   plugins: [ZegoUIKitSignalingPlugin()],
+      //   notificationConfig: ZegoCallInvitationNotificationConfig(
+      //       androidNotificationConfig: ZegoCallAndroidNotificationConfig(
+      //         showFullScreen: true,
+      //       ),
+      //       iOSNotificationConfig:
+      //           ZegoCallIOSNotificationConfig(appName: "gosharpsharp_mobile")),
+      // );
       setProfileFields();
     } else {
       if (getStorage.read("token") != null) {
         showToast(
-            message: response.message, isError: response.status != "success");
+          message: response.message,
+          isError: response.status != "success",
+        );
       }
     }
   }
@@ -78,12 +94,16 @@ class SettingsController extends GetxController {
       if (response.status == "success") {
         getProfile();
         toggleProfileEditState(false);
+        Get.back();
         showAnyBottomSheet(
-            isControlled: false,
-            child: const ProfileUpdateSuccessBottomSheet());
+          isControlled: false,
+          child: const ProfileUpdateSuccessBottomSheet(),
+        );
       } else {
         showToast(
-            message: response.message, isError: response.status != "success");
+          message: response.message,
+          isError: response.status != "success",
+        );
       }
     }
   }
@@ -114,7 +134,9 @@ class SettingsController extends GetxController {
         update();
 
         // Convert image to base64
-        String base64Avatar = await Base64ImageUtils.convertImageToBase64(croppedPhoto.path);
+        String base64Avatar = await Base64ImageUtils.convertImageToBase64(
+          croppedPhoto.path,
+        );
 
         dynamic data = {
           'avatar': base64Avatar,
@@ -126,15 +148,22 @@ class SettingsController extends GetxController {
 
         if (response.status == "success") {
           getProfile();
+          Get.back();
           showAnyBottomSheet(
-              isControlled: false,
-              child: const ProfileUpdateSuccessBottomSheet());
+            isControlled: false,
+            child: const ProfileUpdateSuccessBottomSheet(),
+          );
         } else {
           showToast(
-              message: response.message, isError: response.status != "success");
+            message: response.message,
+            isError: response.status != "success",
+          );
         }
       } catch (e) {
-        showToast(message: "Failed to update profile picture: $e", isError: true);
+        showToast(
+          message: "Failed to update profile picture: $e",
+          isError: true,
+        );
       } finally {
         setLoadingProfileAvatarState(false);
       }
@@ -171,19 +200,22 @@ class SettingsController extends GetxController {
       setLoadingState(true);
       dynamic data = {
         "old_password": oldPasswordController.text,
-        "new_password": newPasswordController.text
+        "new_password": newPasswordController.text,
       };
 
       APIResponse response = await profileService.changePassword(data);
 
       setLoadingState(false);
       showToast(
-          message: response.message, isError: response.status != "success");
+        message: response.message,
+        isError: response.status != "success",
+      );
       if (response.status == "success") {
         oldPasswordController.clear();
         newPasswordController.clear();
         confirmNewPasswordController.clear();
         update();
+        Get.back();
       }
     }
   }
@@ -203,9 +235,7 @@ class SettingsController extends GetxController {
   }
 
   getSingleNotification() async {
-    dynamic data = {
-      "id": selectedNotification!.id,
-    };
+    dynamic data = {"id": selectedNotification!.id};
     APIResponse response = await profileService.getNotificationById(data);
     selectedNotification = NotificationModel.fromJson(response.data[data]);
     if (response.status == "success") {
@@ -241,6 +271,7 @@ class SettingsController extends GetxController {
     DeliveryNotificationServiceManager serviceManager =
         DeliveryNotificationServiceManager();
     serviceManager.disposeServices();
+    // ZegoUIKitPrebuiltCallInvitationService().uninit();
   }
 
   bool deletePasswordVisibility = false;
@@ -264,6 +295,7 @@ class SettingsController extends GetxController {
         DeliveryNotificationServiceManager serviceManager =
             DeliveryNotificationServiceManager();
         serviceManager.disposeServices();
+        // ZegoUIKitPrebuiltCallInvitationService().uninit();
       } else {
         showToast(message: "could not delete your account", isError: true);
       }
@@ -273,11 +305,12 @@ class SettingsController extends GetxController {
   showAccountDeletionDialog() async {
     await Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: customText(
+          "Delete Account",
+          fontWeight: FontWeight.bold,
+          fontSize: 18.sp,
         ),
-        title: customText("Delete Account",
-            fontWeight: FontWeight.bold, fontSize: 18.sp),
         content: customText(
           "Are you sure you want to delete your account? This action is permanent and cannot be undone.",
           textAlign: TextAlign.left,
@@ -293,10 +326,12 @@ class SettingsController extends GetxController {
                   onTap: () {
                     Get.back();
                   },
-                  child: customText("Cancel",
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18.sp,
-                      color: AppColors.obscureTextColor),
+                  child: customText(
+                    "Cancel",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 18.sp,
+                    color: AppColors.obscureTextColor,
+                  ),
                 ),
               ),
               Expanded(
@@ -316,9 +351,9 @@ class SettingsController extends GetxController {
   }
 
   @override
-  void onReady() {
-    super.onReady();
-    // Load profile and notifications after the widget tree is built
+  void onInit() {
+    super.onInit();
+    // Load profile and notifications when the controller is initialized
     getProfile();
     getUnreadNotifications();
   }

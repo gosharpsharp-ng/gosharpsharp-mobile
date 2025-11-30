@@ -45,7 +45,8 @@ class _ParcelDeliveryTrackingScreenState
           // Listen for delivery status updates
           _socketService?.listenForDeliveryStatusUpdate((data) {
             if (mounted) {
-              final newStatus = data['status']?.toString() ?? _currentDelivery['status'];
+              final newStatus =
+                  data['status']?.toString() ?? _currentDelivery['status'];
 
               setState(() {
                 _currentDelivery['status'] = newStatus;
@@ -56,7 +57,8 @@ class _ParcelDeliveryTrackingScreenState
               });
 
               showToast(
-                message: 'Delivery status updated to ${_getStatusDisplayName(newStatus)}',
+                message:
+                    'Delivery status updated to ${_getStatusDisplayName(newStatus)}',
                 isError: false,
               );
             }
@@ -80,7 +82,8 @@ class _ParcelDeliveryTrackingScreenState
   }
 
   int _getCurrentStatusIndex() {
-    final currentStatus = _currentDelivery['status']?.toString().toLowerCase() ?? 'pending';
+    final currentStatus =
+        _currentDelivery['status']?.toString().toLowerCase() ?? 'pending';
     final index = _deliveryStatuses.indexOf(currentStatus);
     return index >= 0 ? index : 0;
   }
@@ -92,7 +95,8 @@ class _ParcelDeliveryTrackingScreenState
   }
 
   bool _isStatusCurrent(String status) {
-    final currentStatus = _currentDelivery['status']?.toString().toLowerCase() ?? 'pending';
+    final currentStatus =
+        _currentDelivery['status']?.toString().toLowerCase() ?? 'pending';
     return currentStatus == status.toLowerCase();
   }
 
@@ -162,7 +166,8 @@ class _ParcelDeliveryTrackingScreenState
   @override
   Widget build(BuildContext context) {
     final currentStatusIndex = _getCurrentStatusIndex();
-    final isCancelled = _currentDelivery['status']?.toString().toLowerCase() == 'cancelled' ||
+    final isCancelled =
+        _currentDelivery['status']?.toString().toLowerCase() == 'cancelled' ||
         _currentDelivery['status']?.toString().toLowerCase() == 'canceled';
 
     return Scaffold(
@@ -194,7 +199,7 @@ class _ParcelDeliveryTrackingScreenState
                 borderRadius: BorderRadius.circular(12.r),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.blackColor.withOpacity(0.05),
+                    color: AppColors.blackColor.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -231,11 +236,15 @@ class _ParcelDeliveryTrackingScreenState
                           vertical: 6.h,
                         ),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(_currentDelivery['status'] ?? 'pending'),
+                          color: _getStatusColor(
+                            _currentDelivery['status'] ?? 'pending',
+                          ),
                           borderRadius: BorderRadius.circular(20.r),
                         ),
                         child: customText(
-                          _getStatusDisplayName(_currentDelivery['status'] ?? 'pending'),
+                          _getStatusDisplayName(
+                            _currentDelivery['status'] ?? 'pending',
+                          ),
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
                           color: AppColors.whiteColor,
@@ -244,56 +253,107 @@ class _ParcelDeliveryTrackingScreenState
                     ],
                   ),
                   SizedBox(height: 16.h),
-                  Divider(color: AppColors.greyColor.withOpacity(0.2)),
+                  Divider(color: AppColors.greyColor.withValues(alpha: 0.2)),
                   SizedBox(height: 16.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            customText(
-                              'From',
-                              fontSize: 12.sp,
-                              color: AppColors.obscureTextColor,
+                      // From location
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 24.sp,
+                            height: 24.sp,
+                            decoration: BoxDecoration(
+                              color: AppColors.greenColor.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
                             ),
-                            SizedBox(height: 4.h),
-                            customText(
-                              _currentDelivery['pickup_location']?['name'] ?? 'N/A',
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.blackColor,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            child: Icon(
+                              Icons.circle,
+                              color: AppColors.greenColor,
+                              size: 10.sp,
                             ),
-                          ],
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                customText(
+                                  'From',
+                                  fontSize: 12.sp,
+                                  color: AppColors.obscureTextColor,
+                                ),
+                                SizedBox(height: 4.h),
+                                customText(
+                                  _currentDelivery['pickup_location']?['name'] ??
+                                      'N/A',
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.blackColor,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Dotted line connector
+                      Padding(
+                        padding: EdgeInsets.only(left: 11.w),
+                        child: Container(
+                          width: 2.w,
+                          height: 20.h,
+                          color: AppColors.greyColor.withValues(alpha: 0.3),
                         ),
                       ),
-                      SizedBox(width: 16.w),
-                      Icon(Icons.arrow_forward, color: AppColors.greyColor, size: 16.sp),
-                      SizedBox(width: 16.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            customText(
-                              'To',
-                              fontSize: 12.sp,
-                              color: AppColors.obscureTextColor,
+                      // To location
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 24.sp,
+                            height: 24.sp,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
                             ),
-                            SizedBox(height: 4.h),
-                            customText(
-                              _currentDelivery['destination_location']?['name'] ?? 'N/A',
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.blackColor,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.right,
+                            child: Icon(
+                              Icons.location_on,
+                              color: AppColors.primaryColor,
+                              size: 14.sp,
                             ),
-                          ],
-                        ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                customText(
+                                  'To',
+                                  fontSize: 12.sp,
+                                  color: AppColors.obscureTextColor,
+                                ),
+                                SizedBox(height: 4.h),
+                                customText(
+                                  _currentDelivery['destination_location']?['name'] ??
+                                      'N/A',
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.blackColor,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -328,7 +388,9 @@ class _ParcelDeliveryTrackingScreenState
                           ),
                           SizedBox(height: 4.h),
                           customText(
-                            _formatCurrency(_currentDelivery['cost']?.toString() ?? '0'),
+                            _formatCurrency(
+                              _currentDelivery['cost']?.toString() ?? '0',
+                            ),
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primaryColor,
@@ -354,7 +416,7 @@ class _ParcelDeliveryTrackingScreenState
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.05),
+                      color: AppColors.blackColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -413,7 +475,9 @@ class _ParcelDeliveryTrackingScreenState
                             child: Container(
                               padding: EdgeInsets.all(10.sp),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryColor.withOpacity(0.1),
+                                color: AppColors.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -442,7 +506,7 @@ class _ParcelDeliveryTrackingScreenState
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.05),
+                      color: AppColors.blackColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -453,7 +517,7 @@ class _ParcelDeliveryTrackingScreenState
                     Container(
                       padding: EdgeInsets.all(12.sp),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: Colors.orange.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -499,7 +563,7 @@ class _ParcelDeliveryTrackingScreenState
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.05),
+                      color: AppColors.blackColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -541,7 +605,7 @@ class _ParcelDeliveryTrackingScreenState
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.05),
+                      color: AppColors.blackColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -587,7 +651,7 @@ class _ParcelDeliveryTrackingScreenState
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.05),
+                      color: AppColors.blackColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -612,7 +676,9 @@ class _ParcelDeliveryTrackingScreenState
                               width: 40.w,
                               height: 40.h,
                               decoration: BoxDecoration(
-                                color: AppColors.primaryColor.withOpacity(0.1),
+                                color: AppColors.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(8.r),
                               ),
                               child: Icon(
@@ -676,7 +742,7 @@ class _ParcelDeliveryTrackingScreenState
               decoration: BoxDecoration(
                 color: isCompleted || isCurrent
                     ? AppColors.primaryColor
-                    : AppColors.greyColor.withOpacity(0.2),
+                    : AppColors.greyColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -693,7 +759,7 @@ class _ParcelDeliveryTrackingScreenState
                 height: 40.h,
                 color: isCompleted
                     ? AppColors.primaryColor
-                    : AppColors.greyColor.withOpacity(0.2),
+                    : AppColors.greyColor.withValues(alpha: 0.2),
               ),
           ],
         ),

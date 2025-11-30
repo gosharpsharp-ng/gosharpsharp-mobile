@@ -60,9 +60,7 @@ class DeliveriesController extends GetxController {
     ratingDelivery = true;
     update();
 
-    final dynamic data = {
-      "points": rating.toInt(),
-    };
+    final dynamic data = {"points": rating.toInt()};
 
     try {
       // Call the API - Use rateParcelDelivery for customer mobile app
@@ -97,10 +95,7 @@ class DeliveriesController extends GetxController {
       update();
       customDebugPrint("Failed to rate delivery: $e");
       if (context.mounted) {
-        ModernSnackBar.showError(
-          context,
-          message: "Failed to submit rating",
-        );
+        ModernSnackBar.showError(context, message: "Failed to submit rating");
       }
     }
   }
@@ -384,6 +379,9 @@ class DeliveriesController extends GetxController {
   String? selectedPaymentType;
   DeliveryCourierType? selectedCourierType;
 
+  // Paystack payment data
+  PayStackAuthorizationModel? payStackAuthorizationData;
+
   setSelectedBikeType(String bikeType) {
     selectedBikeType = bikeType;
     update();
@@ -437,6 +435,58 @@ class DeliveriesController extends GetxController {
           deliveryData,
         );
 
+        // Check if payment is paystack - show WebView for payment
+        if (selectedPaymentType == 'paystack' &&
+            response.data['payment'] != null) {
+          // Payment data is directly in response.data['payment'], not nested under 'data'
+          payStackAuthorizationData = PayStackAuthorizationModel.fromJson(
+            response.data['payment'],
+          );
+
+          // Close the bottom sheet first
+          Get.back();
+
+          // Show Paystack WebView for payment
+          if (context.mounted) {
+            showPaymentWebViewDialog(
+              context,
+              url: payStackAuthorizationData?.authorizationUrl ?? "",
+              title: "Paystack Payment",
+              onSuccess: () {
+                // Payment successful - navigate to success screen
+                showToast(message: "Payment successful!", isError: false);
+
+                // Refresh deliveries list
+                fetchDeliveries();
+
+                // Clear form fields after successful confirmation
+                clearFields();
+
+                Get.offAllNamed(
+                  Routes.DELIVERY_SUCCESS_SCREEN,
+                  arguments: {
+                    'delivery': selectedDelivery,
+                    'tracking_id': selectedDelivery!.trackingId,
+                    'message': "Delivery confirmed and payment successful!",
+                    'nearby_riders_count': nearbyRidersCount,
+                  },
+                );
+              },
+              onFailure: (String reason) {
+                // Payment failed or cancelled - navigate to failure screen
+                Get.offAllNamed(
+                  Routes.DELIVERY_FAILURE_SCREEN,
+                  arguments: {
+                    'message': reason.isNotEmpty ? reason : "Payment was cancelled",
+                  },
+                );
+              },
+            );
+          }
+          return;
+        }
+
+        // For wallet payment or other methods, proceed directly
         // Show success message
         showToast(message: response.message, isError: false);
 
@@ -794,53 +844,6 @@ class DeliveriesController extends GetxController {
     update();
   }
 
-  /// Prepares the controller for a new delivery by resetting all form fields
-  /// and clearing any previous delivery state. Call this before navigating
-  /// to the InitiateDeliveryScreen.
-  void prepareForNewDelivery() {
-    // Clear all form fields
-    senderNameController.clear();
-    senderAddressController.clear();
-    estimatedDistanceController.clear();
-    receiverNameController.clear();
-    receiverEmailController.clear();
-    receiverPhoneController.clear();
-    receiverAddressController.clear();
-    deliveryItemNameController.clear();
-    deliveryItemDescriptionController.clear();
-    deliveryItemCategoryController.clear();
-    deliveryItemQuantityController.clear();
-
-    // Reset selection states
-    selectedCourierTypePrice = null;
-    selectedCourierType = null;
-    selectedPaymentType = null;
-    selectedPaymentMethod = null;
-    filledPhoneNumber = null;
-    selectedDeliveryResponseModel = null;
-
-    // Clear items and images
-    deliveryItems.clear();
-    imageUploaded = false;
-    parcelImage = null;
-    deliveryItemImages.clear();
-
-    // Clear location data
-    deliverySenderLocation = null;
-    deliveryReceiverLocation = null;
-    distanceDetails = null;
-
-    // Reset loading states
-    submittingDelivery = false;
-    confirmingDelivery = false;
-    gettingDistance = false;
-
-    // Prefill sender details from user profile
-    prefillDeliverySenderDetails();
-
-    update();
-  }
-
   bool? imageUploaded;
   DeliveryItemData? deliveryData;
   addDeliveryItem({bool skipValidation = false}) {
@@ -1168,7 +1171,8 @@ class DeliveriesController extends GetxController {
               // Parse delivery model from response
               // API returns {delivery: {...}, nearby_riders_count: 0, transaction: null}
               // We need to extract the 'delivery' object
-              final deliveryData = response.data is Map && response.data.containsKey('delivery')
+              final deliveryData =
+                  response.data is Map && response.data.containsKey('delivery')
                   ? response.data['delivery']
                   : response.data;
 
@@ -1632,7 +1636,7 @@ class DeliveriesController extends GetxController {
                           width: 1.sw,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12.r),
-                            color: AppColors.greenColor.withOpacity(0.92),
+                            color: AppColors.greenColor.withValues(alpha: 0.92),
                           ),
                           child: Column(
                             children: [
@@ -1726,9 +1730,11 @@ class DeliveriesController extends GetxController {
       filteredParcelDeliveries = allParcelDeliveries;
     } else {
       filteredParcelDeliveries = allParcelDeliveries
-          .where((delivery) =>
-              delivery['status']?.toString().toLowerCase() ==
-              selectedDeliveryStatus.toLowerCase())
+          .where(
+            (delivery) =>
+                delivery['status']?.toString().toLowerCase() ==
+                selectedDeliveryStatus.toLowerCase(),
+          )
           .toList();
     }
   }
@@ -1739,9 +1745,11 @@ class DeliveriesController extends GetxController {
       return allParcelDeliveries.length;
     }
     return allParcelDeliveries
-        .where((delivery) =>
-            delivery['status']?.toString().toLowerCase() ==
-            status.toLowerCase())
+        .where(
+          (delivery) =>
+              delivery['status']?.toString().toLowerCase() ==
+              status.toLowerCase(),
+        )
         .length;
   }
 

@@ -353,7 +353,7 @@ showToast({String message = "", bool isError = false}) {
         color: isError ? Colors.red : AppColors.primaryColor,
         overflow: TextOverflow.visible,
         fontSize: 12.sp),
-    snackPosition: SnackPosition.TOP,
+    snackPosition: SnackPosition.BOTTOM,
     backgroundColor: CupertinoColors.systemGrey5,
     colorText: isError ? Colors.red : AppColors.primaryColor,
     maxWidth: 1.sw * 0.7,
@@ -367,7 +367,7 @@ showToast({String message = "", bool isError = false}) {
       ),
     ),
     borderRadius: 10.r,
-    margin: EdgeInsets.only(left: 12.sp, top: 14.sp),
+    margin: EdgeInsets.only(left: 12.sp, bottom: 14.sp),
     duration: const Duration(seconds: 3),
   );
 }
@@ -483,8 +483,13 @@ String formatRideTime(String timestamp) {
 }
 
 String formatToCurrency(num number) {
-  NumberFormat format = NumberFormat.currency(locale: 'en_US', symbol: '₦');
-  return format.format(number);
+  NumberFormat format = NumberFormat.currency(locale: 'en_US', symbol: '₦', decimalDigits: 2);
+  String formatted = format.format(number);
+  // Remove trailing .00 for whole numbers
+  if (formatted.endsWith('.00')) {
+    formatted = formatted.substring(0, formatted.length - 3);
+  }
+  return formatted;
 }
 
 formatNumber(dynamic value, {String locale = 'en_NG'}) {

@@ -1,4 +1,5 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/core/services/recently_visited_restaurants_service.dart';
 
 class SplashController extends GetxController {
   @override
@@ -15,6 +16,9 @@ class SplashController extends GetxController {
     debugPrint('🔑 Token check: ${token != null ? 'Token exists' : 'No token'}');
 
     if (token != null && token.isNotEmpty) {
+      // Clear recently visited restaurants on app start
+      await RecentlyVisitedRestaurantsService().clearRecentRestaurants();
+
       // Load data
       await _loadData();
 
@@ -79,10 +83,13 @@ class SplashController extends GetxController {
     return false;
   }
 
-  // Method to initiate calls from the WalletController and ProfileController
+  // Method to initiate essential controllers only
+  // Non-critical controllers (Wallet, Settings) are lazy-loaded when their screens are accessed
   Future<void> _loadData() async {
-    Get.put(WalletController());
-    Get.put(SettingsController());
-    Get.put(DeliveriesController());
+    // Only load DeliveriesController as it may be needed for notifications
+    Get.lazyPut(() => DeliveriesController());
+    // WalletController and SettingsController will be loaded when needed
+    Get.lazyPut(() => WalletController());
+    Get.lazyPut(() => SettingsController());
   }
 }

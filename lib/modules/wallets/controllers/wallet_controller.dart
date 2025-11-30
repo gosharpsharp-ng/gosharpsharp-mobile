@@ -1,7 +1,4 @@
-import 'dart:developer';
-
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class WalletController extends GetxController {
   final walletService = serviceLocator<WalletsService>();
@@ -203,14 +200,9 @@ class WalletController extends GetxController {
   }
 
   @override
-  void onInit() {
-    super.onInit();
-    transactionsScrollController.addListener(_transactionsScrollListener);
-  }
-
-  @override
   void onReady() {
     super.onReady();
+    // Load data after widget is rendered
     getWalletBalance();
     getTransactions();
   }

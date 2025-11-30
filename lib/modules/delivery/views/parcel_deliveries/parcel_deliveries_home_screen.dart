@@ -37,16 +37,21 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
                     itemCount: deliveriesController.deliveryStatuses.length,
                     separatorBuilder: (context, index) => SizedBox(width: 16.w),
                     itemBuilder: (context, index) {
-                      final status = deliveriesController.deliveryStatuses[index];
-                      final isSelected = deliveriesController.selectedDeliveryStatus == status;
-                      final deliveryCount = deliveriesController.getDeliveryCountByStatus(status);
+                      final status =
+                          deliveriesController.deliveryStatuses[index];
+                      final isSelected =
+                          deliveriesController.selectedDeliveryStatus == status;
+                      final deliveryCount = deliveriesController
+                          .getDeliveryCountByStatus(status);
                       final displayName = _getStatusDisplayName(status);
 
                       return InkWell(
                         onTap: () async {
-                          deliveriesController.setSelectedDeliveryStatus(status);
+                          deliveriesController.setSelectedDeliveryStatus(
+                            status,
+                          );
                           // Reload deliveries when switching tabs
-                          await deliveriesController.refreshParcelDeliveries();
+                          // await deliveriesController.refreshParcelDeliveries();
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -132,20 +137,31 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: [
                               SizedBox(height: 100.h),
-                              _buildEmptyState(deliveriesController.selectedDeliveryStatus),
+                              _buildEmptyState(
+                                deliveriesController.selectedDeliveryStatus,
+                              ),
                             ],
                           )
                         : ListView.separated(
                             physics: const AlwaysScrollableScrollPhysics(),
-                            itemCount: deliveriesController.filteredParcelDeliveries.length,
-                            separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                            itemCount: deliveriesController
+                                .filteredParcelDeliveries
+                                .length,
+                            separatorBuilder: (context, index) =>
+                                SizedBox(height: 12.h),
                             itemBuilder: (context, index) {
-                              final parcelDelivery = deliveriesController.filteredParcelDeliveries[index];
+                              final parcelDelivery = deliveriesController
+                                  .filteredParcelDeliveries[index];
                               return ParcelDeliveryCard(
                                 parcelDelivery: parcelDelivery,
                                 onTap: () {
-                                  deliveriesController.setSelectedParcelDelivery(parcelDelivery);
-                                  Get.toNamed(Routes.PARCEL_DELIVERY_DETAILS_SCREEN);
+                                  deliveriesController
+                                      .setSelectedParcelDelivery(
+                                        parcelDelivery,
+                                      );
+                                  Get.toNamed(
+                                    Routes.PARCEL_DELIVERY_DETAILS_SCREEN,
+                                  );
                                 },
                               );
                             },
@@ -231,15 +247,15 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
       case 'accepted':
         return Icons.person_add_alt_1;
       case 'picked':
-        return Icons.local_shipping_outlined;
+        return Icons.electric_bike_sharp;
       case 'in_transit':
-        return Icons.local_shipping;
+        return Icons.electric_bike;
       case 'delivered':
         return Icons.done_all;
       case 'cancelled':
         return Icons.cancel_outlined;
       default:
-        return Icons.local_shipping_outlined;
+        return Icons.electric_bike_outlined;
     }
   }
 
@@ -291,7 +307,9 @@ class ParcelDeliveryCard extends StatelessWidget {
             color: AppColors.whiteColor,
             borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
-              color: _getStatusColor(parcelDelivery['status'] ?? 'pending').withOpacity(0.15),
+              color: _getStatusColor(
+                parcelDelivery['status'] ?? 'pending',
+              ).withValues(alpha: 0.15),
               width: 0.8,
             ),
           ),
@@ -303,9 +321,14 @@ class ParcelDeliveryCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 6.h,
+                    ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(parcelDelivery['status'] ?? 'pending'),
+                      color: _getStatusColor(
+                        parcelDelivery['status'] ?? 'pending',
+                      ),
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Row(
@@ -318,7 +341,9 @@ class ParcelDeliveryCard extends StatelessWidget {
                         ),
                         SizedBox(width: 6.w),
                         customText(
-                          _getStatusDisplayText(parcelDelivery['status'] ?? 'pending'),
+                          _getStatusDisplayText(
+                            parcelDelivery['status'] ?? 'pending',
+                          ),
                           color: AppColors.whiteColor,
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
@@ -395,7 +420,8 @@ class ParcelDeliveryCard extends StatelessWidget {
               ),
 
               // Items preview
-              if (parcelDelivery['items'] != null && (parcelDelivery['items'] as List).isNotEmpty) ...[
+              if (parcelDelivery['items'] != null &&
+                  (parcelDelivery['items'] as List).isNotEmpty) ...[
                 SizedBox(height: 12.h),
                 Container(
                   padding: EdgeInsets.all(12.sp),

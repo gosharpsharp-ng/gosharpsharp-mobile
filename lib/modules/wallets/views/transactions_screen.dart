@@ -1,5 +1,4 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:gosharpsharp/core/utils/widgets/pagination_button.dart';
 
 class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({super.key});

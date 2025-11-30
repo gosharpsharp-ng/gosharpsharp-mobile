@@ -89,7 +89,7 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.blackColor,
                   fontSize: 13.sp,
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: 'HelveticaNeue',
                   fontWeight: FontWeight.w400,
                   overflow: TextOverflow.visible,
                 ),
@@ -101,7 +101,7 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
                           .primaryColor, // Highlight color for clickable text
                       decoration: TextDecoration.underline,
                       fontSize: 13.sp,
-                      fontFamily: GoogleFonts.inter().fontFamily,
+                      fontFamily: 'HelveticaNeue',
                       fontWeight: FontWeight.w400,
                       overflow: TextOverflow.visible, // Optional underline
                     ),
@@ -149,7 +149,6 @@ class DeliveryInstructionsBottomSheet extends StatelessWidget {
               text,
               color: AppColors.blackColor,
               fontSize: hasCurrency ? 14.sp : 15.sp,
-              fontStyle: GoogleFonts.inter().fontStyle,
               fontWeight: hasCurrency ? FontWeight.w600 : FontWeight.w500,
               overflow: TextOverflow.visible,
             ),

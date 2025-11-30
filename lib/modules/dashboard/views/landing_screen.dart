@@ -45,7 +45,7 @@ class LandingScreen extends StatelessWidget {
               SizedBox(height: 24.h),
 
               customText(
-                "What do you want to get Sharp Sharp?",
+                "Order food, send parcels, let's do it Sharp Sharp!",
                 fontWeight: FontWeight.w500,
                 fontSize: 24.sp,
                 overflow: TextOverflow.visible,
@@ -125,10 +125,9 @@ class _CircularMenuState extends State<CircularMenu>
         icon: PngAssets.rider,
         color: AppColors.primaryColor,
         onTap: () {
-          // Prepare the controller for a new delivery
-          if (Get.isRegistered<DeliveriesController>()) {
-            Get.find<DeliveriesController>().prepareForNewDelivery();
-          }
+          // Clear all delivery fields before navigating to a new delivery
+          final deliveriesController = Get.find<DeliveriesController>();
+          deliveriesController.clearFields();
           // Navigate to parcel delivery flow
           Get.toNamed(Routes.INITIATE_DELIVERY_SCREEN);
         },
@@ -275,7 +274,7 @@ class _CircularMenuState extends State<CircularMenu>
   Widget build(BuildContext context) {
     // Calculate angle step based on number of items
     final angleStep = (2 * math.pi) / menuItems.length;
-    final radius = 130.0; // Orbit radius
+    final radius = 140.0; // Orbit radius
 
     return GestureDetector(
       onPanStart: _handlePanStart,
@@ -348,9 +347,9 @@ class MenuItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Center sun is 15% bigger (138px), planets are 15% smaller (102px)
-    final size = isCenter ? 138.0 : 115.0;
-    final iconSize = isCenter ? 52.0 : 38.0;
+    // Center item is larger, orbital items slightly smaller
+    final size = isCenter ? 145.0 : 120.0;
+    final iconSize = isCenter ? 54.0 : 42.0;
 
     return GestureDetector(
       onTap: item.onTap,
@@ -440,8 +439,8 @@ class MenuItemWidget extends StatelessWidget {
                     customText(
                       item.title,
                       textAlign: TextAlign.center,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
                       color: item.isAvailable
                           ? (item.color == AppColors.primaryColor
                                 ? AppColors.whiteColor
@@ -458,7 +457,7 @@ class MenuItemWidget extends StatelessWidget {
                 //   CustomPaint(
                 //     size: Size(120.w, 120.h),
                 //     painter: DottedCircleBorder(
-                //       color: Colors.white.withOpacity(0.6),
+                //       color: Colors.white.withValues(alpha:0.6),
                 //       strokeWidth: 3,
                 //       gap: 8,
                 //     ),

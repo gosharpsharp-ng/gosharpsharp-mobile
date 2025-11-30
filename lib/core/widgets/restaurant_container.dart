@@ -70,7 +70,7 @@ class RestaurantContainer extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               colors: [
                                 Colors.transparent,
-                                Colors.black.withOpacity(0.3),
+                                Colors.black.withValues(alpha: 0.3),
                               ],
                             ),
                           ),
@@ -82,7 +82,7 @@ class RestaurantContainer extends StatelessWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8.r),
-                              color: Colors.black.withOpacity(0.7),
+                              color: Colors.black.withValues(alpha: 0.7),
                             ),
                             child: Center(
                               child: Column(
@@ -153,7 +153,7 @@ class RestaurantContainer extends StatelessWidget {
                         ),
                       ),
                       // Discount overlay at bottom left
-                      if (restaurant.topDiscount?.badgeText != null)
+                      if (restaurant.discountBadgeText != null)
                         Positioned(
                           bottom: 8.h,
                           left: 8.w,
@@ -167,7 +167,7 @@ class RestaurantContainer extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6.r),
                             ),
                             child: customText(
-                              restaurant.topDiscount!.badgeText!,
+                              restaurant.discountBadgeText!,
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w700,
                               color: AppColors.whiteColor,
@@ -236,7 +236,7 @@ class RestaurantContainer extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           customText(
-                            restaurant.name,
+                            restaurant.name.capitalizeFirst ?? restaurant.name,
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w600,
                             color: AppColors.blackColor,
@@ -245,7 +245,7 @@ class RestaurantContainer extends StatelessWidget {
                           SizedBox(height: 3.h),
                           if (restaurant.cuisineType != null)
                             customText(
-                              restaurant.cuisineType!,
+                              restaurant.cuisineType!.capitalizeFirst ?? restaurant.cuisineType!,
                               fontSize: 15.sp,
                               color: AppColors.obscureTextColor,
                               maxLines: 1,
@@ -290,9 +290,7 @@ class RestaurantContainer extends StatelessWidget {
                             vertical: 2.h,
                           ),
                           decoration: BoxDecoration(
-                            color: restaurant.freeDelivery
-                                ? AppColors.secondaryColor
-                                : AppColors.secondaryColor,
+                            color: AppColors.secondaryColor.withAlpha(200),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: Row(
@@ -305,16 +303,14 @@ class RestaurantContainer extends StatelessWidget {
                                 height: 16.sp,
                                 width: 16.sp,
                                 colorFilter: ColorFilter.mode(
-                                  restaurant.freeDelivery
-                                      ? AppColors.blackColor
-                                      : AppColors.blackColor,
+                                  AppColors.blackColor,
                                   BlendMode.srcIn,
                                 ),
                               ),
-                              if (restaurant.freeDelivery) ...[
+                              if (restaurant.hasFreeDelivery) ...[
                                 SizedBox(width: 4.w),
                                 customText(
-                                  "Free delivery",
+                                  "Free",
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.blackColor,
@@ -347,7 +343,7 @@ class RestaurantContainer extends StatelessWidget {
                         // ),
                         SizedBox(width: 6.w),
                         customText(
-                          getOpeningHours(restaurant),
+                          restaurant.prepTime ?? getOpeningHours(restaurant),
                           fontSize: 14.sp,
                         ),
                       ],
@@ -358,7 +354,7 @@ class RestaurantContainer extends StatelessWidget {
                         Icon(Icons.star, color: Colors.orange, size: 15.sp),
                         SizedBox(width: 2.w),
                         customText(
-                          restaurant.averageRating,
+                          restaurant.formattedRating,
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w500,
                           color: AppColors.blackColor,

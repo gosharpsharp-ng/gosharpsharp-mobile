@@ -101,7 +101,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       customText(
-                                        restaurant.name,
+                                        restaurant.name.capitalizeFirst ??
+                                            restaurant.name,
                                         fontSize: 24.sp,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.blackColor,
@@ -109,13 +110,19 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                                       SizedBox(height: 4.h),
                                       if (restaurant.cuisineType != null)
                                         customText(
-                                          restaurant.cuisineType!,
-                                          fontSize: 14.sp,
+                                          restaurant
+                                                  .cuisineType!
+                                                  .capitalizeFirst ??
+                                              restaurant.cuisineType!,
+                                          fontSize: 16.sp,
                                           color: AppColors.obscureTextColor,
                                         ),
                                       customText(
-                                        restaurant.description!,
-                                        fontSize: 14.sp,
+                                        restaurant
+                                                .description!
+                                                .capitalizeFirst ??
+                                            restaurant.description!,
+                                        fontSize: 16.sp,
                                         color: AppColors.obscureTextColor,
                                         maxLines: 3,
                                       ),
@@ -125,7 +132,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
 
                               if (restaurant.description != null &&
                                   restaurant.description!.isNotEmpty)
-                                SizedBox(height: 20.h),
+                                SizedBox(height: 10.h),
 
                               // Contact Info and Status
                               _buildContactInfo(restaurant),
@@ -307,98 +314,20 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   Widget _buildContactInfo(RestaurantModel restaurant) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    customText(
-                      "Phone",
-                      fontSize: 14.sp,
-                      color: AppColors.obscureTextColor,
-                    ),
-                    customText(
-                      restaurant.phone,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.blackColor,
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  customText(
-                    "Status",
-                    fontSize: 14.sp,
-                    color: AppColors.obscureTextColor,
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: getStatusColor(restaurant.status),
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                    child: customText(
-                      restaurant.status.toUpperCase(),
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.whiteColor,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          customText(
+            "Opening hours:",
+            fontSize: 14.sp,
+            color: AppColors.obscureTextColor,
           ),
-          SizedBox(height: 15.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    customText(
-                      "Email",
-                      fontSize: 14.sp,
-                      color: AppColors.obscureTextColor,
-                    ),
-                    customText(
-                      restaurant.email,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.blackColor,
-                      maxLines: 1,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 10.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  customText(
-                    "Opening hours:",
-                    fontSize: 14.sp,
-                    color: AppColors.obscureTextColor,
-                  ),
-                  customText(
-                    getOpeningHours(restaurant),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.blackColor,
-                  ),
-                ],
-              ),
-            ],
+          SizedBox(width: 8.w),
+          customText(
+            getOpeningHours(restaurant),
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.blackColor,
           ),
         ],
       ),
@@ -571,9 +500,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     DashboardController controller,
     CartController cartController,
   ) {
-    int cartQuantity = cartController.getItemQuantityInCart(menuItem.id);
+    // int cartQuantity = cartController.getItemQuantityInCart(menuItem.id);
     bool isAvailable = controller.isMenuItemAvailable(menuItem);
-    bool isCurrentlyAdding = cartController.isAddingItemToCart(menuItem.id);
+    // bool isCurrentlyAdding = cartController.isAddingItemToCart(menuItem.id);
 
     return InkWell(
       onTap: () {
@@ -590,7 +519,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           ),
           // boxShadow: [
           //   BoxShadow(
-          //     color: Colors.black.withOpacity(0.05),
+          //     color: Colors.black.withValues(alpha:0.05),
           //     blurRadius: 10,
           //     offset: Offset(0, 2),
           //   ),
@@ -604,30 +533,56 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Food Image
-                Container(
-                  width: 120.w,
-                  height: 120.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.r),
-                    color: AppColors.backgroundColor,
-                    image: menuItem.files.isNotEmpty
-                        ? DecorationImage(
-                            image: NetworkImage(menuItem.files[0].url),
-                            fit: BoxFit.cover,
-                            onError: (exception, stackTrace) {
-                              // Handle image loading error
-                            },
-                          )
-                        : null,
-                  ),
-                  child: menuItem.files.isEmpty
-                      ? Icon(
-                          Icons.restaurant,
-                          color: AppColors.obscureTextColor,
-                          size: 30.sp,
-                        )
-                      : null,
+                // Food Image with discount badge
+                Stack(
+                  children: [
+                    Container(
+                      width: 120.w,
+                      height: 120.w,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.r),
+                        color: AppColors.backgroundColor,
+                        image: menuItem.files.isNotEmpty
+                            ? DecorationImage(
+                                image: NetworkImage(menuItem.files[0].url),
+                                fit: BoxFit.cover,
+                                onError: (exception, stackTrace) {
+                                  // Handle image loading error
+                                },
+                              )
+                            : null,
+                      ),
+                      child: menuItem.files.isEmpty
+                          ? Icon(
+                              Icons.restaurant,
+                              color: AppColors.obscureTextColor,
+                              size: 30.sp,
+                            )
+                          : null,
+                    ),
+                    // Discount badge overlay
+                    if (menuItem.discountBadgeText != null)
+                      Positioned(
+                        bottom: 6.h,
+                        left: 6.w,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.redColor,
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: customText(
+                            menuItem.discountBadgeText!,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.whiteColor,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(width: 15.w),
 
@@ -640,7 +595,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       customText(
-                        menuItem.name,
+                        menuItem.name.capitalizeFirst ?? menuItem.name,
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w500,
                         color: AppColors.blackColor,
@@ -670,40 +625,93 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                       if (menuItem.description != null &&
                           menuItem.description!.isNotEmpty)
                         customText(
-                          menuItem.description!,
-                          fontSize: 12.sp,
+                          menuItem.description!.capitalizeFirst ??
+                              menuItem.description!,
+                          fontSize: 14.sp,
                           color: AppColors.blackColor,
                           overflow: TextOverflow.visible,
                           maxLines: 2,
                         ),
                       SizedBox(height: 8.h),
+                      customText(
+                        formatToCurrency(menuItem.price),
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.blackColor,
+                      ),
+                      SizedBox(height: 8.h),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.max,
+                      Wrap(
+                        spacing: 8.w,
+                        runSpacing: 6.h,
                         children: [
+                          // Plate size badge
                           if (menuItem.plateSize != null &&
-                              menuItem.plateSize!.isNotEmpty) ...[
-                            customText(
-                              "${menuItem.plateSize}",
-                              fontSize: 12.sp,
-                              color: AppColors.blackColor,
+                              menuItem.plateSize!.isNotEmpty)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8.w,
+                                vertical: 4.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.greyColor.withAlpha(20),
+                                borderRadius: BorderRadius.circular(6.r),
+                                border: Border.all(
+                                  color: AppColors.greyColor.withAlpha(50),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.restaurant_menu,
+                                    color: AppColors.blackColor,
+                                    size: 14.sp,
+                                  ),
+                                  SizedBox(width: 4.w),
+                                  customText(
+                                    menuItem.plateSize!,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.blackColor,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                          if (menuItem.prepTimeMinutes != null) ...[
-                            SizedBox(width: 8.w),
-                            Icon(
-                              Icons.access_time,
-                              color: AppColors.blackColor,
-                              size: 12.sp,
+                          // Prep time badge
+                          if (menuItem.prepTimeMinutes != null)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8.w,
+                                vertical: 4.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.greyColor.withAlpha(20),
+                                borderRadius: BorderRadius.circular(6.r),
+                                border: Border.all(
+                                  color: AppColors.greyColor.withAlpha(50),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    color: AppColors.blackColor,
+                                    size: 14.sp,
+                                  ),
+                                  SizedBox(width: 4.w),
+                                  customText(
+                                    "${menuItem.prepTimeMinutes} mins",
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.blackColor,
+                                  ),
+                                ],
+                              ),
                             ),
-                            SizedBox(width: 2.w),
-                            customText(
-                              "${menuItem.prepTimeMinutes}",
-                              fontSize: 11.sp,
-                              color: AppColors.blackColor,
-                            ),
-                          ],
                         ],
                       ),
 
@@ -712,7 +720,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                         SizedBox(height: 4.h),
                         customText(
                           controller.getMenuItemAvailabilityStatus(menuItem),
-                          fontSize: 11.sp,
+                          fontSize: 13.sp,
                           color: Colors.red,
                           fontWeight: FontWeight.w500,
                         ),
@@ -720,101 +728,89 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                     ],
                   ),
                 ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    customText(
-                      formatToCurrency(menuItem.price),
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.normal,
-                      color: AppColors.blackColor,
-                    ),
-                  ],
-                ),
               ],
             ),
-            SizedBox(height: 5.h),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _buildCartControls(
-                  menuItem,
-                  cartController,
-                  isAvailable,
-                  isCurrentlyAdding,
-                  cartQuantity,
-                ),
-              ],
-            ),
+            // SizedBox(height: 5.h),
+            // Row(
+            //   mainAxisSize: MainAxisSize.max,
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   children: [
+            //     _buildCartControls(
+            //       menuItem,
+            //       cartController,
+            //       isAvailable,
+            //       isCurrentlyAdding,
+            //       cartQuantity,
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCartControls(
-    MenuItemModel menuItem,
-    CartController cartController,
-    bool isAvailable,
-    bool isCurrentlyAdding,
-    int cartQuantity,
-  ) {
-    if (!isAvailable) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: AppColors.obscureTextColor,
-          borderRadius: BorderRadius.circular(6.r),
-        ),
-        child: customText(
-          "Unavailable",
-          fontSize: 12.sp,
-          color: AppColors.whiteColor,
-          fontWeight: FontWeight.w500,
-        ),
-      );
-    }
+  // Widget _buildCartControls(
+  //   MenuItemModel menuItem,
+  //   CartController cartController,
+  //   bool isAvailable,
+  //   bool isCurrentlyAdding,
+  //   int cartQuantity,
+  // ) {
+  //   if (!isAvailable) {
+  //     return Container(
+  //       width: double.infinity,
+  //       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+  //       decoration: BoxDecoration(
+  //         color: AppColors.obscureTextColor,
+  //         borderRadius: BorderRadius.circular(6.r),
+  //       ),
+  //       child: customText(
+  //         "Unavailable",
+  //         fontSize: 12.sp,
+  //         color: AppColors.whiteColor,
+  //         fontWeight: FontWeight.w500,
+  //       ),
+  //     );
+  //   }
 
-    // Always show Add to Cart button (or cart icon if item is in cart)
-    bool isInCart = cartQuantity > 0;
+  //   // Always show Add to Cart button (or cart icon if item is in cart)
+  //   bool isInCart = cartQuantity > 0;
 
-    return InkWell(
-      onTap: !isCurrentlyAdding
-          ? () => _addToCart(menuItem, cartController)
-          : null,
-      child: Container(
-        width: 32.w,
-        height: 32.w,
-        decoration: BoxDecoration(
-          color: isCurrentlyAdding
-              ? AppColors.obscureTextColor
-              : isInCart
-              ? AppColors.primaryColor
-              : AppColors.lightGreyColor,
-          shape: BoxShape.circle,
-        ),
-        child: isCurrentlyAdding
-            ? SizedBox(
-                width: 16.w,
-                height: 16.w,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.whiteColor,
-                  ),
-                ),
-              )
-            : Icon(
-                Icons.add,
-                color: isInCart ? AppColors.whiteColor : AppColors.blackColor,
-                size: 18.sp,
-              ),
-      ),
-    );
-  }
+  //   return InkWell(
+  //     onTap: !isCurrentlyAdding
+  //         ? () => _addToCart(menuItem, cartController)
+  //         : null,
+  //     child: Container(
+  //       width: 32.w,
+  //       height: 32.w,
+  //       decoration: BoxDecoration(
+  //         color: isCurrentlyAdding
+  //             ? AppColors.obscureTextColor
+  //             : isInCart
+  //             ? AppColors.primaryColor
+  //             : AppColors.lightGreyColor,
+  //         shape: BoxShape.circle,
+  //       ),
+  //       child: isCurrentlyAdding
+  //           ? SizedBox(
+  //               width: 16.w,
+  //               height: 16.w,
+  //               child: CircularProgressIndicator(
+  //                 strokeWidth: 2,
+  //                 valueColor: AlwaysStoppedAnimation<Color>(
+  //                   AppColors.whiteColor,
+  //                 ),
+  //               ),
+  //             )
+  //           : Icon(
+  //               Icons.add,
+  //               color: isInCart ? AppColors.whiteColor : AppColors.blackColor,
+  //               size: 18.sp,
+  //             ),
+  //     ),
+  //   );
+  // }
 
   // Helper methods
   void _toggleFavorite(
@@ -828,26 +824,26 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
-  void _addToCart(MenuItemModel menuItem, CartController cartController) async {
-    try {
-      // Check if menu item has addons
-      if (menuItem.addonMenus != null && menuItem.addonMenus!.isNotEmpty) {
-        // Navigate to food detail screen to show addons
-        final controller = Get.find<DashboardController>();
-        controller.navigateToFoodDetail(menuItem);
-      } else {
-        // No addons, add directly to cart
-        final controller = Get.find<DashboardController>();
-        await cartController.addToCart(
-          menuItem.id,
-          1,
-          restaurant: controller.selectedRestaurant,
-        );
-      }
-    } catch (e) {
-      debugPrint('Error adding to cart: $e');
-    }
-  }
+  // void _addToCart(MenuItemModel menuItem, CartController cartController) async {
+  //   try {
+  //     // Check if menu item has addons
+  //     if (menuItem.addonMenus != null && menuItem.addonMenus!.isNotEmpty) {
+  //       // Navigate to food detail screen to show addons
+  //       final controller = Get.find<DashboardController>();
+  //       controller.navigateToFoodDetail(menuItem);
+  //     } else {
+  //       // No addons, add directly to cart
+  //       final controller = Get.find<DashboardController>();
+  //       await cartController.addToCart(
+  //         menuItem.id,
+  //         1,
+  //         restaurant: controller.selectedRestaurant,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Error adding to cart: $e');
+  //   }
+  // }
 
   Future<void> _refreshRestaurantDetails(DashboardController controller) async {
     final restaurant = controller.selectedRestaurant;

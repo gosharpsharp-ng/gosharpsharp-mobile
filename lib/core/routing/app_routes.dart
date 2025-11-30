@@ -31,6 +31,7 @@ abstract class Routes {
   static const DELIVERY_INVOICE_DETAILS = '/delivery_invoice_details';
   static const INITIATE_DELIVERY_SCREEN = '/initiate_delivery_screen';
   static const DELIVERY_SUCCESS_SCREEN = '/delivery_success_screen';
+  static const DELIVERY_FAILURE_SCREEN = '/delivery_failure_screen';
   static const DELIVERY_ITEM_INPUT_SCREEN = '/delivery_item_input_screen';
   static const DELIVERY_PAYMENT_OPTIONS_SCREEN =
       '/delivery_payment_options_screen';

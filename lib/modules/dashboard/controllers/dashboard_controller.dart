@@ -6,7 +6,6 @@ import 'package:gosharpsharp/core/services/location/location_service.dart';
 import 'package:gosharpsharp/core/services/recently_visited_restaurants_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/modules/dashboard/views/food_detail_screen.dart';
-import 'package:gosharpsharp/modules/dashboard/views/restaurant_detail_screen.dart';
 
 class DashboardController extends GetxController {
   final restaurantService = serviceLocator<RestaurantService>();
@@ -64,7 +63,12 @@ class DashboardController extends GetxController {
 
   // Search query state
   RxString searchQuery = ''.obs;
-  final TextEditingController searchController = TextEditingController();
+  TextEditingController? _searchController;
+
+  TextEditingController get searchController {
+    _searchController ??= TextEditingController();
+    return _searchController!;
+  }
 
   // Category icons mapping
   Map<String, IconData> get categoryIcons => {
@@ -132,7 +136,7 @@ class DashboardController extends GetxController {
     recentRestaurantsService.addRecentRestaurant(
       id: restaurant.id,
       name: restaurant.name,
-      banner: restaurant.banner,
+      banner: restaurant.bannerUrl,
     );
     // Fetch menu items for this restaurant
     fetchRestaurantMenus(restaurant.id.toString());
@@ -322,6 +326,7 @@ class DashboardController extends GetxController {
                 try {
                   return MenuItemModel.fromJson(json as Map<String, dynamic>);
                 } catch (e) {
+                  customDebugPrint("Error parsing menu item: $e");
                   // Skip invalid menu items
                   return null;
                 }
@@ -329,8 +334,14 @@ class DashboardController extends GetxController {
               .where((item) => item != null)
               .cast<MenuItemModel>()
               .toList();
+
+          customDebugPrint("✅ Fetched ${menuItems.length} menu items for restaurant $restaurantId");
+          for (var item in menuItems) {
+            customDebugPrint("  - ${item.name} (Restaurant ID: ${item.restaurant.id})");
+          }
         } else {
           menuItems = [];
+          customDebugPrint("⚠️ No menu data in response");
         }
       } else {
         customDebugPrint("Failed to fetch menu items: ${response.message}");
@@ -434,10 +445,9 @@ class DashboardController extends GetxController {
 
         if (wasRemoved) {
           _favoriteRestaurantIds.remove(restaurant.id);
-          favoriteRestaurants.removeWhere((r) => r.id == restaurant.id);
+          favoriteRestaurants.removeWhere((r) => r.favoritable?.id == restaurant.id);
         } else {
           _favoriteRestaurantIds.add(restaurant.id);
-          fetchFavoriteRestaurants();
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -458,11 +468,63 @@ class DashboardController extends GetxController {
             );
           }
         }
+
+        // Silent refresh to sync with backend (after UI feedback)
+        _fetchFavoritesSilently();
       } else {
         customDebugPrint("Failed to toggle favorite: ${response.message}");
       }
     } catch (e) {
       customDebugPrint("Failed to toggle favorite: $e");
+    }
+  }
+
+  // Fetch favorites silently without showing loading state (for background updates)
+  Future<void> _fetchFavoritesSilently() async {
+    try {
+      APIResponse response = await restaurantService.getMyFavourites({
+        'type': 'restaurant',
+      });
+
+      if (response.status.toLowerCase() == "success") {
+        if (response.data != null && response.data['data'] != null) {
+          final dataList = response.data['data'] as List? ?? [];
+          favoriteRestaurants = dataList
+              .where((json) => json != null)
+              .map((json) {
+                try {
+                  return FavouriteRestaurantModel.fromJson(
+                    json as Map<String, dynamic>,
+                  );
+                } catch (e, stackTrace) {
+                  debugPrint('❌ Error parsing favorite restaurant: $e');
+                  debugPrint('Stack trace: $stackTrace');
+                  return null;
+                }
+              })
+              .where((restaurant) => restaurant != null)
+              .cast<FavouriteRestaurantModel>()
+              .toList();
+
+          // Update favorite IDs set
+          _favoriteRestaurantIds.clear();
+          for (var restaurant in favoriteRestaurants) {
+            if (restaurant.favoritable != null) {
+              _favoriteRestaurantIds.add(restaurant.favoritable!.id);
+            }
+          }
+
+          debugPrint('✅ Silent refresh: Loaded ${favoriteRestaurants.length} favorites');
+          update(); // Trigger UI update
+        } else {
+          favoriteRestaurants = [];
+          _favoriteRestaurantIds.clear();
+          update();
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Silent fetch favorites failed: $e');
+      // Don't show toast on silent fetch failure
     }
   }
 
@@ -516,7 +578,7 @@ class DashboardController extends GetxController {
     // Filter by free delivery (client-side only)
     if (hasFreeDeliveryFilter.value) {
       filteredRestaurants = filteredRestaurants.where((restaurant) {
-        return restaurant.freeDelivery;
+        return restaurant.hasFreeDelivery;
       }).toList();
     }
 
@@ -525,9 +587,16 @@ class DashboardController extends GetxController {
 
   // Get menu items for a specific restaurant
   List<MenuItemModel> getMenuItemsForRestaurant(String restaurantId) {
-    return menuItems
-        .where((item) => item.restaurant.id.toString() == restaurantId)
+    customDebugPrint("🔎 getMenuItemsForRestaurant called with restaurantId: $restaurantId");
+    var filtered = menuItems
+        .where((item) {
+          var matches = item.restaurant.id.toString() == restaurantId;
+          customDebugPrint("  Item: ${item.name}, Restaurant ID: ${item.restaurant.id}, Matches: $matches");
+          return matches;
+        })
         .toList();
+    customDebugPrint("  Found ${filtered.length} items for restaurant $restaurantId");
+    return filtered;
   }
 
   // Get menu items filtered by category
@@ -548,16 +617,25 @@ class DashboardController extends GetxController {
     String restaurantId,
     String categoryName,
   ) {
+    customDebugPrint("🔍 Filtering menus - Restaurant ID: $restaurantId, Category: $categoryName");
+    customDebugPrint("  Total menu items in memory: ${menuItems.length}");
+
     var restaurantMenus = getMenuItemsForRestaurant(restaurantId);
+    customDebugPrint("  Menu items for restaurant $restaurantId: ${restaurantMenus.length}");
+
     if (categoryName == 'All') {
       return restaurantMenus;
     }
-    return restaurantMenus
+
+    var filtered = restaurantMenus
         .where(
           (item) =>
               item.category.name.toLowerCase() == categoryName.toLowerCase(),
         )
         .toList();
+
+    customDebugPrint("  Filtered by category '$categoryName': ${filtered.length}");
+    return filtered;
   }
 
   // Update selected category
@@ -787,6 +865,8 @@ class DashboardController extends GetxController {
 
   @override
   void onClose() {
+    _searchController?.dispose();
+    _searchController = null;
     super.onClose();
   }
 }

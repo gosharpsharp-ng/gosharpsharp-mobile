@@ -1,17 +1,17 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 
-class OrderSuccessScreen extends StatelessWidget {
-  const OrderSuccessScreen({super.key});
+class DeliveryFailureScreen extends StatelessWidget {
+  const DeliveryFailureScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Get order details from arguments
+    // Get failure details from arguments
     final args = Get.arguments as Map<String, dynamic>?;
-    final orderNumber = args?['orderNumber'] ?? 'N/A';
+    final errorMessage = args?['message'] ?? 'Payment was not completed';
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Get.offAllNamed(Routes.APP_NAVIGATION);
         }
@@ -26,18 +26,26 @@ class OrderSuccessScreen extends StatelessWidget {
               children: [
                 Spacer(),
 
-                // Success Icon
-                Icon(
-                  Icons.check_circle,
-                  size: 100.sp,
-                  color: AppColors.primaryColor,
+                // Failure Icon
+                Container(
+                  width: 100.sp,
+                  height: 100.sp,
+                  decoration: BoxDecoration(
+                    color: AppColors.redColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 60.sp,
+                    color: AppColors.redColor,
+                  ),
                 ),
 
                 SizedBox(height: 24.h),
 
-                // Success Message
+                // Failure Message
                 customText(
-                  'Order Placed!',
+                  'Payment Failed',
                   fontSize: 28.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.blackColor,
@@ -47,10 +55,21 @@ class OrderSuccessScreen extends StatelessWidget {
                 SizedBox(height: 12.h),
 
                 customText(
-                  'Your order #$orderNumber has been confirmed',
+                  errorMessage,
                   fontSize: 15.sp,
                   color: AppColors.obscureTextColor,
                   textAlign: TextAlign.center,
+                  maxLines: 3,
+                ),
+
+                SizedBox(height: 16.h),
+
+                customText(
+                  'Your delivery request was not completed. Please try again.',
+                  fontSize: 14.sp,
+                  color: AppColors.obscureTextColor,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
                 ),
 
                 Spacer(),
@@ -58,19 +77,19 @@ class OrderSuccessScreen extends StatelessWidget {
                 // Action Buttons
                 Column(
                   children: [
-                    // Primary Button - View My Orders
+                    // Primary Button - Try Again
                     CustomButton(
                       width: double.infinity,
                       height: 56.h,
                       backgroundColor: AppColors.primaryColor,
-                      title: 'View My Orders',
+                      title: 'Try Again',
                       onPressed: () {
-                        // Clear entire navigation stack and go to dashboard
-                        Get.offAllNamed(Routes.APP_NAVIGATION);
-                        // Then navigate to Orders with proper navigation stack
-                        Future.delayed(Duration.zero, () {
-                          Get.toNamed(Routes.ORDERS_HOME_SCREEN);
-                        });
+                        // Pop back to APP_NAVIGATION then navigate to create delivery
+                        Get.until(
+                          (route) =>
+                              route.settings.name == Routes.APP_NAVIGATION,
+                        );
+                        Get.toNamed(Routes.INITIATE_DELIVERY_SCREEN);
                       },
                       borderRadius: 12.r,
                       fontSize: 16.sp,
@@ -87,14 +106,14 @@ class OrderSuccessScreen extends StatelessWidget {
                       backgroundColor: AppColors.whiteColor,
                       title: 'Back to Home',
                       onPressed: () {
-                        // Navigate back to Dashboard, removing success screen from stack
+                        // Navigate back to Dashboard
                         Get.offAllNamed(Routes.APP_NAVIGATION);
                       },
                       borderRadius: 12.r,
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w600,
-                      fontColor: AppColors.primaryColor,
-                      borderColor: AppColors.primaryColor,
+                      fontColor: AppColors.greyColor,
+                      borderColor: AppColors.greyColor,
                     ),
                   ],
                 ),

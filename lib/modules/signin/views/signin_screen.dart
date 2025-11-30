@@ -1,7 +1,30 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 
-class SignInScreen extends StatelessWidget {
+class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
+
+  @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _rotationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      duration: const Duration(seconds: 20),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +46,44 @@ class SignInScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
+                    // Hero Image Section
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.sp,
+                        vertical: 10.sp,
+                      ),
+                      child: Column(
+                        children: [
+                          // Circular Hero Image with Rotation
+                          RotationTransition(
+                            turns: _rotationController,
+                            child: Container(
+                              height: 180.sp,
+                              width: 180.sp,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.primaryColor.withOpacity(
+                                    0.2,
+                                  ),
+                                  width: 3,
+                                ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(90.r),
+                                child: Image.asset(
+                                  'assets/imgs/login_hero.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20.sp),
+                        ],
+                      ),
+                    ),
+
+                    // Login Form Section
                     Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: 10.sp,

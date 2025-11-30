@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gosharpsharp/core/utils/app_colors.dart' show AppColors;
 import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
-import 'package:gosharpsharp/modules/cart/views/cart_screen.dart';
 import 'package:gosharpsharp/modules/orders/controllers/orders_controller.dart';
 
 import '../../../core/utils/exports.dart';

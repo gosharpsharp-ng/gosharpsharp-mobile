@@ -5,6 +5,85 @@ import 'package:gosharpsharp/core/models/menu_item_model.dart';
 import 'item_file_model.dart';
 import 'order_model.dart' as order;
 
+// Price Breakdown Model
+class PriceBreakdown {
+  double subtotal;
+  double packagingPrice;
+  double commission;
+  double tax;
+  double deliveryFee;
+  double total;
+  String currency;
+  BreakdownDetails? breakdownDetails;
+
+  PriceBreakdown({
+    required this.subtotal,
+    required this.packagingPrice,
+    required this.commission,
+    required this.tax,
+    required this.deliveryFee,
+    required this.total,
+    required this.currency,
+    this.breakdownDetails,
+  });
+
+  factory PriceBreakdown.fromJson(Map<String, dynamic> json) {
+    return PriceBreakdown(
+      subtotal: _parseDouble(json['subtotal']),
+      packagingPrice: _parseDouble(json['packaging_price']),
+      commission: _parseDouble(json['commission']),
+      tax: _parseDouble(json['tax']),
+      deliveryFee: _parseDouble(json['delivery_fee']),
+      total: _parseDouble(json['total']),
+      currency: json['currency']?.toString() ?? 'NGN',
+      breakdownDetails: json['breakdown_details'] != null
+          ? BreakdownDetails.fromJson(json['breakdown_details'])
+          : null,
+    );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'subtotal': subtotal,
+        'packaging_price': packagingPrice,
+        'commission': commission,
+        'tax': tax,
+        'delivery_fee': deliveryFee,
+        'total': total,
+        'currency': currency,
+        'breakdown_details': breakdownDetails?.toJson(),
+      };
+}
+
+class BreakdownDetails {
+  int itemsCount;
+  int totalQuantity;
+
+  BreakdownDetails({
+    required this.itemsCount,
+    required this.totalQuantity,
+  });
+
+  factory BreakdownDetails.fromJson(Map<String, dynamic> json) {
+    return BreakdownDetails(
+      itemsCount: json['items_count'] ?? 0,
+      totalQuantity: json['total_quantity'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'items_count': itemsCount,
+        'total_quantity': totalQuantity,
+      };
+}
+
 class Cart {
   int id;
   int userId;
@@ -17,6 +96,8 @@ class Cart {
   DateTime createdAt;
   DateTime updatedAt;
   List<CartPackage> packages;
+  List<CartItem> items;
+  PriceBreakdown? priceBreakdown;
 
   Cart({
     required this.id,
@@ -30,6 +111,8 @@ class Cart {
     required this.createdAt,
     required this.updatedAt,
     this.packages = const [],
+    this.items = const [],
+    this.priceBreakdown,
   });
 
   factory Cart.fromJson(Map<String, dynamic> json) {
@@ -50,6 +133,10 @@ class Cart {
             ? DateTime.tryParse(json["updated_at"]) ?? DateTime.now()
             : DateTime.now(),
         packages: _parseCartPackages(json["packages"]),
+        items: _parseCartItems(json["items"]),
+        priceBreakdown: json["price_breakdown"] != null
+            ? PriceBreakdown.fromJson(json["price_breakdown"])
+            : null,
       );
     } catch (e) {
       print("Error parsing Cart: $e");
@@ -65,6 +152,8 @@ class Cart {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         packages: [],
+        items: [],
+        priceBreakdown: null,
       );
     }
   }
@@ -92,6 +181,29 @@ class Cart {
     }
   }
 
+  static List<CartItem> _parseCartItems(dynamic itemsJson) {
+    try {
+      if (itemsJson == null) return [];
+      if (itemsJson is! List) return [];
+
+      final items = <CartItem>[];
+      for (final item in itemsJson) {
+        if (item is Map<String, dynamic>) {
+          try {
+            items.add(CartItem.fromJson(item));
+          } catch (e) {
+            print("Error parsing CartItem in cart root: $e");
+            // Skip invalid items
+          }
+        }
+      }
+      return items;
+    } catch (e) {
+      print("Error parsing cart items list: $e");
+      return [];
+    }
+  }
+
   Map<String, dynamic> toJson() => {
     "id": id,
     "user_id": userId,
@@ -104,6 +216,8 @@ class Cart {
     "created_at": createdAt.toIso8601String(),
     "updated_at": updatedAt.toIso8601String(),
     "packages": List<dynamic>.from(packages.map((x) => x.toJson())),
+    "items": List<dynamic>.from(items.map((x) => x.toJson())),
+    "price_breakdown": priceBreakdown?.toJson(),
   };
 
   // Convenience getters
@@ -444,6 +558,7 @@ class Purchasable {
   int quantity;
   int isAvailable;
   String price;
+  String? packagingPrice;
   int prepTimeMinutes;
   int categoryId;
   int isPublished;
@@ -464,6 +579,7 @@ class Purchasable {
     required this.quantity,
     required this.isAvailable,
     required this.price,
+    this.packagingPrice,
     required this.prepTimeMinutes,
     required this.categoryId,
     required this.isPublished,
@@ -532,6 +648,7 @@ class Purchasable {
             ? json["is_available"]
             : (json["is_available"] == true ? 1 : 0),
         price: json["price"]?.toString() ?? "0.00",
+        packagingPrice: json["packaging_price"]?.toString(),
         prepTimeMinutes: json["prep_time_minutes"] is int
             ? json["prep_time_minutes"]
             : int.tryParse(json["prep_time_minutes"]?.toString() ?? "0") ?? 0,
@@ -567,6 +684,7 @@ class Purchasable {
     "quantity": quantity,
     "is_available": isAvailable,
     "price": price,
+    "packaging_price": packagingPrice,
     "prep_time_minutes": prepTimeMinutes,
     "category_id": categoryId,
     "is_published": isPublished,
