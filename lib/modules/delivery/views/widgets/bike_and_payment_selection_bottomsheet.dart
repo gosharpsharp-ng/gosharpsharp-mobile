@@ -13,7 +13,13 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<DeliveriesController>(builder: (ordersController) {
       // Get settings controller to access user profile and wallet balance
-      final settingsController = Get.find<SettingsController>();
+      // Use putIfAbsent pattern to ensure controller exists
+      SettingsController settingsController;
+      if (Get.isRegistered<SettingsController>()) {
+        settingsController = Get.find<SettingsController>();
+      } else {
+        settingsController = Get.put(SettingsController());
+      }
       final walletBalance = settingsController.userProfile?.walletBalance ?? 0.0;
 
       return Container(

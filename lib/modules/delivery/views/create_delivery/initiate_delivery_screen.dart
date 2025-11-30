@@ -18,673 +18,340 @@ class InitiateDeliveryScreen extends StatelessWidget {
               title: "Send a parcel",
             ),
             backgroundColor: AppColors.backgroundColor,
-            body: Container(
-              padding: EdgeInsets.symmetric(horizontal: 0.sp, vertical: 12.sp),
-              height: 1.sh,
-              width: 1.sw,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Sender Details Section
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.sp,
-                        vertical: 8.sp,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.electric_bike,
-                            color: AppColors.primaryColor,
-                            size: 20.sp,
-                          ),
-                          SizedBox(width: 8.w),
-                          customText(
-                            "Pick Up Details",
-                            color: AppColors.blackColor,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SectionBox(
-                      children: [
-                        // Sender's name field removed - it's the current user
-                        // CustomRoundedInputField(
-                        //   title: "Sender's Name",
-                        //   label: "Moses James",
-                        //   showLabel: true,
-                        //   hasTitle: true,
-                        //   isRequired: true,
-                        //   controller: ordersController.senderNameController,
-                        // ),
-                        // Old address field - commented out
-                        // ClickableCustomRoundedInputField(
-                        //   onPressed: () async {
-                        //     final ItemLocation result = await Get.toNamed(
-                        //       Routes.SELECT_LOCATION_SCREEN,
-                        //     );
-                        //     ordersController.setDeliverySenderLocation(result);
-                        //     if (ordersController.deliveryReceiverLocation !=
-                        //         null) {
-                        //       await ordersController.getRideEstimatedDistance();
-                        //     }
-                        //   },
-                        //   prefixWidget: IconButton(
-                        //     onPressed: () async {
-                        //       final ItemLocation result = await Get.toNamed(
-                        //         Routes.SELECT_LOCATION_SCREEN,
-                        //       );
-                        //       ordersController.setDeliverySenderLocation(
-                        //         result,
-                        //       );
-                        //       if (ordersController.deliveryReceiverLocation !=
-                        //           null) {
-                        //         await ordersController
-                        //             .getRideEstimatedDistance();
-                        //       }
-                        //     },
-                        //     icon: SvgPicture.asset(
-                        //       SvgAssets.locationIcon,
-                        //       // h: 20.sp,
-                        //       color: AppColors.primaryColor,
-                        //     ),
-                        //   ),
-                        //   title: "Pick up address",
-                        //   readOnly: true,
-                        //   label: "Old Airport Roundabout",
-                        //   showLabel: true,
-                        //   hasTitle: true,
-                        //   isRequired: true,
-                        //   controller: ordersController.senderAddressController,
-                        // ),
+            body: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 12.sp),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Pick Up Section
+                  _buildSectionHeader(
+                    icon: Icons.electric_bike,
+                    title: "Pick Up",
+                  ),
+                  SizedBox(height: 8.h),
+                  _buildLocationSelector(
+                    label: "Pick up location",
+                    address: ordersController.senderAddressController.text,
+                    onTap: () async {
+                      final ItemLocation result = await Get.toNamed(
+                        Routes.SELECT_LOCATION_SCREEN,
+                      );
+                      ordersController.setDeliverySenderLocation(result);
+                      if (ordersController.deliveryReceiverLocation != null) {
+                        await ordersController.getRideEstimatedDistance();
+                      }
+                    },
+                  ),
 
-                        // New improved address field
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                customText(
-                                  "Sender's Address (Pick up location)",
-                                  color: AppColors.blackColor,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                SizedBox(width: 3.w),
-                                customText(
-                                  "*",
-                                  color: AppColors.redColor,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8.h),
-                            InkWell(
-                              onTap: () async {
-                                final ItemLocation result = await Get.toNamed(
-                                  Routes.SELECT_LOCATION_SCREEN,
-                                );
-                                ordersController.setDeliverySenderLocation(
-                                  result,
-                                );
-                                if (ordersController.deliveryReceiverLocation !=
-                                    null) {
-                                  await ordersController
-                                      .getRideEstimatedDistance();
-                                }
+                  SizedBox(height: 20.h),
+
+                  // Drop Off Section
+                  _buildSectionHeader(
+                    icon: Icons.location_on,
+                    title: "Drop Off",
+                  ),
+                  SizedBox(height: 8.h),
+                  _buildLocationSelector(
+                    label: "Drop off location",
+                    address: ordersController.receiverAddressController.text,
+                    onTap: () async {
+                      final ItemLocation result = await Get.toNamed(
+                        Routes.SELECT_LOCATION_SCREEN,
+                      );
+                      ordersController.setDeliveryReceiverLocation(result);
+                      if (ordersController.deliverySenderLocation != null) {
+                        await ordersController.getRideEstimatedDistance();
+                      }
+                    },
+                  ),
+
+                  SizedBox(height: 16.h),
+
+                  // Receiver Details
+                  CustomRoundedInputField(
+                    title: "Receiver's name",
+                    label: "Enter receiver's name",
+                    showLabel: true,
+                    hasTitle: true,
+                    isRequired: true,
+                    controller: ordersController.receiverNameController,
+                  ),
+                  CustomRoundedPhoneInputField(
+                    title: "Receiver's phone",
+                    label: "8012345678",
+                    onChanged: (PhoneNumber phone) {
+                      String cleanedNumber = phone.number.replaceAll(' ', '');
+                      if (cleanedNumber.isNotEmpty && cleanedNumber.startsWith('0')) {
+                        cleanedNumber = cleanedNumber.replaceFirst(RegExp(r'^0'), '');
+                      }
+                      if (cleanedNumber != phone.number) {
+                        ordersController.receiverPhoneController.value =
+                            TextEditingValue(
+                          text: cleanedNumber,
+                          selection: TextSelection.collapsed(
+                            offset: cleanedNumber.length,
+                          ),
+                        );
+                        ordersController.setReceiverPhoneNumber(
+                          PhoneNumber(
+                            countryISOCode: phone.countryISOCode,
+                            countryCode: phone.countryCode,
+                            number: cleanedNumber,
+                          ),
+                        );
+                        ordersController.setFilledPhoneNumber(
+                          PhoneNumber(
+                            countryISOCode: phone.countryISOCode,
+                            countryCode: phone.countryCode,
+                            number: cleanedNumber,
+                          ),
+                        );
+                      } else {
+                        ordersController.setFilledPhoneNumber(phone);
+                      }
+                    },
+                    keyboardType: TextInputType.phone,
+                    validator: (phone) {
+                      if (phone == null ||
+                          phone.completeNumber.isEmpty ||
+                          ordersController.receiverPhoneController.text.isEmpty) {
+                        return "Phone number is required";
+                      }
+                      final regex = RegExp(r'^\+234[1-9]\d{9}$');
+                      if (!regex.hasMatch(phone.completeNumber)) {
+                        return "Enter a valid 10-digit phone number";
+                      }
+                      return null;
+                    },
+                    isPhone: true,
+                    isRequired: true,
+                    hasTitle: true,
+                    controller: ordersController.receiverPhoneController,
+                  ),
+
+                  SizedBox(height: 20.h),
+
+                  // Parcel Details Section
+                  _buildSectionHeader(
+                    icon: Icons.inventory_2_outlined,
+                    title: "Parcel Details",
+                  ),
+                  SizedBox(height: 8.h),
+
+                  // Image upload - compact version
+                  _buildImageUploader(context, ordersController),
+
+                  SizedBox(height: 12.h),
+
+                  CustomRoundedInputField(
+                    title: "Description",
+                    label: "Describe the item you're sending (optional)",
+                    showLabel: true,
+                    hasTitle: false,
+                    isRequired: false,
+                    maxLines: 3,
+                    keyboardType: TextInputType.multiline,
+                    controller: ordersController.deliveryItemDescriptionController,
+                  ),
+
+                  SizedBox(height: 24.h),
+
+                  // Submit Button
+                  CustomButton(
+                    onPressed: () {
+                      // Remove focus from all fields and dismiss keyboard
+                      FocusScope.of(context).unfocus();
+
+                      if (ordersController.sendingInfoFormKey.currentState!.validate() &&
+                          ordersController.receiverPhoneController.text.isNotEmpty) {
+                        // Small delay to allow keyboard to dismiss before showing bottom sheet
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          showAnyBottomSheet(
+                            child: DeliveryInstructionsBottomSheet(
+                              onContinue: () {
+                                ordersController.callDeliveryEndpoint(context);
                               },
-                              child: Container(
-                                width: double.infinity,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16.sp,
-                                  vertical: 16.sp,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: AppColors.greyColor.withOpacity(0.3),
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.location_on_outlined,
-                                      color: AppColors.primaryColor,
-                                      size: 24.sp,
-                                    ),
-                                    SizedBox(width: 12.w),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          customText(
-                                            ordersController
-                                                    .senderAddressController
-                                                    .text
-                                                    .isEmpty
-                                                ? "Tap to select location on map"
-                                                : ordersController
-                                                      .senderAddressController
-                                                      .text,
-                                            color:
-                                                ordersController
-                                                    .senderAddressController
-                                                    .text
-                                                    .isEmpty
-                                                ? AppColors.greyColor
-                                                : AppColors.blackColor,
-                                            fontSize: 14.sp,
-                                            fontWeight:
-                                                ordersController
-                                                    .senderAddressController
-                                                    .text
-                                                    .isEmpty
-                                                ? FontWeight.normal
-                                                : FontWeight.w500,
-                                            overflow: TextOverflow.visible,
-                                          ),
-                                          if (ordersController
-                                              .senderAddressController
-                                              .text
-                                              .isNotEmpty)
-                                            Padding(
-                                              padding: EdgeInsets.only(
-                                                top: 4.h,
-                                              ),
-                                              child: customText(
-                                                "Tap to change location",
-                                                color: AppColors.primaryColor,
-                                                fontSize: 12.sp,
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      color: AppColors.greyColor,
-                                      size: 16.sp,
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              isLoading: ordersController.submittingDelivery,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    // Receiver Details Section
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.sp,
-                        vertical: 8.sp,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            color: AppColors.primaryColor,
-                            size: 20.sp,
-                          ),
-                          SizedBox(width: 8.w),
-                          customText(
-                            "Receiver Details",
-                            color: AppColors.blackColor,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SectionBox(
-                      children: [
-                        CustomRoundedInputField(
-                          title: "Receiver's name",
-                          label: "John Doyle",
-                          showLabel: true,
-                          hasTitle: true,
-                          isRequired: true,
-                          controller: ordersController.receiverNameController,
-                        ),
-                        CustomRoundedPhoneInputField(
-                          title: "Phone number (required)",
-                          label: "7061032122",
-                          onChanged: (PhoneNumber phone) {
-                            // Remove all spaces and leading zero
-                            String cleanedNumber = phone.number.replaceAll(
-                              ' ',
-                              '',
-                            );
-
-                            if (cleanedNumber.isNotEmpty &&
-                                cleanedNumber.startsWith('0')) {
-                              cleanedNumber = cleanedNumber.replaceFirst(
-                                RegExp(r'^0'),
-                                '',
-                              );
-                            }
-
-                            if (cleanedNumber != phone.number) {
-                              ordersController.receiverPhoneController.value =
-                                  TextEditingValue(
-                                    text: cleanedNumber,
-                                    selection: TextSelection.collapsed(
-                                      offset: cleanedNumber.length,
-                                    ),
-                                  );
-                              ordersController.setReceiverPhoneNumber(
-                                PhoneNumber(
-                                  countryISOCode: phone.countryISOCode,
-                                  countryCode: phone.countryCode,
-                                  number: cleanedNumber,
-                                ),
-                              );
-                              ordersController.setFilledPhoneNumber(
-                                PhoneNumber(
-                                  countryISOCode: phone.countryISOCode,
-                                  countryCode: phone.countryCode,
-                                  number: cleanedNumber,
-                                ),
-                              );
-                            } else {
-                              ordersController.setFilledPhoneNumber(phone);
-                            }
-                          },
-                          keyboardType: TextInputType.phone,
-                          validator: (phone) {
-                            if (phone == null ||
-                                phone.completeNumber.isEmpty ||
-                                ordersController
-                                    .receiverPhoneController
-                                    .text
-                                    .isEmpty) {
-                              return "Phone number is required";
-                            }
-                            // Regex: `+` followed by 1 to 3 digits (country code), then 10 digits (phone number)
-                            final regex = RegExp(r'^\+234[1-9]\d{9}$');
-                            if (!regex.hasMatch(phone.completeNumber)) {
-                              return "Phone number must be 10 digits long";
-                            }
-                            if (ordersController
-                                    .receiverPhoneController
-                                    .text
-                                    .length ==
-                                0) {
-                              return "Phone number is required";
-                            }
-                            if (ordersController.filledPhoneNumber == null) {
-                              return "Phone number is required";
-                            }
-
-                            return null; // Valid phone number
-                          },
-                          isPhone: true,
-                          isRequired: true,
-                          hasTitle: true,
-                          controller: ordersController.receiverPhoneController,
-                        ),
-                        // Old address field - commented out
-                        // ClickableCustomRoundedInputField(
-                        //   title: "Drop off address",
-                        //   label: "Opp. New Government House Jos",
-                        //   onPressed: () async {
-                        //     final ItemLocation result = await Get.toNamed(
-                        //       Routes.SELECT_LOCATION_SCREEN,
-                        //     );
-                        //     ordersController.setDeliveryReceiverLocation(
-                        //       result,
-                        //     );
-                        //     if (ordersController.deliverySenderLocation !=
-                        //         null) {
-                        //       await ordersController.getRideEstimatedDistance();
-                        //     }
-                        //   },
-                        //   prefixWidget: IconButton(
-                        //     onPressed: () async {
-                        //       final ItemLocation result = await Get.toNamed(
-                        //         Routes.SELECT_LOCATION_SCREEN,
-                        //       );
-                        //       ordersController.setDeliveryReceiverLocation(
-                        //         result,
-                        //       );
-                        //       if (ordersController.deliverySenderLocation !=
-                        //           null) {
-                        //         await ordersController
-                        //             .getRideEstimatedDistance();
-                        //       }
-                        //     },
-                        //     icon: SvgPicture.asset(
-                        //       SvgAssets.locationIcon,
-                        //       // h: 20.sp,
-                        //       color: AppColors.primaryColor,
-                        //     ),
-                        //   ),
-                        //   showLabel: true,
-                        //   readOnly: true,
-                        //   hasTitle: true,
-                        //   isRequired: true,
-                        //   controller:
-                        //       ordersController.receiverAddressController,
-                        // ),
-
-                        // New improved address field
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                customText(
-                                  "Receiver's Address (Drop off location)",
-                                  color: AppColors.blackColor,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                SizedBox(width: 3.w),
-                                customText(
-                                  "*",
-                                  color: AppColors.redColor,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8.h),
-                            InkWell(
-                              onTap: () async {
-                                final ItemLocation result = await Get.toNamed(
-                                  Routes.SELECT_LOCATION_SCREEN,
-                                );
-                                ordersController.setDeliveryReceiverLocation(
-                                  result,
-                                );
-                                if (ordersController.deliverySenderLocation !=
-                                    null) {
-                                  await ordersController
-                                      .getRideEstimatedDistance();
-                                }
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16.sp,
-                                  vertical: 16.sp,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: AppColors.greyColor.withOpacity(0.3),
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.location_on_outlined,
-                                      color: AppColors.primaryColor,
-                                      size: 24.sp,
-                                    ),
-                                    SizedBox(width: 12.w),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          customText(
-                                            ordersController
-                                                    .receiverAddressController
-                                                    .text
-                                                    .isEmpty
-                                                ? "Tap to select location on map"
-                                                : ordersController
-                                                      .receiverAddressController
-                                                      .text,
-                                            color:
-                                                ordersController
-                                                    .receiverAddressController
-                                                    .text
-                                                    .isEmpty
-                                                ? AppColors.greyColor
-                                                : AppColors.blackColor,
-                                            fontSize: 14.sp,
-                                            fontWeight:
-                                                ordersController
-                                                    .receiverAddressController
-                                                    .text
-                                                    .isEmpty
-                                                ? FontWeight.normal
-                                                : FontWeight.w500,
-                                            overflow: TextOverflow.visible,
-                                          ),
-                                          if (ordersController
-                                              .receiverAddressController
-                                              .text
-                                              .isNotEmpty)
-                                            Padding(
-                                              padding: EdgeInsets.only(
-                                                top: 4.h,
-                                              ),
-                                              child: customText(
-                                                "Tap to change location",
-                                                color: AppColors.primaryColor,
-                                                fontSize: 12.sp,
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      color: AppColors.greyColor,
-                                      size: 16.sp,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SectionBox(
-                      children: [
-                        Row(
-                          children: [
-                            customText(
-                              "Upload parcel image",
-                              color: AppColors.blackColor,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            SizedBox(width: 3.w),
-                            customText(
-                              "(Optional)",
-                              color: AppColors.greyColor,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8.h),
-                        CustomPaint(
-                          painter: DottedBorderPainter(),
-                          child: InkWell(
-                            onTap: () {
-                              // Unfocus any active text field to prevent unwanted focus shifts
-                              FocusManager.instance.primaryFocus?.unfocus();
-                              showModalBottomSheet(
-                                context: context,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(25.0),
-                                  ),
-                                ),
-                                builder: (BuildContext context) {
-                                  return CustomImagePickerBottomSheet(
-                                    title: "Parcel Image",
-                                    takePhotoFunction: () {
-                                      ordersController.selectParcelImage(
-                                        pickFromCamera: true,
-                                      );
-                                    },
-                                    selectFromGalleryFunction: () {
-                                      ordersController.selectParcelImage(
-                                        pickFromCamera: false,
-                                      );
-                                    },
-                                    deleteFunction: () {},
-                                  );
-                                },
-                              );
-                            },
-                            child: Container(
-                              width: 1.sw,
-                              height: 170.h,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8.r),
-                                image: ordersController.parcelImage != null
-                                    ? DecorationImage(
-                                        image: base64ToMemoryImage(
-                                          ordersController.parcelImage!,
-                                        ),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.sp,
-                                vertical: 20.h,
-                              ),
-                              child: ordersController.parcelImage != null
-                                  ? Stack(
-                                      children: [
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 2,
-                                          child: Container(
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppColors.backgroundColor,
-                                            ),
-                                            padding: EdgeInsets.all(8.sp),
-                                            child: SvgPicture.asset(
-                                              SvgAssets.cameraIcon,
-                                              height: 30.sp,
-                                              color: Colors.blue,
-                                              width: 30.sp,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: AppColors.backgroundColor,
-                                          ),
-                                          padding: EdgeInsets.all(8.sp),
-                                          child: SvgPicture.asset(
-                                            SvgAssets.cameraIcon,
-                                          ),
-                                        ),
-                                        customText(
-                                          "Upload an image",
-                                          color: AppColors.primaryColor,
-                                          fontSize: 14.sp,
-                                          textAlign: TextAlign.center,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        customText(
-                                          "Ensure the photo shows the item clearly",
-                                          color: AppColors.blackColor,
-                                          fontSize: 14.sp,
-                                          overflow: TextOverflow.visible,
-                                          textAlign: TextAlign.center,
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                        customText(
-                                          "(max 4mb)",
-                                          color: AppColors.blackColor,
-                                          fontSize: 14.sp,
-                                          textAlign: TextAlign.center,
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        CustomRoundedInputField(
-                          title: "Description",
-                          label: "Describe the item you're sending",
-                          showLabel: true,
-                          hasTitle: true,
-                          isRequired: false,
-                          maxLines: 4,
-                          keyboardType: TextInputType.multiline,
-                          controller: ordersController
-                              .deliveryItemDescriptionController,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 15.h),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: CustomButton(
-                        onPressed: () {
-                          // Remove focus from any field
-                          FocusScope.of(context).unfocus();
-
-                          // Validate all fields
-                          if (ordersController.sendingInfoFormKey.currentState!
-                                  .validate() &&
-                              ordersController
-                                  .receiverPhoneController
-                                  .text
-                                  .isNotEmpty) {
-                            // Show delivery instructions bottomsheet BEFORE creating delivery
-                            showAnyBottomSheet(
-                              child: DeliveryInstructionsBottomSheet(
-                                onContinue: () {
-                                  // After user accepts instructions, create the delivery
-                                  ordersController.callDeliveryEndpoint(
-                                    context,
-                                  );
-                                },
-                                isLoading: ordersController.submittingDelivery,
-                              ),
-                            );
-                          }
-                        },
-                        title: ordersController.submittingDelivery
-                            ? "Creating delivery..."
-                            : "Proceed",
-                        isBusy: ordersController.submittingDelivery,
-                        width: 1.sw,
-                        backgroundColor: AppColors.primaryColor,
-                        fontColor: AppColors.whiteColor,
-                      ),
-                    ),
-                    SizedBox(height: 15.h),
-                  ],
-                ),
+                          );
+                        });
+                      }
+                    },
+                    title: "Proceed",
+                    isBusy: ordersController.submittingDelivery,
+                    width: double.infinity,
+                    backgroundColor: AppColors.primaryColor,
+                    fontColor: AppColors.whiteColor,
+                  ),
+                  SizedBox(height: 20.h),
+                ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSectionHeader({required IconData icon, required String title}) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.primaryColor, size: 18.sp),
+        SizedBox(width: 6.w),
+        customText(
+          title,
+          color: AppColors.blackColor,
+          fontSize: 15.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationSelector({
+    required String label,
+    required String address,
+    required VoidCallback onTap,
+  }) {
+    final hasAddress = address.isNotEmpty;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10.r),
+      child: Container(
+        padding: EdgeInsets.all(14.sp),
+        decoration: BoxDecoration(
+          color: AppColors.whiteColor,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: hasAddress
+                ? AppColors.primaryColor.withValues(alpha: 0.3)
+                : AppColors.greyColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.sp),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.location_on,
+                color: AppColors.primaryColor,
+                size: 20.sp,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: customText(
+                hasAddress ? address : "Tap to select $label",
+                color: hasAddress ? AppColors.blackColor : AppColors.greyColor,
+                fontSize: 14.sp,
+                fontWeight: hasAddress ? FontWeight.w500 : FontWeight.normal,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: AppColors.greyColor,
+              size: 20.sp,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageUploader(
+    BuildContext context,
+    DeliveriesController ordersController,
+  ) {
+    return CustomPaint(
+      painter: DottedBorderPainter(),
+      child: InkWell(
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+          showModalBottomSheet(
+            context: context,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+            ),
+            builder: (context) => CustomImagePickerBottomSheet(
+              title: "Parcel Image",
+              takePhotoFunction: () {
+                ordersController.selectParcelImage(pickFromCamera: true);
+              },
+              selectFromGalleryFunction: () {
+                ordersController.selectParcelImage(pickFromCamera: false);
+              },
+              deleteFunction: () {},
+            ),
+          );
+        },
+        child: Container(
+          width: double.infinity,
+          height: 120.h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.r),
+            image: ordersController.parcelImage != null
+                ? DecorationImage(
+                    image: base64ToMemoryImage(ordersController.parcelImage!),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 16.h),
+          child: ordersController.parcelImage != null
+              ? Stack(
+                  children: [
+                    Positioned(
+                      bottom: 0,
+                      right: 2,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.backgroundColor,
+                        ),
+                        padding: EdgeInsets.all(8.sp),
+                        child: SvgPicture.asset(
+                          SvgAssets.cameraIcon,
+                          height: 24.sp,
+                          width: 24.sp,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.blue,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.backgroundColor,
+                      ),
+                      padding: EdgeInsets.all(8.sp),
+                      child: SvgPicture.asset(SvgAssets.cameraIcon),
+                    ),
+                    SizedBox(height: 4.h),
+                    customText(
+                      "Upload an image (optional)",
+                      color: AppColors.primaryColor,
+                      fontSize: 13.sp,
+                      textAlign: TextAlign.center,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 }
