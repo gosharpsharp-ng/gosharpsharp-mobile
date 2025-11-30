@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../utils/app_colors.dart';
 
 /// Collection of reusable skeleton loader components
 class SkeletonLoaders {

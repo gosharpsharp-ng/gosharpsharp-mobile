@@ -4,9 +4,8 @@ import 'package:gosharpsharp/modules/orders/controllers/orders_controller.dart';
 class OrdersBindings extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<OrdersController>(
-      () => OrdersController(),
-      fenix: true,
+    Get.put(
+      OrdersController(),
     );
   }
 }

@@ -61,7 +61,7 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                       border: Border.all(
                         color: _getStatusColor(
                           parcelDelivery['status'] ?? 'pending',
-                        ).withOpacity(0.2),
+                        ).withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -121,7 +121,7 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                         ),
                         SizedBox(height: 16.h),
                         Divider(
-                          color: AppColors.greyColor.withOpacity(0.2),
+                          color: AppColors.greyColor.withValues(alpha: 0.2),
                           height: 1,
                         ),
                         SizedBox(height: 16.h),
@@ -176,7 +176,9 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                             Container(
                               padding: EdgeInsets.all(8.sp),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryColor.withOpacity(0.1),
+                                color: AppColors.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(8.r),
                               ),
                               child: Icon(
@@ -225,7 +227,7 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   AppColors.primaryColor,
-                                  AppColors.primaryColor.withOpacity(0.3),
+                                  AppColors.primaryColor.withValues(alpha: 0.3),
                                 ],
                               ),
                             ),
@@ -241,7 +243,7 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                             Container(
                               padding: EdgeInsets.all(8.sp),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
+                                color: Colors.green.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8.r),
                               ),
                               child: Icon(
@@ -385,7 +387,7 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.primaryColor
-                                            .withOpacity(0.1),
+                                            .withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(
                                           6.r,
                                         ),
@@ -564,7 +566,7 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
             decoration: BoxDecoration(
               color: _getPaymentStatusColor(
                 paymentStatus ?? 'pending',
-              ).withOpacity(0.1),
+              ).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: customText(

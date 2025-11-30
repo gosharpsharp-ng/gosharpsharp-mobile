@@ -34,39 +34,38 @@ class EditProfileScreen extends StatelessWidget {
                         alignment:
                             Alignment.center, // Aligns content within the stack
                         children: [
-                          Visibility(
-                            visible:
-                                settingsController.userProfile?.avatar != null,
-                            replacement: Visibility(
-                              visible:
-                                  settingsController.userProfilePicture != null,
-                              replacement: CircleAvatar(
+                          // Avatar display priority: local file > network URL > initials
+                          Builder(
+                            builder: (context) {
+                              // 1. Show locally picked image first
+                              if (settingsController.userProfilePicture != null) {
+                                return CircleAvatar(
+                                  backgroundImage: FileImage(
+                                    settingsController.userProfilePicture!,
+                                  ),
+                                  radius: 55.r,
+                                );
+                              }
+                              // 2. Show network avatar if available
+                              if (settingsController.userProfile?.avatarUrl != null &&
+                                  settingsController.userProfile!.avatarUrl!.isNotEmpty) {
+                                return CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    settingsController.userProfile!.avatarUrl!,
+                                  ),
+                                  radius: 55.r,
+                                );
+                              }
+                              // 3. Show initials as fallback
+                              return CircleAvatar(
                                 radius: 55.r,
                                 backgroundColor: AppColors.backgroundColor,
                                 child: customText(
                                   "${settingsController.userProfile?.fname.substring(0, 1) ?? ""}${settingsController.userProfile?.lname.substring(0, 1) ?? ""}",
                                   fontSize: 24.sp,
                                 ),
-                              ),
-                              child:
-                                  settingsController.userProfilePicture != null
-                                      ? CircleAvatar(
-                                          backgroundImage: FileImage(
-                                              settingsController
-                                                  .userProfilePicture!),
-                                          radius: 55.r,
-                                        )
-                                      : CircleAvatar(
-                                          backgroundImage: const AssetImage(
-                                              PngAssets.avatarIcon),
-                                          radius: 55.r,
-                                        ),
-                            ),
-                            child: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  settingsController.userProfile?.avatar ?? ''),
-                              radius: 55.r,
-                            ),
+                              );
+                            },
                           ),
                           // Add the edit/camera icon
                           Positioned(

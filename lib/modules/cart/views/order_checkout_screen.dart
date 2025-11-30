@@ -12,7 +12,8 @@ class OrderCheckoutScreen extends StatelessWidget {
     return GetBuilder<CartController>(
       builder: (cartController) {
         // Only show skeleton on initial load when cart is empty
-        final bool showSkeleton = cartController.isLoading && cartController.isCartEmpty;
+        final bool showSkeleton =
+            cartController.isLoading && cartController.isCartEmpty;
 
         return Scaffold(
           backgroundColor: AppColors.backgroundColor,
@@ -210,7 +211,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         children: [
           customText(
             'Delivery Location',
-            fontSize: 16.sp,
+            fontSize: 17.sp,
             fontWeight: FontWeight.w600,
             color: AppColors.blackColor,
           ),
@@ -239,15 +240,15 @@ class OrderCheckoutScreen extends StatelessWidget {
                     children: [
                       customText(
                         'Deliver to',
-                        fontSize: 12.sp,
-                        color: AppColors.greyColor,
+                        fontSize: 13.sp,
+                        color: AppColors.blackColor.withOpacity(0.6),
                       ),
                       SizedBox(height: 2.h),
                       customText(
                         cartController.currentLocation.value.isEmpty
                             ? 'Tap to select location'
                             : cartController.currentLocation.value,
-                        fontSize: 14.sp,
+                        fontSize: 15.sp,
                         fontWeight: FontWeight.w500,
                         color: AppColors.blackColor,
                         maxLines: 2,
@@ -256,7 +257,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(Icons.edit, size: 16.sp, color: AppColors.blackColor),
+                Icon(Icons.edit, size: 18.sp, color: AppColors.blackColor),
               ],
             ),
           ),
@@ -279,23 +280,35 @@ class OrderCheckoutScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              customText(
-                'Send to Someone Else',
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blackColor,
-              ),
-              Switch(
-                value: cartController.isSendingToSomeoneElse,
-                onChanged: (value) {
-                  cartController.toggleSendToSomeoneElse(value);
-                },
-                activeColor: AppColors.primaryColor,
-              ),
-            ],
+          InkWell(
+            onTap: () {
+              cartController.toggleSendToSomeoneElse(
+                !cartController.isSendingToSomeoneElse,
+              );
+            },
+            child: Row(
+              children: [
+                Checkbox(
+                  value: cartController.isSendingToSomeoneElse,
+                  onChanged: (value) {
+                    cartController.toggleSendToSomeoneElse(value ?? false);
+                  },
+                  activeColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: customText(
+                    'Send to Someone Else',
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                ),
+              ],
+            ),
           ),
 
           if (cartController.isSendingToSomeoneElse) ...[
@@ -303,83 +316,58 @@ class OrderCheckoutScreen extends StatelessWidget {
 
             customText(
               'Recipient Details',
-              fontSize: 14.sp,
+              fontSize: 15.sp,
               fontWeight: FontWeight.w500,
-              color: AppColors.greyColor,
+              color: AppColors.blackColor.withOpacity(0.7),
             ),
 
             SizedBox(height: 12.h),
 
             // Recipient Name Field
-            TextField(
+            CustomRoundedInputField(
               controller: cartController.recipientNameController,
-              decoration: InputDecoration(
-                labelText: 'Recipient Name',
-                hintText: 'Enter recipient\'s full name',
-                prefixIcon: Icon(Icons.person_outline, size: 20.sp),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  borderSide: BorderSide(
-                    color: AppColors.greyColor.withOpacity(0.3),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  borderSide: BorderSide(
-                    color: AppColors.greyColor.withOpacity(0.3),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  borderSide: BorderSide(
-                    color: AppColors.primaryColor,
-                    width: 1.5,
-                  ),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: 12.h,
+              label: 'Enter recipient\'s full name',
+              title: 'Recipient Name',
+              hasTitle: true,
+              prefixWidget: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                child: Icon(
+                  Icons.person_outline,
+                  size: 20.sp,
+                  color: AppColors.greyColor,
                 ),
               ),
+              keyboardType: TextInputType.name,
+              isRequired: true,
+              useCustomValidator: true,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Recipient name is required';
+                }
+                return null;
+              },
             ),
-
-            SizedBox(height: 12.h),
 
             // Recipient Phone Field
-            TextField(
+            CustomRoundedInputField(
               controller: cartController.recipientPhoneController,
+              label: 'Enter recipient\'s phone number',
+              title: 'Recipient Phone',
+              hasTitle: true,
+              isPhone: true,
               keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                labelText: 'Recipient Phone',
-                hintText: 'Enter recipient\'s phone number',
-                prefixIcon: Icon(Icons.phone_outlined, size: 20.sp),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  borderSide: BorderSide(
-                    color: AppColors.greyColor.withOpacity(0.3),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  borderSide: BorderSide(
-                    color: AppColors.greyColor.withOpacity(0.3),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  borderSide: BorderSide(
-                    color: AppColors.primaryColor,
-                    width: 1.5,
-                  ),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: 12.h,
-                ),
-              ),
+              isRequired: true,
+              useCustomValidator: true,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Recipient phone number is required';
+                }
+                if (value.trim().length < 10) {
+                  return 'Phone number must be at least 10 digits';
+                }
+                return null;
+              },
             ),
-
-            SizedBox(height: 8.h),
 
             // Info text
             Container(
@@ -400,7 +388,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                   Expanded(
                     child: customText(
                       'The order will be delivered to the location you selected above, but we\'ll notify the recipient.',
-                      fontSize: 12.sp,
+                      fontSize: 13.sp,
                       color: AppColors.blackColor,
                       overflow: TextOverflow.visible,
                       fontWeight: FontWeight.normal,
@@ -434,7 +422,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         children: [
           customText(
             'Order Summary',
-            fontSize: 16.sp,
+            fontSize: 17.sp,
             fontWeight: FontWeight.w600,
             color: AppColors.blackColor,
           ),
@@ -461,13 +449,13 @@ class OrderCheckoutScreen extends StatelessWidget {
             children: [
               customText(
                 'Total',
-                fontSize: 18.sp,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.blackColor,
               ),
               customText(
                 formatToCurrency(cartController.total),
-                fontSize: 18.sp,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primaryColor,
               ),
@@ -477,8 +465,8 @@ class OrderCheckoutScreen extends StatelessWidget {
           SizedBox(height: 8.h),
           customText(
             '${cartController.itemCount} item${cartController.itemCount != 1 ? 's' : ''} in your order',
-            fontSize: 12.sp,
-            color: AppColors.greyColor,
+            fontSize: 14.sp,
+            color: AppColors.blackColor.withOpacity(0.6),
           ),
         ],
       ),
@@ -489,10 +477,15 @@ class OrderCheckoutScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        customText(label, fontSize: 14.sp, color: AppColors.greyColor),
+        customText(
+          label,
+          fontSize: 15.sp,
+          color: AppColors.blackColor.withOpacity(0.7),
+        ),
         customText(
           formatToCurrency(amount),
-          fontSize: 14.sp,
+          fontSize: 15.sp,
+          fontWeight: FontWeight.w500,
           color: AppColors.blackColor,
         ),
       ],
@@ -523,11 +516,11 @@ class OrderCheckoutScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.payment, size: 20.sp, color: AppColors.blackColor),
+                  Icon(Icons.payment, size: 22.sp, color: AppColors.blackColor),
                   SizedBox(width: 8.w),
                   customText(
                     'Payment Method',
-                    fontSize: 16.sp,
+                    fontSize: 17.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.blackColor,
                   ),
@@ -650,15 +643,17 @@ class OrderCheckoutScreen extends StatelessWidget {
                 children: [
                   customText(
                     title,
-                    fontSize: 15.sp,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.blackColor,
                   ),
                   SizedBox(height: 2.h),
                   customText(
                     subtitle,
-                    fontSize: 12.sp,
-                    color: hasWarning ? Colors.red : AppColors.obscureTextColor,
+                    fontSize: 14.sp,
+                    color: hasWarning
+                        ? Colors.red
+                        : AppColors.blackColor.withOpacity(0.6),
                     maxLines: 1,
                   ),
                 ],
@@ -713,15 +708,15 @@ class OrderCheckoutScreen extends StatelessWidget {
         children: [
           customText(
             'Additional Instructions',
-            fontSize: 16.sp,
+            fontSize: 17.sp,
             fontWeight: FontWeight.w600,
             color: AppColors.blackColor,
           ),
           SizedBox(height: 8.h),
           customText(
             'Add any special instructions for your order (optional)',
-            fontSize: 12.sp,
-            color: AppColors.greyColor,
+            fontSize: 14.sp,
+            color: AppColors.blackColor.withOpacity(0.6),
           ),
           SizedBox(height: 12.h),
 
@@ -769,7 +764,7 @@ class OrderCheckoutScreen extends StatelessWidget {
       child: SafeArea(
         child: CustomButton(
           width: double.infinity,
-          height: 50.h,
+          height: 52.h,
           backgroundColor: AppColors.primaryColor,
           title: 'Place Order - ${formatToCurrency(cartController.total)}',
           onPressed: () {
@@ -994,9 +989,7 @@ class OrderCheckoutScreen extends StatelessWidget {
           Get.offNamedUntil(
             Routes.ORDER_SUCCESS_SCREEN,
             (route) => route.settings.name == Routes.APP_NAVIGATION,
-            arguments: {
-              'orderNumber': cartController.lastOrderNumber ?? 'N/A',
-            },
+            arguments: {'orderNumber': cartController.lastOrderNumber ?? 'N/A'},
           );
         },
         onFailure: (String reason) {
@@ -1004,9 +997,7 @@ class OrderCheckoutScreen extends StatelessWidget {
           Get.offNamedUntil(
             Routes.ORDER_FAILURE_SCREEN,
             (route) => route.settings.name == Routes.APP_NAVIGATION,
-            arguments: {
-              'message': reason,
-            },
+            arguments: {'message': reason},
           );
         },
       );

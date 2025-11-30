@@ -65,6 +65,7 @@ class RestaurantModel {
   final int isActive;
   final int isFeatured;
   final String commissionRate;
+  final double? effectiveCommissionRate;
   final String? businessRegistrationNumber;
   final String? taxIdentificationNumber;
   final String status;
@@ -78,6 +79,7 @@ class RestaurantModel {
   final bool isSponsored;
   final bool isVerified;
   final bool freeDelivery;
+  final bool isFreeDeliveryEnabled;
   final bool isNew;
   final String averageRating;
   final int totalOrders;
@@ -87,6 +89,8 @@ class RestaurantModel {
   final RestaurantDiscount? topDiscount;
   final RestaurantLocation? location;
   final List<dynamic>? activeCampaigns;
+  final List<RestaurantDiscount>? activeDiscounts;
+  final String? prepTime;
 
   RestaurantModel({
     required this.id,
@@ -103,6 +107,7 @@ class RestaurantModel {
     required this.isFeatured,
     required this.distance,
     required this.commissionRate,
+    this.effectiveCommissionRate,
     this.businessRegistrationNumber,
     this.taxIdentificationNumber,
     required this.status,
@@ -116,6 +121,7 @@ class RestaurantModel {
     this.isSponsored = false,
     this.isVerified = false,
     this.freeDelivery = false,
+    this.isFreeDeliveryEnabled = false,
     this.isNew = false,
     this.averageRating = '0.00',
     this.totalOrders = 0,
@@ -125,6 +131,8 @@ class RestaurantModel {
     this.topDiscount,
     this.location,
     this.activeCampaigns,
+    this.activeDiscounts,
+    this.prepTime,
   });
 
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
@@ -143,6 +151,11 @@ class RestaurantModel {
       isActive: json['is_active'] is bool ? (json['is_active'] ? 1 : 0) : (json['is_active'] ?? 0),
       isFeatured: json['is_featured'] is bool ? (json['is_featured'] ? 1 : 0) : (json['is_featured'] ?? 0),
       commissionRate: json['commission_rate']?.toString() ?? '0.0',
+      effectiveCommissionRate: json['effective_commission_rate'] != null
+          ? (json['effective_commission_rate'] is int
+              ? (json['effective_commission_rate'] as int).toDouble()
+              : double.tryParse(json['effective_commission_rate'].toString()))
+          : null,
       businessRegistrationNumber: json['business_registration_number']?.toString(),
       taxIdentificationNumber: json['tax_identification_number']?.toString(),
       status: json['status']?.toString() ?? '',
@@ -162,6 +175,7 @@ class RestaurantModel {
       isSponsored: json['is_sponsored'] == true || json['is_sponsored'] == 1,
       isVerified: json['is_verified'] == true || json['is_verified'] == 1,
       freeDelivery: json['free_delivery'] == true || json['free_delivery'] == 1,
+      isFreeDeliveryEnabled: json['is_free_delivery_enabled'] == true || json['is_free_delivery_enabled'] == 1,
       isNew: json['is_new'] == true || json['is_new'] == 1,
       averageRating: json['average_rating']?.toString() ?? '0.00',
       totalOrders: json['total_orders'] ?? 0,
@@ -175,6 +189,12 @@ class RestaurantModel {
           ? RestaurantLocation.fromJson(json['location'])
           : null,
       activeCampaigns: json['active_campaigns'] as List<dynamic>?,
+      activeDiscounts: json['active_discounts'] != null
+          ? (json['active_discounts'] as List)
+              .map((d) => RestaurantDiscount.fromJson(d))
+              .toList()
+          : null,
+      prepTime: json['prep_time']?.toString(),
     );
   }
 
@@ -193,6 +213,7 @@ class RestaurantModel {
       'is_active': isActive,
       'is_featured': isFeatured,
       'commission_rate': commissionRate,
+      'effective_commission_rate': effectiveCommissionRate,
       'business_registration_number': businessRegistrationNumber,
       'tax_identification_number': taxIdentificationNumber,
       'status': status,
@@ -205,6 +226,7 @@ class RestaurantModel {
       'is_sponsored': isSponsored,
       'is_verified': isVerified,
       'free_delivery': freeDelivery,
+      'is_free_delivery_enabled': isFreeDeliveryEnabled,
       'is_new': isNew,
       'average_rating': averageRating,
       'total_orders': totalOrders,
@@ -214,7 +236,48 @@ class RestaurantModel {
       'top_discount': topDiscount?.toJson(),
       'location': location?.toJson(),
       'active_campaigns': activeCampaigns,
+      'active_discounts': activeDiscounts?.map((d) => d.toJson()).toList(),
+      'prep_time': prepTime,
     };
+  }
+
+  /// Check if free delivery is available (either free_delivery or is_free_delivery_enabled is true)
+  bool get hasFreeDelivery => freeDelivery || isFreeDeliveryEnabled;
+
+  /// Get formatted average rating with one decimal place
+  String get formattedRating {
+    final rating = double.tryParse(averageRating) ?? 0.0;
+    return rating.toStringAsFixed(1);
+  }
+
+  /// Get the first active discount badge text in the format "-X% on some items"
+  String? get discountBadgeText {
+    if (activeDiscounts != null && activeDiscounts!.isNotEmpty) {
+      final firstDiscount = activeDiscounts!.first;
+      if (firstDiscount.isCurrentlyActive && firstDiscount.type == 'percentage') {
+        // Parse value and format as integer if it's a whole number
+        final value = double.tryParse(firstDiscount.value) ?? 0;
+        final valueText = value == value.truncate()
+            ? value.truncate().toString()
+            : value.toStringAsFixed(2);
+        return "-$valueText% on some items";
+      } else if (firstDiscount.isCurrentlyActive && firstDiscount.type == 'fixed') {
+        return "-${firstDiscount.value} off";
+      }
+    }
+    // Fallback to topDiscount if no active discounts
+    if (topDiscount != null && topDiscount!.isCurrentlyActive) {
+      if (topDiscount!.type == 'percentage') {
+        final value = double.tryParse(topDiscount!.value) ?? 0;
+        final valueText = value == value.truncate()
+            ? value.truncate().toString()
+            : value.toStringAsFixed(2);
+        return "-$valueText% on some items";
+      } else if (topDiscount!.type == 'fixed') {
+        return "-${topDiscount!.value} off";
+      }
+    }
+    return null;
   }
 
   /// Check if the restaurant is currently open based on schedules
@@ -329,9 +392,17 @@ class RestaurantModel {
   TimeOfDay? _parseTimeOfDay(String timeString) {
     try {
       // Handle ISO 8601 datetime format (e.g., "2025-11-19T09:00:00.000000Z")
+      // The time represents the restaurant's local time, so we extract hour/minute directly
+      // without timezone conversion
       if (timeString.contains('T')) {
-        final dateTime = DateTime.parse(timeString);
-        return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+        // Extract the time portion (after T, before Z or timezone offset)
+        final timePart = timeString.split('T')[1].split('Z')[0].split('+')[0].split('-')[0];
+        final parts = timePart.split(':');
+        if (parts.length >= 2) {
+          final hour = int.parse(parts[0]);
+          final minute = int.parse(parts[1]);
+          return TimeOfDay(hour: hour, minute: minute);
+        }
       }
 
       // Handle simple time format (HH:mm:ss or HH:mm)

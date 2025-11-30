@@ -177,7 +177,112 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildSimpleTotalSummary(CartController cartController) {
-    return SizedBox.shrink();
+    final priceBreakdown = cartController.cart?.priceBreakdown;
+    if (priceBreakdown == null) return SizedBox.shrink();
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.whiteColor,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          customText(
+            'Order Summary',
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.blackColor,
+          ),
+          SizedBox(height: 12.h),
+
+          // Subtotal
+          _buildSummaryRow(
+            'Subtotal',
+            formatToCurrency(priceBreakdown.subtotal),
+          ),
+
+          // Packaging Price (if > 0)
+          if (priceBreakdown.packagingPrice > 0)
+            _buildSummaryRow(
+              'Packaging',
+              formatToCurrency(priceBreakdown.packagingPrice),
+            ),
+
+          // Commission (if > 0)
+          if (priceBreakdown.commission > 0)
+            _buildSummaryRow(
+              'Service Fee',
+              formatToCurrency(priceBreakdown.commission),
+            ),
+
+          // Tax (if > 0)
+          if (priceBreakdown.tax > 0)
+            _buildSummaryRow('Tax', formatToCurrency(priceBreakdown.tax)),
+
+          // Delivery Fee (if > 0)
+          if (priceBreakdown.deliveryFee > 0)
+            _buildSummaryRow(
+              'Delivery Fee',
+              formatToCurrency(priceBreakdown.deliveryFee),
+            ),
+
+          SizedBox(height: 8.h),
+          Divider(color: AppColors.greyColor.withValues(alpha: 0.3)),
+          SizedBox(height: 8.h),
+
+          // Total
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              customText(
+                'Total',
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.blackColor,
+              ),
+              customText(
+                formatToCurrency(priceBreakdown.total),
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          customText(
+            label,
+            fontSize: 14.sp,
+            color: AppColors.blackColor.withValues(alpha: 0.7),
+          ),
+          customText(
+            value,
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: AppColors.blackColor,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCheckoutButton(CartController cartController) {
@@ -187,7 +292,7 @@ class _CartScreenState extends State<CartScreen> {
         color: AppColors.whiteColor,
         border: Border(
           top: BorderSide(
-            color: AppColors.greyColor.withOpacity(0.2),
+            color: AppColors.greyColor.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -203,13 +308,14 @@ class _CartScreenState extends State<CartScreen> {
                 children: [
                   customText(
                     'Total',
-                    fontSize: 13.sp,
-                    color: AppColors.obscureTextColor,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.blackColor.withValues(alpha: 0.6),
                   ),
                   SizedBox(height: 2.h),
                   customText(
                     formatToCurrency(cartController.total),
-                    fontSize: 20.sp,
+                    fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.blackColor,
                   ),
@@ -251,7 +357,7 @@ class _CartScreenState extends State<CartScreen> {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -272,10 +378,7 @@ class _CartScreenState extends State<CartScreen> {
                 topRight: Radius.circular(12.r),
               ),
               border: cartController.selectedPackageName == package.name
-                  ? Border.all(
-                      color: AppColors.primaryColor,
-                      width: 2,
-                    )
+                  ? Border.all(color: AppColors.primaryColor, width: 2)
                   : null,
             ),
             child: Row(
@@ -292,12 +395,22 @@ class _CartScreenState extends State<CartScreen> {
                   child: Row(
                     children: [
                       customText(
-                        package.name,
-                        fontSize: 16.sp,
+                        package.name.capitalizeFirst ?? package.name,
+                        fontSize: 17.sp,
                         fontWeight: FontWeight.w600,
                         color: AppColors.blackColor,
                       ),
-                      if (cartController.selectedPackageName == package.name) ...[
+                      SizedBox(width: 4.w),
+                      InkWell(
+                        onTap: () => _showPackageInfoBottomSheet(context),
+                        child: Icon(
+                          Icons.info_outline,
+                          size: 16.sp,
+                          color: AppColors.greyColor,
+                        ),
+                      ),
+                      if (cartController.selectedPackageName ==
+                          package.name) ...[
                         SizedBox(width: 8.w),
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -322,7 +435,7 @@ class _CartScreenState extends State<CartScreen> {
                 // Package cost
                 customText(
                   formatToCurrency(double.tryParse(package.cost) ?? 0.0),
-                  fontSize: 14.sp,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.blackColor,
                 ),
@@ -331,103 +444,102 @@ class _CartScreenState extends State<CartScreen> {
           ),
 
           // Package Actions
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      // cartController.duplicatePackage(package.id);
-                    },
-                    icon: Icon(
-                      Icons.content_copy,
-                      size: 14.sp,
-                      color: AppColors.blackColor,
-                    ),
-                    label: customText(
-                      'Duplicate Pack',
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.blackColor,
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 4.h,
-                        horizontal: 8.w,
-                      ),
-                      backgroundColor: AppColors.secondaryColor.withAlpha(190),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6.r),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () async {
-                      // Get restaurant from the first item in the package
-                      if (package.items.isEmpty) {
-                        showToast(
-                          message: "Package is empty",
-                          isError: true,
-                        );
-                        return;
-                      }
+          // Container(
+          //   padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+          //   child: Row(
+          //     children: [
+          //       Expanded(
+          //         child: TextButton.icon(
+          //           onPressed: () {
+          //             // cartController.duplicatePackage(package.id);
+          //           },
+          //           icon: Icon(
+          //             Icons.content_copy,
+          //             size: 14.sp,
+          //             color: AppColors.blackColor,
+          //           ),
+          //           label: customText(
+          //             'Duplicate Pack',
+          //             fontSize: 12.sp,
+          //             fontWeight: FontWeight.w400,
+          //             color: AppColors.blackColor,
+          //           ),
+          //           style: TextButton.styleFrom(
+          //             padding: EdgeInsets.symmetric(
+          //               vertical: 4.h,
+          //               horizontal: 8.w,
+          //             ),
+          //             backgroundColor: AppColors.secondaryColor.withAlpha(190),
+          //             shape: RoundedRectangleBorder(
+          //               borderRadius: BorderRadius.circular(6.r),
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //       SizedBox(width: 8.w),
+          //       Expanded(
+          //         child: TextButton.icon(
+          //           onPressed: () async {
+          //             // Get restaurant from the first item in the package
+          //             if (package.items.isEmpty) {
+          //               showToast(
+          //                 message: "Package is empty",
+          //                 isError: true,
+          //               );
+          //               return;
+          //             }
 
-                      final restaurant = package.items.first.purchasable.restaurant;
+          //             final restaurant = package.items.first.purchasable.restaurant;
 
-                      // Set the selected package and restaurant
-                      cartController.setSelectedPackage(package.name);
+          //             // Set the selected package and restaurant
+          //             cartController.setSelectedPackage(package.name);
 
-                      // Get dashboard controller and set the selected restaurant
-                      try {
-                        final dashboardController = Get.find<DashboardController>();
-                        dashboardController.setSelectedRestaurant(restaurant);
+          //             // Get dashboard controller and set the selected restaurant
+          //             try {
+          //               final dashboardController = Get.find<DashboardController>();
+          //               dashboardController.setSelectedRestaurant(restaurant);
 
-                        // Navigate to restaurant details screen
-                        await Get.toNamed(Routes.RESTAURANT_DETAILS_SCREEN);
+          //               // Navigate to restaurant details screen
+          //               await Get.toNamed(Routes.RESTAURANT_DETAILS_SCREEN);
 
-                        showToast(
-                          message: "Select items to add to ${package.name}",
-                          isError: false,
-                        );
-                      } catch (e) {
-                        debugPrint('Error navigating to restaurant: $e');
-                        showToast(
-                          message: "Could not open restaurant",
-                          isError: true,
-                        );
-                      }
-                    },
-                    icon: Icon(
-                      Icons.add,
-                      size: 14.sp,
-                      color: AppColors.greyColor,
-                    ),
-                    label: customText(
-                      'Add Items',
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.blackColor,
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 4.h,
-                        horizontal: 8.w,
-                      ),
-                      backgroundColor: AppColors.lightGreyColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6.r),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
+          //               showToast(
+          //                 message: "Select items to add to ${package.name}",
+          //                 isError: false,
+          //               );
+          //             } catch (e) {
+          //               debugPrint('Error navigating to restaurant: $e');
+          //               showToast(
+          //                 message: "Could not open restaurant",
+          //                 isError: true,
+          //               );
+          //             }
+          //           },
+          //           icon: Icon(
+          //             Icons.add,
+          //             size: 14.sp,
+          //             color: AppColors.greyColor,
+          //           ),
+          //           label: customText(
+          //             'Add Items',
+          //             fontSize: 12.sp,
+          //             fontWeight: FontWeight.w400,
+          //             color: AppColors.blackColor,
+          //           ),
+          //           style: TextButton.styleFrom(
+          //             padding: EdgeInsets.symmetric(
+          //               vertical: 4.h,
+          //               horizontal: 8.w,
+          //             ),
+          //             backgroundColor: AppColors.lightGreyColor,
+          //             shape: RoundedRectangleBorder(
+          //               borderRadius: BorderRadius.circular(6.r),
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           Divider(height: 1.h, thickness: 1, color: AppColors.lightGreyColor),
 
           // Package Items
@@ -441,11 +553,16 @@ class _CartScreenState extends State<CartScreen> {
               final item = package.items[itemIndex];
               return CartItemWidget(
                 item: item,
-                onQuantityChanged: (quantity) {
+                onQuantityChanged: (newQuantity) {
+                  debugPrint(
+                    '📦 CartScreen: Updating item ${item.id} (${item.purchasable.name})',
+                  );
+                  debugPrint(
+                    '📦 CartScreen: Current quantity: ${item.quantity}, New quantity: $newQuantity',
+                  );
                   cartController.updateCartItemQuantity(
                     item.id,
-                    quantity: int.parse(quantity.toString()),
-                    packageName: package.name,
+                    quantity: newQuantity,
                   );
                 },
                 onRemove: () {
@@ -458,6 +575,69 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showPackageInfoBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 24.sp,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(width: 12.w),
+                  customText(
+                    'What is a Package?',
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+              customText(
+                'A package is a group of items in your cart that will be delivered together. You can have multiple packages to organize orders for different recipients or delivery locations.',
+                fontSize: 14.sp,
+                color: AppColors.blackColor.withValues(alpha: 0.7),
+                maxLines: 10,
+              ),
+              SizedBox(height: 12.h),
+              customText(
+                'When you add items to your cart, they are automatically added to your selected package.',
+                fontSize: 14.sp,
+                color: AppColors.blackColor.withValues(alpha: 0.7),
+                maxLines: 5,
+              ),
+              SizedBox(height: 20.h),
+              SizedBox(
+                width: double.infinity,
+                child: CustomButton(
+                  onPressed: () => Get.back(),
+                  title: 'Got it',
+                  backgroundColor: AppColors.primaryColor,
+                  fontColor: AppColors.whiteColor,
+                  height: 48.h,
+                  borderRadius: 12.r,
+                ),
+              ),
+              SizedBox(height: 10.h),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -475,16 +655,16 @@ class _CartScreenState extends State<CartScreen> {
         ),
         content: customText(
           'Are you sure you want to remove all items from your cart?',
-          fontSize: 14.sp,
-          color: AppColors.greyColor,
+          fontSize: 15.sp,
+          color: AppColors.blackColor.withValues(alpha: 0.7),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
             child: customText(
               'Cancel',
-              fontSize: 14.sp,
-              color: AppColors.greyColor,
+              fontSize: 15.sp,
+              color: AppColors.blackColor.withValues(alpha: 0.6),
             ),
           ),
           TextButton(
@@ -494,7 +674,7 @@ class _CartScreenState extends State<CartScreen> {
             },
             child: customText(
               'Clear',
-              fontSize: 14.sp,
+              fontSize: 15.sp,
               color: AppColors.redColor,
               fontWeight: FontWeight.w600,
             ),

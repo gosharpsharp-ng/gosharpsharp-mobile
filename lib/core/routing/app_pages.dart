@@ -19,6 +19,7 @@ import 'package:gosharpsharp/modules/location_permission/views/location_permissi
 import 'package:gosharpsharp/modules/delivery/views/parcel_deliveries/parcel_deliveries_home_screen.dart';
 import 'package:gosharpsharp/modules/delivery/views/parcel_deliveries/parcel_delivery_details_screen.dart';
 import 'package:gosharpsharp/modules/delivery/views/parcel_deliveries/parcel_delivery_tracking_screen.dart';
+import 'package:gosharpsharp/modules/delivery/views/create_delivery/delivery_failure_screen.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -131,6 +132,12 @@ class AppPages {
     GetPage(
       name: Routes.DELIVERY_SUCCESS_SCREEN,
       page: () => const DeliverySuccessScreen(),
+      //middlewares: [AuthMiddleware()],
+      binding: DeliveriesBindings(),
+    ),
+    GetPage(
+      name: Routes.DELIVERY_FAILURE_SCREEN,
+      page: () => const DeliveryFailureScreen(),
       //middlewares: [AuthMiddleware()],
       binding: DeliveriesBindings(),
     ),

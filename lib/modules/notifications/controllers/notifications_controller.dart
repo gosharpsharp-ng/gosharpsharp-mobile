@@ -86,13 +86,9 @@ class NotificationsController extends GetxController {
 
   @override
   void onInit() {
-    super.onInit();
     notificationsScrollController.addListener(_notificationsScrollListener);
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
     getNotifications();
+
+    super.onInit();
   }
 }

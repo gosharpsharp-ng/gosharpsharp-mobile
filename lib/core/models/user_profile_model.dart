@@ -121,6 +121,7 @@ class NotificationModel {
 class UserProfile {
   final int id;
   final String? avatar;
+  final String? avatarUrl;
   final String fname;
   final String lname;
   final String phone;
@@ -145,6 +146,7 @@ class UserProfile {
   UserProfile({
     required this.id,
     this.avatar,
+    this.avatarUrl,
     required this.fname,
     required this.lname,
     required this.phone,
@@ -201,6 +203,7 @@ class UserProfile {
     return UserProfile(
       id: json['id'] ?? 0,
       avatar: json['avatar']?.toString(),
+      avatarUrl: json['avatar_url']?.toString(),
       fname: json['fname']?.toString() ?? '',
       lname: json['lname']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
@@ -228,6 +231,7 @@ class UserProfile {
     return {
       'id': id,
       'avatar': avatar,
+      'avatar_url': avatarUrl,
       'fname': fname,
       'lname': lname,
       'phone': phone,

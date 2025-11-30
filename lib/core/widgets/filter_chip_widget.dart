@@ -34,7 +34,9 @@ class FilterChipWidget extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
               margin: EdgeInsets.only(right: 8.w),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryColor : AppColors.whiteColor,
+                color: isSelected
+                    ? AppColors.primaryColor
+                    : AppColors.whiteColor,
                 borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: isSelected
@@ -67,9 +69,11 @@ class FilterChipWidget extends StatelessWidget {
                   ],
                   customText(
                     label,
-                    fontSize: 12.sp,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: isSelected ? AppColors.whiteColor : AppColors.blackColor,
+                    color: isSelected
+                        ? AppColors.whiteColor
+                        : AppColors.blackColor,
                   ),
                 ],
               ),

@@ -1,4 +1,5 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/modules/cart/controllers/cart_controller.dart';
 
 class PackageSelectionDialog extends StatefulWidget {
   final List<String> existingPackages;
@@ -16,8 +17,6 @@ class PackageSelectionDialog extends StatefulWidget {
 
 class _PackageSelectionDialogState extends State<PackageSelectionDialog> {
   String? selectedPackage;
-  bool isCreatingNew = false;
-  final TextEditingController _newPackageController = TextEditingController();
 
   @override
   void initState() {
@@ -25,263 +24,337 @@ class _PackageSelectionDialogState extends State<PackageSelectionDialog> {
     selectedPackage = widget.currentPackage ?? widget.existingPackages.firstOrNull;
   }
 
-  @override
-  void dispose() {
-    _newPackageController.dispose();
-    super.dispose();
+  /// Generate the next package name (Pack 2, Pack 3, etc.)
+  String _getNextPackageName() {
+    int maxNumber = 0;
+    for (final name in widget.existingPackages) {
+      // Extract number from "Pack X" format
+      final match = RegExp(r'Pack\s*(\d+)', caseSensitive: false).firstMatch(name);
+      if (match != null) {
+        final num = int.tryParse(match.group(1) ?? '0') ?? 0;
+        if (num > maxNumber) maxNumber = num;
+      }
+    }
+    return 'Pack ${maxNumber + 1}';
+  }
+
+  /// Get item count for a package
+  int _getPackageItemCount(String packageName) {
+    try {
+      final cartController = Get.find<CartController>();
+      final package = cartController.packages.firstWhereOrNull(
+        (p) => p.name == packageName,
+      );
+      return package?.items.length ?? 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  void _showPackageInfo() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 24.sp,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(width: 12.w),
+                  customText(
+                    'What is a Package?',
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.blackColor,
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+              customText(
+                'A package is a group of items in your cart that will be delivered together. You can have multiple packages to organize orders for different recipients or delivery locations.',
+                fontSize: 14.sp,
+                color: AppColors.blackColor.withValues(alpha: 0.7),
+                maxLines: 10,
+              ),
+              SizedBox(height: 12.h),
+              customText(
+                'When you add items to your cart, they are automatically added to your selected package.',
+                fontSize: 14.sp,
+                color: AppColors.blackColor.withValues(alpha: 0.7),
+                maxLines: 5,
+              ),
+              SizedBox(height: 20.h),
+              SizedBox(
+                width: double.infinity,
+                child: CustomButton(
+                  onPressed: () => Get.back(),
+                  title: 'Got it',
+                  backgroundColor: AppColors.primaryColor,
+                  fontColor: AppColors.whiteColor,
+                  height: 48.h,
+                  borderRadius: 12.r,
+                ),
+              ),
+              SizedBox(height: 10.h),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPackageItem(String packageName) {
+    final isSelected = selectedPackage == packageName;
+    final itemCount = _getPackageItemCount(packageName);
+    final isCurrent = widget.currentPackage == packageName;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedPackage = packageName;
+        });
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10.h),
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryColor.withValues(alpha: 0.08)
+              : AppColors.whiteColor,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primaryColor
+                : AppColors.greyColor.withValues(alpha: 0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 22.sp,
+              height: 22.sp,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? AppColors.primaryColor : AppColors.greyColor,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Icon(
+                      Icons.check,
+                      size: 14.sp,
+                      color: AppColors.whiteColor,
+                    )
+                  : null,
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      customText(
+                        packageName.capitalizeFirst ?? packageName,
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.blackColor,
+                      ),
+                      if (isCurrent) ...[
+                        SizedBox(width: 8.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 2.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: customText(
+                            'Current',
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  SizedBox(height: 2.h),
+                  customText(
+                    '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                    fontSize: 12.sp,
+                    color: AppColors.greyColor,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Container(
-        constraints: BoxConstraints(maxHeight: 0.75.sh),
+        constraints: BoxConstraints(maxHeight: 0.6.sh),
         decoration: BoxDecoration(
           color: AppColors.whiteColor,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
             Container(
-              padding: EdgeInsets.all(20.w),
+              padding: EdgeInsets.fromLTRB(20.w, 20.w, 12.w, 16.w),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  customText(
-                    "Select Package",
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.blackColor,
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 24.sp,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: customText(
+                      "Select Package",
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.blackColor,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _showPackageInfo,
+                    icon: Icon(
+                      Icons.info_outline,
+                      size: 20.sp,
+                      color: AppColors.greyColor,
+                    ),
+                    padding: EdgeInsets.all(8.sp),
+                    constraints: BoxConstraints(),
                   ),
                   IconButton(
                     onPressed: () => Get.back(),
-                    icon: Icon(Icons.close, size: 24.sp, color: AppColors.greyColor),
-                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                      Icons.close,
+                      size: 22.sp,
+                      color: AppColors.greyColor,
+                    ),
+                    padding: EdgeInsets.all(8.sp),
                     constraints: BoxConstraints(),
                   ),
                 ],
               ),
             ),
 
-            Divider(height: 1, thickness: 1, color: AppColors.lightGreyColor),
+            Divider(height: 1, thickness: 1, color: AppColors.greyColor.withValues(alpha: 0.15)),
 
             // Content
             Flexible(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(20.w),
+                padding: EdgeInsets.all(16.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // Existing packages list
-                    if (widget.existingPackages.isNotEmpty) ...[
-                      customText(
-                        "Existing Packages",
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.greyColor,
-                      ),
-                      SizedBox(height: 12.h),
-                      ...widget.existingPackages.map((packageName) {
-                        final isSelected = selectedPackage == packageName && !isCreatingNew;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedPackage = packageName;
-                              isCreatingNew = false;
-                            });
-                          },
-                          child: Container(
-                            margin: EdgeInsets.only(bottom: 10.h),
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.lightGreyColor : AppColors.whiteColor,
-                              borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.blackColor
-                                    : AppColors.lightGreyColor,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  isSelected
-                                      ? Icons.radio_button_checked
-                                      : Icons.radio_button_unchecked,
-                                  color: isSelected
-                                      ? AppColors.blackColor
-                                      : AppColors.greyColor,
-                                  size: 22.sp,
-                                ),
-                                SizedBox(width: 12.w),
-                                Icon(
-                                  Icons.inventory_2_outlined,
-                                  color: AppColors.greyColor,
-                                  size: 18.sp,
-                                ),
-                                SizedBox(width: 10.w),
-                                Expanded(
-                                  child: customText(
-                                    packageName,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.blackColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      SizedBox(height: 20.h),
-                    ],
+                    if (widget.existingPackages.isNotEmpty)
+                      ...widget.existingPackages.map((packageName) => _buildPackageItem(packageName)),
 
-                    // Create new package option
+                    if (widget.existingPackages.isNotEmpty) SizedBox(height: 8.h),
+
+                    // Create new package button
                     GestureDetector(
                       onTap: () {
-                        setState(() {
-                          isCreatingNew = true;
-                        });
+                        final newName = _getNextPackageName();
+                        Get.back(result: newName);
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                        padding: EdgeInsets.all(14.w),
                         decoration: BoxDecoration(
-                          color: isCreatingNew ? AppColors.lightGreyColor : AppColors.whiteColor,
+                          color: AppColors.whiteColor,
                           borderRadius: BorderRadius.circular(12.r),
                           border: Border.all(
-                            color: isCreatingNew
-                                ? AppColors.blackColor
-                                : AppColors.lightGreyColor,
-                            width: 1.5,
+                            color: AppColors.primaryColor.withValues(alpha: 0.3),
+                            width: 1,
                           ),
                         ),
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              isCreatingNew
-                                  ? Icons.radio_button_checked
-                                  : Icons.radio_button_unchecked,
-                              color: isCreatingNew
-                                  ? AppColors.blackColor
-                                  : AppColors.greyColor,
-                              size: 22.sp,
-                            ),
-                            SizedBox(width: 12.w),
-                            Icon(
                               Icons.add_circle_outline,
-                              color: AppColors.greyColor,
-                              size: 18.sp,
+                              color: AppColors.primaryColor,
+                              size: 20.sp,
                             ),
-                            SizedBox(width: 10.w),
-                            Expanded(
-                              child: customText(
-                                "Create New Package",
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.blackColor,
-                              ),
+                            SizedBox(width: 8.w),
+                            customText(
+                              "Create New Package",
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor,
                             ),
                           ],
                         ),
                       ),
                     ),
-
-                    // New package name input (shown when creating new)
-                    if (isCreatingNew) ...[
-                      SizedBox(height: 16.h),
-                      CustomOutlinedRoundedInputField(
-                        controller: _newPackageController,
-                        label: "Enter package name (e.g., Pack 2)",
-                        onChanged: (value) {
-                          setState(() {
-                            selectedPackage = value;
-                          });
-                        },
-                      ),
-                    ],
                   ],
                 ),
               ),
             ),
 
-            // Action buttons
+            // Action button
             Container(
-              padding: EdgeInsets.all(20.w),
+              padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(
-                    color: AppColors.lightGreyColor,
+                    color: AppColors.greyColor.withValues(alpha: 0.15),
                     width: 1,
                   ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.greyColor),
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                      ),
-                      child: customText(
-                        "Cancel",
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.greyColor,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (isCreatingNew) {
-                          final newPackageName = _newPackageController.text.trim();
-                          if (newPackageName.isEmpty) {
-                            showToast(
-                              message: "Please enter a package name",
-                              isError: true,
-                            );
-                            return;
-                          }
-                          Get.back(result: newPackageName);
-                        } else if (selectedPackage != null) {
-                          Get.back(result: selectedPackage);
-                        } else {
-                          showToast(
-                            message: "Please select a package",
-                            isError: true,
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                      ),
-                      child: customText(
-                        "Add to Package",
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.whiteColor,
-                      ),
-                    ),
-                  ),
-                ],
+              child: SizedBox(
+                width: double.infinity,
+                child: CustomButton(
+                  onPressed: () {
+                    if (selectedPackage != null) {
+                      Get.back(result: selectedPackage);
+                    } else {
+                      showToast(
+                        message: "Please select a package",
+                        isError: true,
+                      );
+                    }
+                  },
+                  title: "Select Package",
+                  backgroundColor: AppColors.primaryColor,
+                  fontColor: AppColors.whiteColor,
+                  height: 50.h,
+                  borderRadius: 12.r,
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

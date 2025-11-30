@@ -5,20 +5,16 @@ class DeliverySuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get delivery from arguments if passed
-    final args = Get.arguments as Map<String, dynamic>?;
-    final deliveryFromArgs = args?['delivery'] as DeliveryModel?;
-
     return GetBuilder<DeliveriesController>(
       builder: (ordersController) {
-        // Use delivery from arguments or fall back to selectedDelivery
-        final currentDelivery = deliveryFromArgs ?? ordersController.selectedDelivery;
-
-        return WillPopScope(
-          onWillPop: () async {
-            // Go back to app navigation screen when back button is pressed
-            Get.offAllNamed(Routes.APP_NAVIGATION);
-            return false;
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) {
+              // Refresh deliveries list and go home
+              ordersController.fetchParcelDeliveries();
+              Get.offAllNamed(Routes.APP_NAVIGATION);
+            }
           },
           child: Scaffold(
             appBar: flatAppBar(bgColor: AppColors.backgroundColor),
@@ -56,51 +52,16 @@ class DeliverySuccessScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                           fontSize: 18.sp,
                         ),
-                        SizedBox(height: 40.h),
-                        CustomButton(
-                          width: double.infinity,
-                          onPressed: () async {
-                            // Check if delivery data exists
-                            if (currentDelivery == null) {
-                              showToast(
-                                message:
-                                    'Unable to track delivery. Please try again.',
-                                isError: true,
-                              );
-                              return;
-                            }
-
-                            try {
-                              // Fetch latest delivery data from API to get real-time status
-                              await ordersController.getParcelDeliveryById(
-                                currentDelivery.id,
-                              );
-
-                              // Check if fetch was successful
-                              if (ordersController.selectedParcelDelivery == null) {
-                                showToast(
-                                  message: 'Unable to load delivery details',
-                                  isError: true,
-                                );
-                                return;
-                              }
-
-                              // Navigate to parcel delivery details screen
-                              // The details screen will automatically redirect to tracking screen
-                              // if the status is confirmed/accepted/picked/in_transit
-                              Get.offAllNamed(Routes.APP_NAVIGATION);
-                              Get.toNamed(Routes.PARCEL_DELIVERY_DETAILS_SCREEN);
-                            } catch (e) {
-                              showToast(
-                                message: 'Error loading delivery: $e',
-                                isError: true,
-                              );
-                            }
-                          },
-                          title: "Track Delivery",
-                          backgroundColor: AppColors.primaryColor,
+                        SizedBox(height: 12.h),
+                        customText(
+                          "You can track your delivery from the Deliveries tab",
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.visible,
+                          color: AppColors.obscureTextColor,
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14.sp,
                         ),
-                        SizedBox(height: 25.h),
+                        SizedBox(height: 40.h),
                         CustomButton(
                           width: double.infinity,
                           onPressed: () {
@@ -110,9 +71,8 @@ class DeliverySuccessScreen extends StatelessWidget {
                             Get.offAllNamed(Routes.APP_NAVIGATION);
                           },
                           title: "Go Home",
-                          backgroundColor: AppColors.whiteColor,
-                          fontColor: AppColors.primaryColor,
-                          borderColor: AppColors.primaryColor,
+                          backgroundColor: AppColors.primaryColor,
+                          fontColor: AppColors.whiteColor,
                         ),
                       ],
                     ),

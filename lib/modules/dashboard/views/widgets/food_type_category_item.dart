@@ -166,7 +166,7 @@ class FoodTypeCategoryItem extends StatelessWidget {
                     duration: Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     style: TextStyle(
-                      fontSize: 10.sp,
+                      fontSize: 12.sp,
                       fontWeight: isSelected
                           ? FontWeight.w700
                           : FontWeight.w500,

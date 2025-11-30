@@ -438,10 +438,20 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                             child: item.image.isNotEmpty
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(8.r),
-                                    child: Image.network(
-                                      item.image,
+                                    child: CachedNetworkImage(
+                                      imageUrl: item.image,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
+                                      placeholder: (context, url) => Center(
+                                        child: SizedBox(
+                                          width: 16.w,
+                                          height: 16.w,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.primaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) =>
                                           Icon(Icons.restaurant, color: AppColors.greyColor),
                                     ),
                                   )

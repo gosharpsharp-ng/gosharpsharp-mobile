@@ -21,6 +21,8 @@ class _SelectLocationState extends State<SelectLocation> {
   LatLng initialPosition = const LatLng(9.0820, 8.6753); // Default: Abuja, Nigeria
   bool _isLoadingLocation = false;
   bool _isMapReady = false;
+  bool _isGettingCurrentLocation = false;
+  bool _isSearching = false;
   // OverlayEntry? _overlayEntry;
   Future _determinePosition() async {
     bool serviceEnabled;
@@ -36,10 +38,10 @@ class _SelectLocationState extends State<SelectLocation> {
           isError: false,
           message: "Location services disabled. You can search or tap on the map to select your location.",
         );
+        setState(() {
+          initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
+        });
       }
-      setState(() {
-        initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
-      });
       return;
     }
 
@@ -52,11 +54,10 @@ class _SelectLocationState extends State<SelectLocation> {
             isError: false,
             message: "Location permission denied. You can search or tap on the map to select your location.",
           );
+          setState(() {
+            initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
+          });
         }
-        // Use default location if permission denied
-        setState(() {
-          initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
-        });
         return;
       }
     }
@@ -67,16 +68,15 @@ class _SelectLocationState extends State<SelectLocation> {
           isError: false,
           message: "Location permission denied permanently. You can search or tap on the map to select your location.",
         );
+        setState(() {
+          initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
+        });
       }
-      // Use default location if permission denied forever
-      setState(() {
-        initialPosition = const LatLng(9.0820, 8.6753); // Abuja, Nigeria
-      });
       return;
     }
 
     try {
-      // Try to get last known position first (instant)
+      // Try to get last known position first (faster)
       Position? lastPosition = await Geolocator.getLastKnownPosition();
 
       if (lastPosition != null && mounted) {
@@ -85,45 +85,57 @@ class _SelectLocationState extends State<SelectLocation> {
         });
       }
 
-      // Use progressive accuracy: try medium first (faster), then high if needed
-      Position? position;
+      // Then get current position with timeout (more accurate)
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10), // 10 second timeout
+        ),
+      );
 
-      // Try medium accuracy first - usually sufficient and faster
-      try {
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-            timeLimit: Duration(seconds: 8),
-          ),
-        );
-      } catch (e) {
-        debugPrint('Medium accuracy location timed out, trying low accuracy: $e');
-        // Fall back to low accuracy if medium times out
-        try {
-          position = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.low,
-              timeLimit: Duration(seconds: 5),
-            ),
-          );
-        } catch (e) {
-          debugPrint('Low accuracy also failed: $e');
-        }
-      }
-
-      if (position != null && mounted) {
+      if (mounted) {
         setState(() {
-          initialPosition = LatLng(position!.latitude, position.longitude);
+          initialPosition = LatLng(position.latitude, position.longitude);
         });
       }
     } catch (e) {
-      debugPrint('Error in _determinePosition: $e');
-      // Last known position should already be set if available
-      // No toast needed here - map is already functional
+      // If getting position fails, try last known position or use default
+      try {
+        Position? lastPosition = await Geolocator.getLastKnownPosition();
+        if (lastPosition != null && mounted) {
+          setState(() {
+            initialPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
+          });
+        } else {
+          // Use default location (Abuja, Nigeria)
+          if (mounted) {
+            showToast(
+              isError: false,
+              message: "Could not get current location. You can search or tap on the map to select your location.",
+            );
+            setState(() {
+              initialPosition = const LatLng(9.0820, 8.6753);
+            });
+          }
+        }
+      } catch (e) {
+        // Final fallback to default location
+        if (mounted) {
+          showToast(
+            isError: false,
+            message: "Could not get current location. You can search or tap on the map to select your location.",
+          );
+          setState(() {
+            initialPosition = const LatLng(9.0820, 8.6753);
+          });
+        }
+      }
     }
   }
 
   Future<void> _useCurrentLocation() async {
+    if (_isGettingCurrentLocation) return; // Prevent multiple calls
+
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -162,49 +174,19 @@ class _SelectLocationState extends State<SelectLocation> {
       return;
     }
 
+    // Show loading state
+    setState(() {
+      _isGettingCurrentLocation = true;
+    });
+
     try {
-      // Show loading indicator
-      setState(() {
-        _isLoadingLocation = true;
-      });
-
-      Position? position;
-
-      // Try medium accuracy first (faster)
-      try {
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-            timeLimit: Duration(seconds: 8),
-          ),
-        );
-      } catch (e) {
-        debugPrint('Medium accuracy failed: $e');
-        // Try low accuracy as fallback
-        try {
-          position = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.low,
-              timeLimit: Duration(seconds: 5),
-            ),
-          );
-        } catch (e) {
-          debugPrint('Low accuracy also failed: $e');
-          // Try last known position as final fallback
-          position = await Geolocator.getLastKnownPosition();
-        }
-      }
-
-      if (position == null) {
-        setState(() {
-          _isLoadingLocation = false;
-        });
-        showToast(
-          isError: true,
-          message: "Could not get current location. Please search manually or tap on the map.",
-        );
-        return;
-      }
+      // Get current position with timeout
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
 
       final currentLatLng = LatLng(position.latitude, position.longitude);
 
@@ -217,7 +199,6 @@ class _SelectLocationState extends State<SelectLocation> {
             position: currentLatLng,
           ),
         };
-        _isLoadingLocation = false;
       });
 
       // Animate camera to current location
@@ -232,13 +213,16 @@ class _SelectLocationState extends State<SelectLocation> {
       await _showLocationDetails(currentLatLng);
     } catch (e) {
       debugPrint('Error getting current location: $e');
-      setState(() {
-        _isLoadingLocation = false;
-      });
       showToast(
         isError: true,
         message: "Failed to get current location. Please try again or search manually.",
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGettingCurrentLocation = false;
+        });
+      }
     }
   }
 
@@ -281,6 +265,7 @@ class _SelectLocationState extends State<SelectLocation> {
 
   @override
   void dispose() {
+    _textEditingController.removeListener(_onSearchTextChanged);
     _textEditingController.dispose();
     _textFieldFocusNode.dispose();
     super.dispose();
@@ -382,91 +367,245 @@ class _SelectLocationState extends State<SelectLocation> {
                 SafeArea(
                   child: Column(
                     children: [
+                      // Search bar with back button
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: _textEditingController,
-                          focusNode: _textFieldFocusNode,
-                          onTapOutside: ((event) {
-                            //FocusScope.of(context).unfocus();
-                          }),
-                          decoration: InputDecoration(
-                            fillColor: Colors.grey.shade100,
-                            filled: true,
-                            prefixIcon: Icon(
-                              Icons.search,
-                              color: _textFieldFocusNode.hasFocus
-                                  ? AppColors.primaryColor
-                                  : null,
+                        padding: EdgeInsets.all(8.sp),
+                        child: Row(
+                          children: [
+                            // Back button
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Container(
+                                padding: EdgeInsets.all(10.sp),
+                                decoration: BoxDecoration(
+                                  color: AppColors.whiteColor,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.arrow_back,
+                                  color: AppColors.blackColor,
+                                  size: 22.sp,
+                                ),
+                              ),
                             ),
-                            hintText: "Enter your address",
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25.r),
+                            SizedBox(width: 8.w),
+                            // Search field
+                            Expanded(
+                              child: TextField(
+                                controller: _textEditingController,
+                                focusNode: _textFieldFocusNode,
+                                onTapOutside: ((event) {
+                                  //FocusScope.of(context).unfocus();
+                                }),
+                                decoration: InputDecoration(
+                                  fillColor: AppColors.whiteColor,
+                                  filled: true,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                                  prefixIcon: Icon(
+                                    Icons.search,
+                                    color: _textFieldFocusNode.hasFocus
+                                        ? AppColors.primaryColor
+                                        : AppColors.greyColor,
+                                  ),
+                                  suffixIcon: _textEditingController.text.isNotEmpty
+                                      ? GestureDetector(
+                                          onTap: () {
+                                            _textEditingController.clear();
+                                            setState(() {
+                                              _suggestedLocations = [];
+                                            });
+                                          },
+                                          child: Icon(
+                                            Icons.clear,
+                                            color: AppColors.greyColor,
+                                            size: 20.sp,
+                                          ),
+                                        )
+                                      : null,
+                                  hintText: "Search for an address",
+                                  hintStyle: TextStyle(
+                                    color: AppColors.greyColor,
+                                    fontSize: 14.sp,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(25.r),
+                                    borderSide: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(25.r),
+                                    borderSide: BorderSide(color: AppColors.primaryColor),
+                                  ),
+                                ),
+                              ),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25.r),
-                            ),
-                          ),
+                          ],
                         ),
                       ),
-                      CustomButton(
-                        onPressed: () {
-                          _useCurrentLocation();
-                        },
-                        title: "Use Current Location",
-                        backgroundColor: AppColors.primaryColor,
-                        fontColor: AppColors.whiteColor,
-                        width: 1.sw * 0.75,
+                      // Use Current Location button with loading state
+                      GestureDetector(
+                        onTap: _isGettingCurrentLocation ? null : _useCurrentLocation,
+                        child: Container(
+                          width: 1.sw * 0.75,
+                          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                          decoration: BoxDecoration(
+                            color: _isGettingCurrentLocation
+                                ? AppColors.primaryColor.withValues(alpha: 0.7)
+                                : AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(25.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryColor.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_isGettingCurrentLocation) ...[
+                                SizedBox(
+                                  width: 18.sp,
+                                  height: 18.sp,
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.whiteColor,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                SizedBox(width: 10.w),
+                                customText(
+                                  "Getting Location...",
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ] else ...[
+                                Icon(
+                                  Icons.my_location,
+                                  color: AppColors.whiteColor,
+                                  size: 20.sp,
+                                ),
+                                SizedBox(width: 8.w),
+                                customText(
+                                  "Use Current Location",
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
                       SizedBox(
                         height: 15.sp,
                       ),
-                      if (_textFieldFocusNode.hasFocus)
+                      // Search suggestions with loading indicator
+                      if (_textFieldFocusNode.hasFocus && (_isSearching || _suggestedLocations.isNotEmpty || _textEditingController.text.isNotEmpty))
                         Container(
-                          //  margin: const EdgeInsets.only(top: 55),
+                          constraints: BoxConstraints(
+                            maxHeight: 0.4.sh, // Max 40% of screen height
+                          ),
+                          margin: EdgeInsets.symmetric(horizontal: 8.w),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(12.r),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withValues(alpha: 0.5),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: const Offset(0, 3),
+                                color: Colors.grey.withValues(alpha: 0.3),
+                                spreadRadius: 1,
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: _suggestedLocations.length,
-                            itemBuilder: (context, index) {
-                              final prediction = _suggestedLocations[index];
+                          child: _isSearching
+                              ? Padding(
+                                  padding: EdgeInsets.all(20.sp),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 20.sp,
+                                        height: 20.sp,
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.primaryColor,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      SizedBox(width: 12.w),
+                                      customText(
+                                        "Searching...",
+                                        fontSize: 14.sp,
+                                        color: AppColors.greyColor,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : _suggestedLocations.isEmpty && _textEditingController.text.isNotEmpty
+                                  ? Padding(
+                                      padding: EdgeInsets.all(20.sp),
+                                      child: customText(
+                                        "No results found. Try a different search.",
+                                        fontSize: 14.sp,
+                                        color: AppColors.greyColor,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      shrinkWrap: true,
+                                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                                      itemCount: _suggestedLocations.length,
+                                      separatorBuilder: (context, index) => Divider(
+                                        height: 1,
+                                        color: AppColors.greyColor.withValues(alpha: 0.2),
+                                      ),
+                                      itemBuilder: (context, index) {
+                                        final prediction = _suggestedLocations[index];
 
-                              return ListTile(
-                                dense: true,
-                                title: Text(
-                                  prediction.structuredFormatting!.mainText,
-                                  style: TextStyle(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                                subtitle: Text(
-                                  prediction.description!,
-                                  style: TextStyle(
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                onTap: () {
-                                  //   _removeOverlay();
-                                  //log(prediction.toString());
-                                  _textEditingController.text =
-                                      prediction.description!;
-                                  _textFieldFocusNode.unfocus();
-                                  _geocodePlace(prediction.placeId!);
-                                },
-                              );
-                            },
-                          ),
+                                        return ListTile(
+                                          dense: true,
+                                          leading: Icon(
+                                            Icons.location_on_outlined,
+                                            color: AppColors.primaryColor,
+                                            size: 22.sp,
+                                          ),
+                                          title: Text(
+                                            prediction.structuredFormatting?.mainText ?? '',
+                                            style: TextStyle(
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          subtitle: Text(
+                                            prediction.description ?? '',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.greyColor,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          onTap: () {
+                                            _textEditingController.text = prediction.description ?? '';
+                                            _textFieldFocusNode.unfocus();
+                                            if (prediction.placeId != null) {
+                                              _geocodePlace(prediction.placeId!);
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
                         ),
                     ],
                   ),
@@ -561,15 +700,46 @@ class _SelectLocationState extends State<SelectLocation> {
   }
 
   void _onSearchTextChanged() async {
-    final input = _textEditingController.text;
-    if (input.isEmpty) {
+    // Add null-safety check for disposed controller
+    if (!mounted) {
       return;
     }
 
-    final predictions = await _getPredictions(input);
-    setState(() {
-      _suggestedLocations = predictions;
-    });
+    try {
+      final input = _textEditingController.text;
+      if (input.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _suggestedLocations = [];
+            _isSearching = false;
+          });
+        }
+        return;
+      }
+
+      // Show searching state
+      if (mounted) {
+        setState(() {
+          _isSearching = true;
+        });
+      }
+
+      final predictions = await _getPredictions(input);
+      if (mounted) {
+        setState(() {
+          _suggestedLocations = predictions;
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error getting search predictions: $e');
+      if (mounted) {
+        setState(() {
+          _suggestedLocations = [];
+          _isSearching = false;
+        });
+      }
+    }
   }
 
   Future<List<Prediction>> _getPredictions(String input) async {
@@ -579,37 +749,62 @@ class _SelectLocationState extends State<SelectLocation> {
   }
 
   Future<void> _geocodePlace(String placeId) async {
-    final places = GoogleMapsPlaces(apiKey: Secret.apiKey);
-    final response = await places.getDetailsByPlaceId(placeId);
-    final location = response.result.geometry?.location;
-    if (location != null) {
-      setState(() {
-        _markers = {
-          Marker(
-            markerId: MarkerId(LatLng(location.lat, location.lng).toString()),
-            position: LatLng(location.lat, location.lng),
-          ),
-        };
-      });
-      final controller = await _controller.future;
-      controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(target: LatLng(location.lat, location.lng), zoom: 16),
-        ),
-      );
+    // Show loading immediately when user selects a search suggestion
+    setState(() {
+      _isLoadingLocation = true;
+    });
 
-      setState(() {
-        selectedLocation = LatLng(location.lat, location.lng);
-      });
-      _showLocationDetails(LatLng(location.lat, location.lng));
+    try {
+      final places = GoogleMapsPlaces(apiKey: Secret.apiKey);
+      final response = await places.getDetailsByPlaceId(placeId);
+      final location = response.result.geometry?.location;
+      if (location != null) {
+        setState(() {
+          _markers = {
+            Marker(
+              markerId: MarkerId(LatLng(location.lat, location.lng).toString()),
+              position: LatLng(location.lat, location.lng),
+            ),
+          };
+        });
+        final controller = await _controller.future;
+        controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: LatLng(location.lat, location.lng), zoom: 16),
+          ),
+        );
+
+        setState(() {
+          selectedLocation = LatLng(location.lat, location.lng);
+        });
+        // _showLocationDetails will handle setting _isLoadingLocation to false
+        await _showLocationDetails(LatLng(location.lat, location.lng));
+      } else {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error geocoding place: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+        showToast(
+          message: 'Failed to get location. Please try again.',
+          isError: true,
+        );
+      }
     }
   }
 
   Future<void> _showLocationDetails(LatLng latLng) async {
-    // Show loading indicator
-    setState(() {
-      _isLoadingLocation = true;
-    });
+    // Show loading indicator (if not already showing)
+    if (!_isLoadingLocation) {
+      setState(() {
+        _isLoadingLocation = true;
+      });
+    }
 
     try {
       final url =

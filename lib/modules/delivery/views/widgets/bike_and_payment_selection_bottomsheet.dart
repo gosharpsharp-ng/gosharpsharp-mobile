@@ -129,10 +129,10 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
               _buildPaymentOption(
                 context,
                 ordersController,
-                title: "Cash on Delivery",
-                subtitle: "Pay when item is delivered",
-                paymentType: "cash_on_delivery",
-                paymentIcon: null, // Using Material icon
+                title: "Card Payment",
+                subtitle: "Pay with debit/credit card",
+                paymentType: "paystack",
+                paymentIcon: SvgAssets.paystackIcon,
               ),
 
               SizedBox(height: 24.h),

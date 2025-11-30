@@ -1,4 +1,5 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:gosharpsharp/core/services/recently_visited_restaurants_service.dart';
 
 class SignInController extends GetxController {
   final authService = serviceLocator<AuthenticationService>();
@@ -36,6 +37,10 @@ class SignInController extends GetxController {
           update();
           final getStorage = GetStorage();
           getStorage.write("token", response.data['auth_token']);
+
+          // Clear recently visited restaurants on fresh login
+          await RecentlyVisitedRestaurantsService().clearRecentRestaurants();
+
           Get.put(WalletController());
           Get.put(SettingsController());
           Get.put(DeliveriesController());

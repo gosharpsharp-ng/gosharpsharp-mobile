@@ -73,7 +73,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                 ),
                 SizedBox(height: 8.h),
                 customText(
-                  "Choose an add-on for ${widget.menuItem.name}",
+                  "Choose an add-on for ${widget.menuItem.name.capitalizeFirst ?? widget.menuItem.name}",
                   fontSize: 14.sp,
                   color: AppColors.obscureTextColor,
                 ),
@@ -114,12 +114,27 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8.r),
                           child: addon.files.isNotEmpty
-                              ? Image.network(
-                                  addon.files.first.url,
+                              ? CachedNetworkImage(
+                                  imageUrl: addon.files.first.url,
                                   width: 60.w,
                                   height: 60.w,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
+                                  placeholder: (context, url) => Container(
+                                    width: 60.w,
+                                    height: 60.w,
+                                    color: AppColors.backgroundColor,
+                                    child: Center(
+                                      child: SizedBox(
+                                        width: 20.w,
+                                        height: 20.w,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.primaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) {
                                     return Container(
                                       width: 60.w,
                                       height: 60.w,
@@ -151,7 +166,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               customText(
-                                addon.name,
+                                addon.name.capitalizeFirst ?? addon.name,
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.blackColor,
@@ -159,7 +174,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                               if (addon.description != null && addon.description!.isNotEmpty) ...[
                                 SizedBox(height: 4.h),
                                 customText(
-                                  addon.description!,
+                                  addon.description!.capitalizeFirst ?? addon.description!,
                                   fontSize: 12.sp,
                                   color: AppColors.obscureTextColor,
                                   maxLines: 2,
@@ -168,7 +183,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                               ],
                               SizedBox(height: 4.h),
                               customText(
-                                "+${formatToCurrency(addon.price)}",
+                                formatToCurrency(addon.price),
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primaryColor,

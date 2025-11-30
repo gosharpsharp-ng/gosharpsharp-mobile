@@ -5,12 +5,13 @@ class CurrierTypeContainer extends StatelessWidget {
   final bool isSelected;
   final bool isSelectable;
   final Function onSelected;
-  const CurrierTypeContainer(
-      {super.key,
-      required this.currierType,
-      required this.onSelected,
-      required this.isSelectable,
-      this.isSelected = false});
+  const CurrierTypeContainer({
+    super.key,
+    required this.currierType,
+    required this.onSelected,
+    required this.isSelectable,
+    this.isSelected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,19 +40,17 @@ class CurrierTypeContainer extends StatelessWidget {
               child: Image.asset(
                 PngAssets.localRideIcon,
                 color: !isSelectable
-                    ? AppColors.blackColor.withOpacity(0.5)
+                    ? AppColors.blackColor.withValues(alpha: 0.5)
                     : null,
                 height: 40.sp,
                 width: 40.sp,
               ),
             ),
-            SizedBox(
-              width: 15.sp,
-            ),
+            SizedBox(width: 15.sp),
             customText(
               currierType.courierType.capitalizeFirst!,
               color: !isSelectable
-                  ? AppColors.blackColor.withOpacity(0.5)
+                  ? AppColors.blackColor.withValues(alpha: 0.5)
                   : AppColors.blackColor,
               fontSize: 16.sp,
               fontWeight: FontWeight.w500,
@@ -63,7 +62,7 @@ class CurrierTypeContainer extends StatelessWidget {
                   customText(
                     formatToCurrency(currierType.price.round()),
                     color: !isSelectable
-                        ? AppColors.blackColor.withOpacity(0.5)
+                        ? AppColors.blackColor.withValues(alpha: 0.5)
                         : AppColors.blackColor,
                     fontStyle: GoogleFonts.inter().fontStyle,
                     fontSize: 16.sp,

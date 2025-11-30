@@ -18,6 +18,8 @@ class MenuItemModel {
   final List<ItemFileModel> files;
   final bool? showOnCustomerApp;
   final List<MenuItemModel>? addonMenus;
+  final double? packagingPrice;
+  final List<RestaurantDiscount>? activeDiscounts;
 
   MenuItemModel({
     required this.id,
@@ -34,17 +36,77 @@ class MenuItemModel {
     this.showOnCustomerApp,
     required this.files,
     this.addonMenus,
+    this.packagingPrice,
+    this.activeDiscounts,
   });
+
+  /// Get the top discount that should be displayed
+  RestaurantDiscount? get topDiscount {
+    if (activeDiscounts == null || activeDiscounts!.isEmpty) return null;
+    // Return the first active discount that should be shown on listing
+    return activeDiscounts!.firstWhere(
+      (d) => d.isActive && d.showOnListing,
+      orElse: () => activeDiscounts!.first,
+    );
+  }
+
+  /// Get the discount badge text for display
+  String? get discountBadgeText {
+    final discount = topDiscount;
+    if (discount == null) return null;
+
+    // Use badge_text if available
+    if (discount.badgeText != null && discount.badgeText!.isNotEmpty) {
+      return discount.badgeText;
+    }
+
+    // Generate badge text from discount value
+    if (discount.type == 'percentage') {
+      final value = double.tryParse(discount.value) ?? 0;
+      final formattedValue = value == value.roundToDouble()
+          ? value.toInt().toString()
+          : value.toStringAsFixed(0);
+      return "- $formattedValue% OFF";
+    } else if (discount.type == 'fixed') {
+      return "- ${discount.value} off";
+    }
+
+    return null;
+  }
+
+  /// Check if this menu item has an active discount
+  bool get hasActiveDiscount =>
+      activeDiscounts != null && activeDiscounts!.isNotEmpty;
 
   factory MenuItemModel.fromJson(Map<String, dynamic> json) {
     final filesJson = json['files'] as List<dynamic>? ?? [];
     final addonMenusJson = json['addon_menus'] as List<dynamic>?;
+    final activeDiscountsJson = json['active_discounts'] as List<dynamic>?;
 
-    // Debug logging for addon_menus
-    print('MenuItemModel parsing: ${json['name']}');
-    print('Has addon_menus field: ${json.containsKey('addon_menus')}');
-    print('addon_menus value: $addonMenusJson');
-    print('addon_menus length: ${addonMenusJson?.length ?? 0}');
+    // Parse active discounts
+    List<RestaurantDiscount>? parsedActiveDiscounts;
+    if (activeDiscountsJson != null && activeDiscountsJson.isNotEmpty) {
+      try {
+        parsedActiveDiscounts = activeDiscountsJson
+            .where((e) => e != null && e is Map<String, dynamic>)
+            .map((e) {
+          try {
+            return RestaurantDiscount.fromJson(e as Map<String, dynamic>);
+          } catch (error) {
+            return null;
+          }
+        })
+            .where((e) => e != null)
+            .cast<RestaurantDiscount>()
+            .toList();
+
+        if (parsedActiveDiscounts.isEmpty) {
+          parsedActiveDiscounts = null;
+        }
+      } catch (e) {
+        parsedActiveDiscounts = null;
+      }
+    }
 
     // Safely parse category with null check
     CategoryModel? category;
@@ -127,8 +189,12 @@ class MenuItemModel {
           ),
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
       prepTimeMinutes: json['prep_time_minutes'] ?? 0,
-      isAvailable: json['is_available'] ?? 0,
-      isPublished: json['is_published'] ?? 0,
+      isAvailable: json['is_available'] is bool
+          ? (json['is_available'] ? 1 : 0)
+          : (json['is_available'] ?? 0),
+      isPublished: json['is_published'] is bool
+          ? (json['is_published'] ? 1 : 0)
+          : (json['is_published'] ?? 0),
       quantity: json['quantity'] ?? 0,
       description: json['description']?.toString(),
       plateSize: json['plate_size']?.toString(),
@@ -146,6 +212,10 @@ class MenuItemModel {
           .cast<ItemFileModel>()
           .toList(),
       addonMenus: parsedAddonMenus,
+      packagingPrice: json['packaging_price'] != null
+          ? double.tryParse(json['packaging_price']?.toString() ?? '0')
+          : null,
+      activeDiscounts: parsedActiveDiscounts,
     );
   }
 
@@ -165,6 +235,8 @@ class MenuItemModel {
       'show_on_customer_app': showOnCustomerApp,
       'files': files.map((e) => e.toJson()).toList(),
       'addon_menus': addonMenus?.map((e) => e.toJson()).toList(),
+      'packaging_price': packagingPrice,
+      'active_discounts': activeDiscounts?.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -231,12 +303,17 @@ class OrderModel {
   final double subtotal;
   final double tax;
   final double deliveryFee;
-  final String notes;
+  final String? deliveryType;
+  final int? isDelivery;
+  final String? deliveryInstructions;
+  final DateTime? scheduledDeliveryTime;
+  final int? deliveryAddressId;
+  final String? notes;
   final int? discountId;
   final double discountAmount;
   final int? paymentMethodId;
   final PaymentMethodModel? paymentMethod;
-  final String paymentReference;
+  final String? paymentReference;
   final double total;
   final DateTime? confirmedAt;
   final DateTime? completedAt;
@@ -247,8 +324,11 @@ class OrderModel {
   final DateTime updatedAt;
   final List<OrderItemModel> items;
   final RestaurantModel? orderable;
-  final DeliveryLocationModel deliveryLocation;
+  final DeliveryLocationModel? deliveryLocation;
   final dynamic discount;
+  final List<OrderPackageModel>? packages;
+  final dynamic user;
+  final List<OrderItemModel>? allItems;
 
   OrderModel({
     required this.id,
@@ -260,12 +340,17 @@ class OrderModel {
     required this.subtotal,
     required this.tax,
     required this.deliveryFee,
-    required this.notes,
+    this.deliveryType,
+    this.isDelivery,
+    this.deliveryInstructions,
+    this.scheduledDeliveryTime,
+    this.deliveryAddressId,
+    this.notes,
     this.discountId,
     required this.discountAmount,
     this.paymentMethodId,
     this.paymentMethod,
-    required this.paymentReference,
+    this.paymentReference,
     required this.total,
     this.confirmedAt,
     this.completedAt,
@@ -276,8 +361,11 @@ class OrderModel {
     required this.updatedAt,
     required this.items,
     this.orderable,
-    required this.deliveryLocation,
+    this.deliveryLocation,
     this.discount,
+    this.packages,
+    this.user,
+    this.allItems,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -291,14 +379,23 @@ class OrderModel {
       subtotal: double.tryParse(json['subtotal']?.toString() ?? '0') ?? 0.0,
       tax: double.tryParse(json['tax']?.toString() ?? '0') ?? 0.0,
       deliveryFee: double.tryParse(json['delivery_fee']?.toString() ?? '0') ?? 0.0,
-      notes: json['notes'] ?? '',
+      deliveryType: json['delivery_type']?.toString(),
+      isDelivery: json['is_delivery'] is bool
+          ? (json['is_delivery'] ? 1 : 0)
+          : json['is_delivery'],
+      deliveryInstructions: json['delivery_instructions']?.toString(),
+      scheduledDeliveryTime: json['scheduled_delivery_time'] != null
+          ? DateTime.tryParse(json['scheduled_delivery_time'])
+          : null,
+      deliveryAddressId: json['delivery_address_id'],
+      notes: json['notes']?.toString(),
       discountId: json['discount_id'],
       discountAmount: double.tryParse(json['discount_amount']?.toString() ?? '0') ?? 0.0,
       paymentMethodId: json['payment_method_id'],
       paymentMethod: json['payment_method'] != null
           ? PaymentMethodModel.fromJson(json['payment_method'])
           : null,
-      paymentReference: json['payment_reference'] ?? '',
+      paymentReference: json['payment_reference']?.toString(),
       total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
       confirmedAt: json['confirmed_at'] != null
           ? DateTime.tryParse(json['confirmed_at'])
@@ -323,8 +420,17 @@ class OrderModel {
       orderable: json['orderable'] != null
           ? RestaurantModel.fromJson(json['orderable'])
           : null,
-      deliveryLocation: DeliveryLocationModel.fromJson(json['delivery_location'] ?? {}),
+      deliveryLocation: json['delivery_location'] != null
+          ? DeliveryLocationModel.fromJson(json['delivery_location'])
+          : null,
       discount: json['discount'],
+      packages: (json['packages'] as List<dynamic>?)
+          ?.map((pkg) => OrderPackageModel.fromJson(pkg))
+          .toList(),
+      user: json['user'],
+      allItems: (json['all_items'] as List<dynamic>?)
+          ?.map((item) => OrderItemModel.fromJson(item))
+          .toList(),
     );
   }
 
@@ -339,6 +445,11 @@ class OrderModel {
       'subtotal': subtotal.toString(),
       'tax': tax.toString(),
       'delivery_fee': deliveryFee.toString(),
+      'delivery_type': deliveryType,
+      'is_delivery': isDelivery,
+      'delivery_instructions': deliveryInstructions,
+      'scheduled_delivery_time': scheduledDeliveryTime?.toIso8601String(),
+      'delivery_address_id': deliveryAddressId,
       'notes': notes,
       'discount_id': discountId,
       'discount_amount': discountAmount.toString(),
@@ -355,8 +466,11 @@ class OrderModel {
       'updated_at': updatedAt.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
       'orderable': orderable?.toJson(),
-      'delivery_location': deliveryLocation.toJson(),
+      'delivery_location': deliveryLocation?.toJson(),
       'discount': discount,
+      'packages': packages?.map((pkg) => pkg.toJson()).toList(),
+      'user': user,
+      'all_items': allItems?.map((item) => item.toJson()).toList(),
     };
   }
 
@@ -423,7 +537,7 @@ class OrderModel {
   // Helper getters for backward compatibility
   String get customerId => userId.toString();
   String get restaurantName => orderable?.name ?? 'Unknown Restaurant';
-  String get deliveryAddress => deliveryLocation.name;
+  String get deliveryAddress => deliveryLocation?.name ?? '';
   DateTime get orderDate => createdAt;
   String get estimatedDeliveryTime => "25-30 mins"; // You can calculate this based on your logic
   int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);
@@ -433,6 +547,207 @@ class OrderModel {
   // These getters are kept for backward compatibility but should use ProfileController
   String get customerName => ""; // Use ProfileController.getFullName() instead
   String get customerPhone => ""; // Use ProfileController.getPhone() instead
+}
+
+// Order Package Model
+class OrderPackageModel {
+  final int id;
+  final String name;
+  final int quantity;
+  final double price;
+  final double total;
+  final String? notes;
+  final List<PackageItemModel> items;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  OrderPackageModel({
+    required this.id,
+    required this.name,
+    required this.quantity,
+    required this.price,
+    required this.total,
+    this.notes,
+    required this.items,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory OrderPackageModel.fromJson(Map<String, dynamic> json) {
+    return OrderPackageModel(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      quantity: json['quantity'] ?? 1,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
+      notes: json['notes']?.toString(),
+      items: (json['items'] as List<dynamic>?)
+          ?.map((item) => PackageItemModel.fromJson(item))
+          .toList() ?? [],
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'quantity': quantity,
+      'price': price.toString(),
+      'total': total.toString(),
+      'notes': notes,
+      'items': items.map((item) => item.toJson()).toList(),
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
+}
+
+// Package Item Model
+class PackageItemModel {
+  final int id;
+  final PackageMenuModel menu;
+  final int quantity;
+  final double price;
+  final double total;
+  final Map<String, dynamic>? options;
+  final List<dynamic>? addons;
+
+  PackageItemModel({
+    required this.id,
+    required this.menu,
+    required this.quantity,
+    required this.price,
+    required this.total,
+    this.options,
+    this.addons,
+  });
+
+  factory PackageItemModel.fromJson(Map<String, dynamic> json) {
+    return PackageItemModel(
+      id: json['id'] ?? 0,
+      menu: PackageMenuModel.fromJson(json['menu'] ?? {}),
+      quantity: json['quantity'] ?? 1,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
+      options: json['options'] as Map<String, dynamic>?,
+      addons: json['addons'] as List<dynamic>?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'menu': menu.toJson(),
+      'quantity': quantity,
+      'price': price.toString(),
+      'total': total.toString(),
+      'options': options,
+      'addons': addons,
+    };
+  }
+}
+
+// Package Menu Model
+class PackageMenuModel {
+  final int id;
+  final int restaurantId;
+  final String name;
+  final String? description;
+  final String? plateSize;
+  final String? packaging;
+  final int quantity;
+  final bool isAvailable;
+  final double price;
+  final int? prepTimeMinutes;
+  final int categoryId;
+  final bool isPublished;
+  final DateTime? deletedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final List<ItemFileModel> files;
+  final CategoryModel? category;
+  final RestaurantModel? restaurant;
+
+  PackageMenuModel({
+    required this.id,
+    required this.restaurantId,
+    required this.name,
+    this.description,
+    this.plateSize,
+    this.packaging,
+    required this.quantity,
+    required this.isAvailable,
+    required this.price,
+    this.prepTimeMinutes,
+    required this.categoryId,
+    required this.isPublished,
+    this.deletedAt,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.files,
+    this.category,
+    this.restaurant,
+  });
+
+  factory PackageMenuModel.fromJson(Map<String, dynamic> json) {
+    return PackageMenuModel(
+      id: json['id'] ?? 0,
+      restaurantId: json['restaurant_id'] ?? 0,
+      name: json['name'] ?? '',
+      description: json['description']?.toString(),
+      plateSize: json['plate_size']?.toString(),
+      packaging: json['packaging']?.toString(),
+      quantity: json['quantity'] ?? 1,
+      isAvailable: json['is_available'] is bool
+          ? json['is_available']
+          : (json['is_available'] == 1 || json['is_available'] == true),
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      prepTimeMinutes: json['prep_time_minutes'],
+      categoryId: json['category_id'] ?? 0,
+      isPublished: json['is_published'] is bool
+          ? json['is_published']
+          : (json['is_published'] == 1 || json['is_published'] == true),
+      deletedAt: json['deleted_at'] != null
+          ? DateTime.tryParse(json['deleted_at'])
+          : null,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
+      files: (json['files'] as List<dynamic>?)
+          ?.map((file) => ItemFileModel.fromJson(file))
+          .toList() ?? [],
+      category: json['category'] != null
+          ? CategoryModel.fromJson(json['category'])
+          : null,
+      restaurant: json['restaurant'] != null
+          ? RestaurantModel.fromJson(json['restaurant'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'restaurant_id': restaurantId,
+      'name': name,
+      'description': description,
+      'plate_size': plateSize,
+      'packaging': packaging,
+      'quantity': quantity,
+      'is_available': isAvailable,
+      'price': price.toString(),
+      'prep_time_minutes': prepTimeMinutes,
+      'category_id': categoryId,
+      'is_published': isPublished,
+      'deleted_at': deletedAt?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'files': files.map((file) => file.toJson()).toList(),
+      'category': category?.toJson(),
+      'restaurant': restaurant?.toJson(),
+    };
+  }
 }
 
 // Order Item Model - Updated to match cart item structure
