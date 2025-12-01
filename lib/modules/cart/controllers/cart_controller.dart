@@ -744,8 +744,8 @@ class CartController extends GetxController {
 
   // Getters for cart calculations - Use API price_breakdown if available
   double get subtotal {
-    if (_cart?.priceBreakdown != null) {
-      return _cart!.priceBreakdown!.subtotal;
+    if (_cart?.priceBreakdown?.subtotal != null) {
+      return _cart!.priceBreakdown!.subtotal!;
     }
     // Fallback: Calculate subtotal from all packages
     return _packages.fold(0.0, (sum, package) {
@@ -753,12 +753,12 @@ class CartController extends GetxController {
     });
   }
 
-  double get packagingPrice {
-    return _cart?.priceBreakdown?.packagingPrice ?? 0.0;
+  double get packagingFee {
+    return _cart?.priceBreakdown?.packagingFee ?? 0.0;
   }
 
-  double get commission {
-    return _cart?.priceBreakdown?.commission ?? 0.0;
+  double get serviceCharge {
+    return _cart?.priceBreakdown?.serviceCharge ?? 0.0;
   }
 
   double get tax {
@@ -766,12 +766,12 @@ class CartController extends GetxController {
   }
 
   double get deliveryFee {
-    return _cart?.priceBreakdown?.deliveryFee ?? 5.0;
+    return _cart?.priceBreakdown?.deliveryFee ?? 0.0;
   }
 
   double get total {
     if (_cart?.priceBreakdown != null) {
-      return _cart!.priceBreakdown!.total;
+      return _cart!.priceBreakdown!.total ?? 0.0;
     }
     // Fallback calculation
     return subtotal + deliveryFee;
@@ -780,9 +780,6 @@ class CartController extends GetxController {
   String get currency {
     return _cart?.priceBreakdown?.currency ?? 'NGN';
   }
-
-  // Legacy getter for backward compatibility
-  double get serviceCharge => commission + tax;
 
   int get itemCount {
     return _packages.fold(0, (sum, package) {

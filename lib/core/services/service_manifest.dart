@@ -1,3 +1,4 @@
+import 'package:gosharpsharp/core/services/push_notification_service.dart';
 import 'package:gosharpsharp/core/services/restaurant/cart/restaurant_cart_service.dart';
 import 'package:gosharpsharp/core/services/restaurant/menu/menu_service.dart';
 import 'package:gosharpsharp/core/services/restaurant/orders/orders_service.dart';
@@ -9,6 +10,9 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 GetIt serviceLocator = GetIt.instance;
 
 void setupServiceLocator() {
+  serviceLocator.registerLazySingleton<PushNotificationService>(
+    () => PushNotificationService(),
+  );
   serviceLocator.registerLazySingleton<AuthenticationService>(
     () => AuthenticationService(),
   );

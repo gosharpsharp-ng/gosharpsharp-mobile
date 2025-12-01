@@ -207,34 +207,36 @@ class _CartScreenState extends State<CartScreen> {
 
           // Subtotal
           _buildSummaryRow(
-            'Subtotal',
-            formatToCurrency(priceBreakdown.subtotal),
+            priceBreakdown.subtotalLabel ?? 'Subtotal',
+            formatToCurrency(priceBreakdown.subtotal ?? 0),
           ),
 
-          // Packaging Price (if > 0)
-          if (priceBreakdown.packagingPrice > 0)
+          // Packaging Fee (if > 0)
+          if ((priceBreakdown.packagingFee ?? 0) > 0)
             _buildSummaryRow(
-              'Packaging',
-              formatToCurrency(priceBreakdown.packagingPrice),
+              priceBreakdown.packagingFeeLabel ?? 'Packaging Fee',
+              formatToCurrency(priceBreakdown.packagingFee ?? 0),
             ),
 
-          // Commission (if > 0)
-          if (priceBreakdown.commission > 0)
+          // Service Charge (if > 0)
+          if ((priceBreakdown.serviceCharge ?? 0) > 0)
             _buildSummaryRow(
-              'Service Fee',
-              formatToCurrency(priceBreakdown.commission),
+              priceBreakdown.serviceChargeLabel ?? 'Service Charge',
+              formatToCurrency(priceBreakdown.serviceCharge ?? 0),
             ),
 
           // Tax (if > 0)
-          if (priceBreakdown.tax > 0)
-            _buildSummaryRow('Tax', formatToCurrency(priceBreakdown.tax)),
-
-          // Delivery Fee (if > 0)
-          if (priceBreakdown.deliveryFee > 0)
+          if ((priceBreakdown.tax ?? 0) > 0)
             _buildSummaryRow(
-              'Delivery Fee',
-              formatToCurrency(priceBreakdown.deliveryFee),
+              priceBreakdown.taxLabel ?? 'VAT',
+              formatToCurrency(priceBreakdown.tax ?? 0),
             ),
+
+          // Delivery Fee - show "Free" if 0, otherwise show the amount
+          _buildSummaryRow(
+            priceBreakdown.deliveryFeeLabel ?? 'Delivery Fee',
+            priceBreakdown.formattedDeliveryFee,
+          ),
 
           SizedBox(height: 8.h),
           Divider(color: AppColors.greyColor.withValues(alpha: 0.3)),
@@ -245,13 +247,13 @@ class _CartScreenState extends State<CartScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               customText(
-                'Total',
+                priceBreakdown.totalLabel ?? 'Total',
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.blackColor,
               ),
               customText(
-                formatToCurrency(priceBreakdown.total),
+                formatToCurrency(priceBreakdown.total ?? 0),
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primaryColor,
