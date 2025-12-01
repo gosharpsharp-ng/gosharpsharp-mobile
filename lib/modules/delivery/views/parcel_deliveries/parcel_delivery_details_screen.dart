@@ -150,6 +150,90 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
 
                   SizedBox(height: 16.h),
 
+                  // Delivery Verification Code Section
+                  if (parcelDelivery['delivery_code'] != null &&
+                      parcelDelivery['delivery_code'].toString().isNotEmpty)
+                    Container(
+                      width: 1.sw,
+                      padding: EdgeInsets.all(16.sp),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withAlpha(26),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: AppColors.primaryColor.withAlpha(100),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.verified_user_rounded,
+                                color: AppColors.primaryColor,
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              customText(
+                                "Delivery Verification Code",
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical: 12.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.whiteColor,
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                customText(
+                                  parcelDelivery['delivery_code'].toString(),
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryColor,
+                                  letterSpacing: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: AppColors.greyColor,
+                                size: 16.sp,
+                              ),
+                              SizedBox(width: 6.w),
+                              Expanded(
+                                child: customText(
+                                  "Share this code with the rider to confirm delivery of your parcel",
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.greyColor,
+                                  maxLines: 2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  if (parcelDelivery['delivery_code'] != null &&
+                      parcelDelivery['delivery_code'].toString().isNotEmpty)
+                    SizedBox(height: 16.h),
+
                   // Location Details Card
                   Container(
                     width: 1.sw,
