@@ -51,9 +51,7 @@ class DeliveryFailureScreen extends StatelessWidget {
                   color: AppColors.blackColor,
                   textAlign: TextAlign.center,
                 ),
-
                 SizedBox(height: 12.h),
-
                 customText(
                   errorMessage,
                   fontSize: 15.sp,
