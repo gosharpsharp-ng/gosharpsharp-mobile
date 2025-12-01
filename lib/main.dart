@@ -1,3 +1,4 @@
+import 'package:gosharpsharp/core/services/app_update/app_update_service.dart';
 import 'package:gosharpsharp/core/services/push_notification_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 
@@ -30,6 +31,11 @@ void main() async {
   //   runApp(GoSharpSharp(navigatorKey: navigatorKey));
   // });
   runApp(GoSharpSharp(navigatorKey: navigatorKey));
+
+  // Check for app updates after app is running
+  Future.delayed(const Duration(seconds: 2), () {
+    AppUpdateService().initialize();
+  });
 }
 
 class GoSharpSharp extends StatelessWidget {
