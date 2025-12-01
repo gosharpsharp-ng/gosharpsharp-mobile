@@ -16,6 +16,15 @@ class InitiateDeliveryScreen extends StatelessWidget {
             appBar: defaultAppBar(
               bgColor: AppColors.backgroundColor,
               title: "Send a parcel",
+              onPop: () {
+                // Ensure we can navigate back properly
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                } else {
+                  // Fallback to app navigation if no route to pop
+                  Get.offAllNamed(Routes.APP_NAVIGATION);
+                }
+              },
             ),
             backgroundColor: AppColors.backgroundColor,
             body: SingleChildScrollView(

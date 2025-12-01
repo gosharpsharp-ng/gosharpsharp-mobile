@@ -1040,11 +1040,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
     final isInCart = cartController.getCartItemByPurchasableId(addon.id) != null;
     final isAddingThisAddon = addingAddonId == addon.id;
 
+    // Check if addon is available
+    final isAddonAvailable = dashboardController.isMenuItemAvailable(addon);
+
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: isAddonAvailable ? AppColors.whiteColor : AppColors.whiteColor.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: AppColors.greyColor.withValues(alpha: 0.2),
@@ -1055,27 +1058,62 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Addon image
-          Container(
-            width: 100.w,
-            height: 100.w,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.r),
-              color: AppColors.backgroundColor,
-              image: addon.files.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(addon.files[0].url),
-                      fit: BoxFit.cover,
-                      onError: (exception, stackTrace) {},
-                    )
-                  : null,
-            ),
-            child: addon.files.isEmpty
-                ? Icon(
-                    Icons.restaurant,
-                    color: AppColors.obscureTextColor,
-                    size: 30.sp,
-                  )
-                : null,
+          Stack(
+            children: [
+              Container(
+                width: 100.w,
+                height: 100.w,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.r),
+                  color: AppColors.backgroundColor,
+                  image: addon.files.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(addon.files[0].url),
+                          fit: BoxFit.cover,
+                          onError: (exception, stackTrace) {},
+                          colorFilter: isAddonAvailable
+                              ? null
+                              : ColorFilter.mode(
+                                  Colors.grey,
+                                  BlendMode.saturation,
+                                ),
+                        )
+                      : null,
+                ),
+                child: addon.files.isEmpty
+                    ? Icon(
+                        Icons.restaurant,
+                        color: AppColors.obscureTextColor,
+                        size: 30.sp,
+                      )
+                    : null,
+              ),
+              // Unavailable overlay on image
+              if (!isAddonAvailable)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.r),
+                      color: Colors.black.withValues(alpha: 0.5),
+                    ),
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: customText(
+                          "Out of Stock",
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.whiteColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           SizedBox(width: 12.w),
           // Addon details
@@ -1087,7 +1125,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                   addon.name.capitalizeFirst ?? addon.name,
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.blackColor,
+                  color: isAddonAvailable ? AppColors.blackColor : AppColors.obscureTextColor,
                   maxLines: 2,
                 ),
                 if (addon.description != null && addon.description!.isNotEmpty) ...[
@@ -1106,12 +1144,12 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                   formatToCurrency(addon.price + (addon.packagingPrice ?? 0)),
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primaryColor,
+                  color: isAddonAvailable ? AppColors.primaryColor : AppColors.obscureTextColor,
                 ),
                 SizedBox(height: 8.h),
-                // Add button - adds addon directly to cart
+                // Add button - disabled if addon is unavailable
                 InkWell(
-                  onTap: isAddingThisAddon ? null : () => _addAddonToCart(addon),
+                  onTap: (!isAddonAvailable || isAddingThisAddon) ? null : () => _addAddonToCart(addon),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: EdgeInsets.symmetric(
@@ -1119,14 +1157,16 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                       vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
-                      color: isAddingThisAddon
-                          ? AppColors.primaryColor.withValues(alpha: 0.7)
-                          : isInCart
-                              ? AppColors.primaryColor
-                              : AppColors.whiteColor,
+                      color: !isAddonAvailable
+                          ? AppColors.obscureTextColor.withValues(alpha: 0.3)
+                          : isAddingThisAddon
+                              ? AppColors.primaryColor.withValues(alpha: 0.7)
+                              : isInCart
+                                  ? AppColors.primaryColor
+                                  : AppColors.whiteColor,
                       borderRadius: BorderRadius.circular(8.r),
                       border: Border.all(
-                        color: AppColors.primaryColor,
+                        color: isAddonAvailable ? AppColors.primaryColor : AppColors.obscureTextColor,
                         width: 1.5,
                       ),
                     ),
@@ -1146,24 +1186,34 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                           )
                         else
                           Icon(
-                            isInCart ? Icons.check : Icons.add,
+                            !isAddonAvailable
+                                ? Icons.block
+                                : isInCart
+                                    ? Icons.check
+                                    : Icons.add,
                             size: 16.sp,
-                            color: isInCart
-                                ? AppColors.whiteColor
-                                : AppColors.primaryColor,
+                            color: !isAddonAvailable
+                                ? AppColors.obscureTextColor
+                                : isInCart
+                                    ? AppColors.whiteColor
+                                    : AppColors.primaryColor,
                           ),
                         SizedBox(width: 4.w),
                         customText(
-                          isAddingThisAddon
-                              ? "Adding..."
-                              : isInCart
-                                  ? "Added"
-                                  : "Add",
+                          !isAddonAvailable
+                              ? "Unavailable"
+                              : isAddingThisAddon
+                                  ? "Adding..."
+                                  : isInCart
+                                      ? "Added"
+                                      : "Add",
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color: isAddingThisAddon || isInCart
-                              ? AppColors.whiteColor
-                              : AppColors.primaryColor,
+                          color: !isAddonAvailable
+                              ? AppColors.obscureTextColor
+                              : (isAddingThisAddon || isInCart)
+                                  ? AppColors.whiteColor
+                                  : AppColors.primaryColor,
                         ),
                       ],
                     ),

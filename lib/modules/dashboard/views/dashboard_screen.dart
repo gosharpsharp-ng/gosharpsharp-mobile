@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:gosharpsharp/core/models/restaurant_model.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:gosharpsharp/core/widgets/category_container.dart';
 import 'package:gosharpsharp/core/widgets/filter_chip_widget.dart';
 import 'package:gosharpsharp/core/widgets/restaurant_container.dart';
 import 'package:gosharpsharp/modules/dashboard/views/widgets/food_type_bottom_sheet.dart';

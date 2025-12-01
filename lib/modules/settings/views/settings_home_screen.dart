@@ -172,6 +172,15 @@ class SettingsHomeScreen extends StatelessWidget {
                       //   title: "Security",
                       //   icon: SvgAssets.securityIcon,
                       // ),
+                        SettingsItem(
+                        onPressed: () {
+                          settingsController.logout();
+                        },
+                        title: "Log out",
+                        icon: SvgAssets.logoutIcon,
+                        // isLogout: true,
+                        isLast: true,
+                      ),
                       SettingsItem(
                         onPressed: () {
                           settingsController.deletePasswordController.clear();
@@ -182,15 +191,7 @@ class SettingsHomeScreen extends StatelessWidget {
                         // isLogout: true,
                         // isLast: true,
                       ),
-                      SettingsItem(
-                        onPressed: () {
-                          settingsController.logout();
-                        },
-                        title: "Log out",
-                        icon: SvgAssets.logoutIcon,
-                        // isLogout: true,
-                        isLast: true,
-                      ),
+                    
                     ],
                   ),
                 ],

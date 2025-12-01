@@ -11,6 +11,8 @@ class RestaurantBadgeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isFreeDelivery = _isFreeDeliveryBadge(badge);
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: 8.w,
@@ -28,15 +30,23 @@ class RestaurantBadgeChip extends StatelessWidget {
         _formatBadgeName(badge),
         fontSize: 10.sp,
         fontWeight: FontWeight.w600,
-        color: AppColors.whiteColor,
+        color: isFreeDelivery ? AppColors.blackColor : AppColors.whiteColor,
       ),
     );
+  }
+
+  /// Check if badge is free delivery
+  bool _isFreeDeliveryBadge(String badge) {
+    final badgeLower = badge.toLowerCase();
+    return badgeLower.contains('free') && badgeLower.contains('delivery');
   }
 
   /// Get color based on badge type
   Color _getBadgeColor(String badge) {
     final badgeLower = badge.toLowerCase();
-    if (badgeLower.contains('best_rated') || badgeLower.contains('top_seller')) {
+    if (badgeLower.contains('free') && badgeLower.contains('delivery')) {
+      return AppColors.secondaryColor;
+    } else if (badgeLower.contains('best_rated') || badgeLower.contains('top_seller')) {
       return AppColors.primaryColor;
     } else if (badgeLower.contains('new')) {
       return AppColors.greenColor;
