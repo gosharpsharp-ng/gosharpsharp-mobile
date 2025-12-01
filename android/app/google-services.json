@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "105361803513",
+    "project_id": "gosharpsharp-2b165",
+    "storage_bucket": "gosharpsharp-2b165.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105361803513:android:9ec7e0997d340f20e73a28",
+        "android_client_info": {
+          "package_name": "com.gosharpsharp.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCA5ErRqlbcJwRkQLY8GxIil7LYnR_birg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105361803513:android:9d0528d5e43bf605e73a28",
+        "android_client_info": {
+          "package_name": "com.gosharpsharp.rider"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCA5ErRqlbcJwRkQLY8GxIil7LYnR_birg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

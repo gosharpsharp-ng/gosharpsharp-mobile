@@ -7,74 +7,209 @@ import 'order_model.dart' as order;
 
 // Price Breakdown Model
 class PriceBreakdown {
-  double subtotal;
-  double packagingPrice;
-  double commission;
-  double tax;
-  double deliveryFee;
-  double total;
-  String currency;
-  BreakdownDetails? breakdownDetails;
+  double? subtotal;
+  String? subtotalLabel;
+  String? subtotalDescription;
+  double? packagingFee;
+  String? packagingFeeLabel;
+  String? packagingFeeDescription;
+  double? serviceCharge;
+  String? serviceChargeLabel;
+  String? serviceChargeDescription;
+  double? tax;
+  String? taxLabel;
+  String? taxDescription;
+  double? taxRate;
+  double? taxableAmount;
+  double? deliveryFee;
+  String? deliveryFeeLabel;
+  String? deliveryFeeDescription;
+  DeliveryFeeDetails? deliveryFeeDetails;
+  double? total;
+  String? totalLabel;
+  String? totalDescription;
+  String? currency;
+  String? currencySymbol;
+  PriceBreakdownSummary? summary;
+  String? formula;
+  String? taxCalculation;
 
   PriceBreakdown({
-    required this.subtotal,
-    required this.packagingPrice,
-    required this.commission,
-    required this.tax,
-    required this.deliveryFee,
-    required this.total,
-    required this.currency,
-    this.breakdownDetails,
+    this.subtotal,
+    this.subtotalLabel,
+    this.subtotalDescription,
+    this.packagingFee,
+    this.packagingFeeLabel,
+    this.packagingFeeDescription,
+    this.serviceCharge,
+    this.serviceChargeLabel,
+    this.serviceChargeDescription,
+    this.tax,
+    this.taxLabel,
+    this.taxDescription,
+    this.taxRate,
+    this.taxableAmount,
+    this.deliveryFee,
+    this.deliveryFeeLabel,
+    this.deliveryFeeDescription,
+    this.deliveryFeeDetails,
+    this.total,
+    this.totalLabel,
+    this.totalDescription,
+    this.currency,
+    this.currencySymbol,
+    this.summary,
+    this.formula,
+    this.taxCalculation,
   });
 
   factory PriceBreakdown.fromJson(Map<String, dynamic> json) {
     return PriceBreakdown(
       subtotal: _parseDouble(json['subtotal']),
-      packagingPrice: _parseDouble(json['packaging_price']),
-      commission: _parseDouble(json['commission']),
+      subtotalLabel: json['subtotal_label']?.toString(),
+      subtotalDescription: json['subtotal_description']?.toString(),
+      packagingFee: _parseDouble(json['packaging_fee']),
+      packagingFeeLabel: json['packaging_fee_label']?.toString(),
+      packagingFeeDescription: json['packaging_fee_description']?.toString(),
+      serviceCharge: _parseDouble(json['service_charge']),
+      serviceChargeLabel: json['service_charge_label']?.toString(),
+      serviceChargeDescription: json['service_charge_description']?.toString(),
       tax: _parseDouble(json['tax']),
+      taxLabel: json['tax_label']?.toString(),
+      taxDescription: json['tax_description']?.toString(),
+      taxRate: _parseDouble(json['tax_rate']),
+      taxableAmount: _parseDouble(json['taxable_amount']),
       deliveryFee: _parseDouble(json['delivery_fee']),
-      total: _parseDouble(json['total']),
-      currency: json['currency']?.toString() ?? 'NGN',
-      breakdownDetails: json['breakdown_details'] != null
-          ? BreakdownDetails.fromJson(json['breakdown_details'])
+      deliveryFeeLabel: json['delivery_fee_label']?.toString(),
+      deliveryFeeDescription: json['delivery_fee_description']?.toString(),
+      deliveryFeeDetails: json['delivery_fee_details'] != null
+          ? DeliveryFeeDetails.fromJson(json['delivery_fee_details'])
           : null,
+      total: _parseDouble(json['total']),
+      totalLabel: json['total_label']?.toString(),
+      totalDescription: json['total_description']?.toString(),
+      currency: json['currency']?.toString(),
+      currencySymbol: json['currency_symbol']?.toString(),
+      summary: json['summary'] != null
+          ? PriceBreakdownSummary.fromJson(json['summary'])
+          : null,
+      formula: json['formula']?.toString(),
+      taxCalculation: json['tax_calculation']?.toString(),
     );
   }
 
-  static double _parseDouble(dynamic value) {
-    if (value == null) return 0.0;
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
     if (value is double) return value;
     if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() => {
         'subtotal': subtotal,
-        'packaging_price': packagingPrice,
-        'commission': commission,
+        'subtotal_label': subtotalLabel,
+        'subtotal_description': subtotalDescription,
+        'packaging_fee': packagingFee,
+        'packaging_fee_label': packagingFeeLabel,
+        'packaging_fee_description': packagingFeeDescription,
+        'service_charge': serviceCharge,
+        'service_charge_label': serviceChargeLabel,
+        'service_charge_description': serviceChargeDescription,
         'tax': tax,
+        'tax_label': taxLabel,
+        'tax_description': taxDescription,
+        'tax_rate': taxRate,
+        'taxable_amount': taxableAmount,
         'delivery_fee': deliveryFee,
+        'delivery_fee_label': deliveryFeeLabel,
+        'delivery_fee_description': deliveryFeeDescription,
+        'delivery_fee_details': deliveryFeeDetails?.toJson(),
         'total': total,
+        'total_label': totalLabel,
+        'total_description': totalDescription,
         'currency': currency,
-        'breakdown_details': breakdownDetails?.toJson(),
+        'currency_symbol': currencySymbol,
+        'summary': summary?.toJson(),
+        'formula': formula,
+        'tax_calculation': taxCalculation,
+      };
+
+  /// Returns formatted delivery fee text - "Free" if 0, otherwise the amount
+  String get formattedDeliveryFee {
+    if (deliveryFee == null || deliveryFee == 0) {
+      return 'Free';
+    }
+    return '${currencySymbol ?? '₦'}${deliveryFee!.toStringAsFixed(2)}';
+  }
+}
+
+class DeliveryFeeDetails {
+  String? type;
+  String? reason;
+
+  DeliveryFeeDetails({
+    this.type,
+    this.reason,
+  });
+
+  factory DeliveryFeeDetails.fromJson(Map<String, dynamic> json) {
+    return DeliveryFeeDetails(
+      type: json['type']?.toString(),
+      reason: json['reason']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'type': type,
+        'reason': reason,
       };
 }
 
+class PriceBreakdownSummary {
+  int? itemsCount;
+  int? totalQuantity;
+  String? restaurantName;
+  bool? hasFreeDelivery;
+
+  PriceBreakdownSummary({
+    this.itemsCount,
+    this.totalQuantity,
+    this.restaurantName,
+    this.hasFreeDelivery,
+  });
+
+  factory PriceBreakdownSummary.fromJson(Map<String, dynamic> json) {
+    return PriceBreakdownSummary(
+      itemsCount: json['items_count'],
+      totalQuantity: json['total_quantity'],
+      restaurantName: json['restaurant_name']?.toString(),
+      hasFreeDelivery: json['has_free_delivery'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'items_count': itemsCount,
+        'total_quantity': totalQuantity,
+        'restaurant_name': restaurantName,
+        'has_free_delivery': hasFreeDelivery,
+      };
+}
+
+// Keep legacy BreakdownDetails for backwards compatibility
 class BreakdownDetails {
-  int itemsCount;
-  int totalQuantity;
+  int? itemsCount;
+  int? totalQuantity;
 
   BreakdownDetails({
-    required this.itemsCount,
-    required this.totalQuantity,
+    this.itemsCount,
+    this.totalQuantity,
   });
 
   factory BreakdownDetails.fromJson(Map<String, dynamic> json) {
     return BreakdownDetails(
-      itemsCount: json['items_count'] ?? 0,
-      totalQuantity: json['total_quantity'] ?? 0,
+      itemsCount: json['items_count'],
+      totalQuantity: json['total_quantity'],
     );
   }
 

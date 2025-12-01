@@ -1,3 +1,4 @@
+import 'package:gosharpsharp/core/services/push_notification_service.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -8,6 +9,9 @@ void main() async {
   // await Get.putAsync(() => AuthProvider().init());
   // Get.put(DeliveryNotificationServiceManager());
   // await Get.find<DeliveryNotificationServiceManager>().initializeServices();
+
+  // Initialize push notifications
+  await PushNotificationService().initialize();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
