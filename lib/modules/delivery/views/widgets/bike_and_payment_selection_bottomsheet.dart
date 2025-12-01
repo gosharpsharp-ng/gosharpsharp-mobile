@@ -103,12 +103,41 @@ class BikeAndPaymentSelectionBottomsheet extends StatelessWidget {
                   },
                 )
               else
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.h),
-                  child: customText(
-                    "No courier types available",
-                    color: AppColors.greyColor,
-                    fontSize: 14.sp,
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 30.h, horizontal: 20.w),
+                  margin: EdgeInsets.symmetric(vertical: 10.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundColor,
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.local_shipping_outlined,
+                        size: 48.sp,
+                        color: AppColors.obscureTextColor,
+                      ),
+                      SizedBox(height: 12.h),
+                      customText(
+                        "No Courier Types Available",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.blackColor,
+                      ),
+                      SizedBox(height: 8.h),
+                      customText(
+                        "We couldn't find any available courier options for this delivery. Please try again later.",
+                        fontSize: 14.sp,
+                        color: AppColors.obscureTextColor,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.visible,
+                      ),
+                    ],
                   ),
                 ),
 

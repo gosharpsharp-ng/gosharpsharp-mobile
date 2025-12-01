@@ -133,13 +133,10 @@ class _CircularMenuState extends State<CircularMenu>
   }
 
   void _handleParcelDeliveryTap() {
-    DeliveriesController deliveriesController;
+    // Clear fields if controller exists, otherwise it will be created by the binding
     if (Get.isRegistered<DeliveriesController>()) {
-      deliveriesController = Get.find<DeliveriesController>();
-    } else {
-      deliveriesController = Get.put(DeliveriesController());
+      Get.find<DeliveriesController>().clearFields();
     }
-    deliveriesController.clearFields();
     Get.toNamed(Routes.INITIATE_DELIVERY_SCREEN);
   }
 

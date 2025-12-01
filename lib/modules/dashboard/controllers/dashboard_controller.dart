@@ -287,16 +287,22 @@ class DashboardController extends GetxController {
           debugPrint('🔖 Favorite restaurant IDs: $_favoriteRestaurantIds');
         } else {
           favoriteRestaurants = [];
+          _favoriteRestaurantIds.clear();
         }
+        update();
       } else {
         // Silent fail - favorites are not critical for app functionality
         debugPrint('⚠️ Failed to fetch favorites: ${response.message}');
         favoriteRestaurants = [];
+        _favoriteRestaurantIds.clear();
+        update();
       }
     } catch (e) {
       // Silent fail - favorites are not critical, just log the error
       debugPrint('❌ Error fetching favorites: $e');
       favoriteRestaurants = [];
+      _favoriteRestaurantIds.clear();
+      update();
     } finally {
       setFavoritesLoadingState(false);
     }
