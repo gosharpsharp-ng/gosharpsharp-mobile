@@ -4,7 +4,6 @@ import 'package:gosharpsharp/modules/orders/views/widgets/order_detail_summary_i
 import 'package:gosharpsharp/modules/orders/views/widgets/order_detail_package_item.dart';
 import 'package:gosharpsharp/modules/orders/views/widgets/order_detail_menu_item.dart';
 import 'package:gosharpsharp/modules/orders/views/order_status_tracking_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/exports.dart';
 import 'package:gosharpsharp/core/widgets/animated_star_rating.dart';
 
@@ -438,67 +437,17 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                             horizontal: 8.w,
                             vertical: 12.h,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              customText(
-                                "Restaurant Information",
-                                fontSize: 16.sp,
-                                color: AppColors.blackColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              // Call button
-                              if (order.orderable!.phone.isNotEmpty)
-                                InkWell(
-                                  onTap: () =>
-                                      _callRestaurant(order.orderable!.phone),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12.w,
-                                      vertical: 6.h,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryColor.withAlpha(
-                                        25,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8.r),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.phone,
-                                          color: AppColors.primaryColor,
-                                          size: 14.sp,
-                                        ),
-                                        SizedBox(width: 4.w),
-                                        customText(
-                                          "Call",
-                                          color: AppColors.primaryColor,
-                                          fontSize: 12.sp,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
+                          child: customText(
+                            "Restaurant Information",
+                            fontSize: 16.sp,
+                            color: AppColors.blackColor,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         OrderDetailSummaryItem(
                           title: "Name",
                           value: order.orderable!.name,
                         ),
-                        if (order.orderable!.phone.isNotEmpty)
-                          OrderDetailSummaryItem(
-                            title: "Phone",
-                            value: order.orderable!.phone,
-                          ),
-                        if (order.orderable!.email.isNotEmpty)
-                          OrderDetailSummaryItem(
-                            title: "Email",
-                            value: order.orderable!.email,
-                          ),
                         if (order.orderable!.cuisineType?.isNotEmpty ?? false)
                           OrderDetailSummaryItem(
                             title: "Cuisine Type",
@@ -569,64 +518,8 @@ class OrderDetailsScreen extends GetView<OrdersController> {
   Widget _buildActionButtons(OrderModel order, OrdersController ordersController) {
     final status = order.status.toLowerCase();
 
-    // For pending orders, show Continue Payment, Cancel and Dispute options
-    if (status == 'pending') {
-      return Column(
-        children: [
-          CustomButton(
-            title: 'Continue Payment',
-            backgroundColor: AppColors.primaryColor,
-            fontColor: AppColors.whiteColor,
-            width: double.infinity,
-            height: 50,
-            fontSize: 16,
-            onPressed: () {
-              // Navigate to payment screen
-              // TODO: Implement payment continuation
-              showToast(
-                message: "Payment continuation coming soon",
-                isError: false,
-              );
-            },
-          ),
-          SizedBox(height: 12.h),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  title: 'Cancel Order',
-                  backgroundColor: AppColors.whiteColor,
-                  fontColor: AppColors.redColor,
-                  height: 50,
-                  fontSize: 14,
-                  borderColor: AppColors.redColor,
-                  onPressed: () {
-                    _showCancelDialog(order);
-                  },
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: CustomButton(
-                  title: 'Dispute Order',
-                  backgroundColor: AppColors.whiteColor,
-                  fontColor: AppColors.orangeColor,
-                  height: 50,
-                  fontSize: 14,
-                  borderColor: AppColors.orangeColor,
-                  onPressed: () {
-                    _showDisputeDialog(order);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-
-    // For cancelled/rejected orders, don't show any action buttons
-    if (['cancelled', 'rejected'].contains(status)) {
+    // For pending, failed, cancelled, or rejected orders, don't show any action buttons
+    if (['pending', 'failed', 'cancelled', 'rejected'].contains(status)) {
       return const SizedBox.shrink();
     }
 
@@ -681,128 +574,6 @@ class OrderDetailsScreen extends GetView<OrdersController> {
     }
   }
 
-  // Show cancel order dialog
-  void _showCancelDialog(OrderModel order) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: customText(
-          'Cancel Order',
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w600,
-          color: AppColors.blackColor,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            customText(
-              'Are you sure you want to cancel this order?',
-              fontSize: 14.sp,
-              color: AppColors.greyColor,
-            ),
-            SizedBox(height: 12.h),
-            customText(
-              'Order #${order.orderNumber}',
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.blackColor,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: customText(
-              'Go Back',
-              fontSize: 14.sp,
-              color: AppColors.greyColor,
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              // TODO: Implement cancel order logic
-              showToast(
-                message: "Cancel order feature coming soon",
-                isError: false,
-              );
-            },
-            child: customText(
-              'Yes, Cancel',
-              fontSize: 14.sp,
-              color: AppColors.redColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Show dispute dialog
-  void _showDisputeDialog(OrderModel order) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: customText(
-          'Dispute Order',
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w600,
-          color: AppColors.blackColor,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            customText(
-              'Are you sure you want to dispute this order?',
-              fontSize: 14.sp,
-              color: AppColors.greyColor,
-            ),
-            SizedBox(height: 12.h),
-            customText(
-              'Order #${order.orderNumber}',
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.blackColor,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: customText(
-              'Go Back',
-              fontSize: 14.sp,
-              color: AppColors.greyColor,
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              // TODO: Implement dispute logic
-              showToast(
-                message: "Dispute feature coming soon",
-                isError: false,
-              );
-            },
-            child: customText(
-              'Yes, Dispute',
-              fontSize: 14.sp,
-              color: AppColors.orangeColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _getStatusDisplayText(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
@@ -824,39 +595,4 @@ class OrderDetailsScreen extends GetView<OrdersController> {
     }
   }
 
-  void _callRestaurant(String phoneNumber) async {
-    try {
-      // Remove any non-numeric characters except + for international format
-      String cleanedNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
-
-      // Ensure the number starts with a + for international format
-      if (!cleanedNumber.startsWith('+')) {
-        // Assuming Nigerian numbers, add country code if not present
-        if (cleanedNumber.startsWith('0')) {
-          cleanedNumber = '+234${cleanedNumber.substring(1)}';
-        } else if (cleanedNumber.length == 10) {
-          cleanedNumber = '+234$cleanedNumber';
-        } else {
-          cleanedNumber = '+$cleanedNumber';
-        }
-      }
-
-      final Uri phoneUri = Uri(scheme: 'tel', path: cleanedNumber);
-
-      if (await canLaunchUrl(phoneUri)) {
-        await launchUrl(phoneUri);
-      } else {
-        showToast(
-          message:
-              "Unable to make phone call. Please try again or contact manually: $cleanedNumber",
-          isError: true,
-        );
-      }
-    } catch (e) {
-      showToast(
-        message: "Error initiating phone call: ${e.toString()}",
-        isError: true,
-      );
-    }
-  }
 }
