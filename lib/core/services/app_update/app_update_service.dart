@@ -1,6 +1,7 @@
 import 'dart:developer';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'dart:io';
 import 'package:gosharpsharp/core/utils/exports.dart';
+import 'package:upgrader/upgrader.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AppUpdateService {
@@ -19,70 +20,49 @@ class AppUpdateService {
     await checkForUpdate();
   }
 
-  /// Check if there's a new version available
+  /// Check if there's a new version available from Play Store/App Store
   Future<void> checkForUpdate() async {
     try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
-
-      log('Current app version: $currentVersion');
-
-      // Call API to get latest version
-      final response = await CoreService().fetchByParams(
-        '/app/version',
-        {
-          'platform': GetPlatform.isAndroid ? 'android' : 'ios',
-          'app': 'customer',
-        },
+      final upgrader = Upgrader(
+        storeController: UpgraderStoreController(
+          onAndroid: () => UpgraderPlayStore(),
+          oniOS: () => UpgraderAppStore(),
+        ),
       );
 
-      if (response.status == 'success' && response.data != null) {
-        final latestVersion = response.data['version']?.toString() ?? '';
-        final isForceUpdate = response.data['force_update'] ?? false;
-        final updateMessage =
-            response.data['message']?.toString() ?? 'A new version is available';
-        final releaseNotes = response.data['release_notes']?.toString();
+      await upgrader.initialize();
 
-        if (_isNewerVersion(currentVersion, latestVersion)) {
-          log('New version available: $latestVersion');
-          _showUpdateDialog(
-            currentVersion: currentVersion,
-            latestVersion: latestVersion,
-            isForceUpdate: isForceUpdate,
-            message: updateMessage,
-            releaseNotes: releaseNotes,
-          );
-        } else {
-          log('App is up to date');
-        }
+      final currentVersion = upgrader.currentInstalledVersion ?? '';
+      final storeVersion = upgrader.currentAppStoreVersion ?? '';
+
+      log('Current app version: $currentVersion');
+      log('Store version: $storeVersion');
+
+      if (upgrader.belowMinAppVersion()) {
+        // Force update required
+        log('Force update required - below minimum version');
+        _showUpdateDialog(
+          currentVersion: currentVersion,
+          latestVersion: storeVersion,
+          isForceUpdate: true,
+          message: 'This version is no longer supported. Please update to continue using the app.',
+          releaseNotes: upgrader.releaseNotes,
+        );
+      } else if (upgrader.isUpdateAvailable()) {
+        // Optional update available
+        log('New version available: $storeVersion');
+        _showUpdateDialog(
+          currentVersion: currentVersion,
+          latestVersion: storeVersion,
+          isForceUpdate: false,
+          message: 'A new version of GoSharpSharp is available with improvements and bug fixes.',
+          releaseNotes: upgrader.releaseNotes,
+        );
+      } else {
+        log('App is up to date');
       }
     } catch (e) {
       log('Error checking for updates: $e');
-    }
-  }
-
-  /// Compare version strings to determine if update is needed
-  bool _isNewerVersion(String currentVersion, String latestVersion) {
-    try {
-      List<int> current = currentVersion.split('.').map(int.parse).toList();
-      List<int> latest = latestVersion.split('.').map(int.parse).toList();
-
-      // Pad with zeros if needed
-      while (current.length < 3) {
-        current.add(0);
-      }
-      while (latest.length < 3) {
-        latest.add(0);
-      }
-
-      for (int i = 0; i < 3; i++) {
-        if (latest[i] > current[i]) return true;
-        if (latest[i] < current[i]) return false;
-      }
-      return false;
-    } catch (e) {
-      log('Error comparing versions: $e');
-      return false;
     }
   }
 
@@ -267,9 +247,7 @@ class AppUpdateService {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          GetPlatform.isAndroid
-                              ? Icons.shop
-                              : Icons.apple,
+                          Platform.isAndroid ? Icons.shop : Icons.apple,
                           color: AppColors.whiteColor,
                           size: 20.sp,
                         ),
@@ -319,7 +297,7 @@ class AppUpdateService {
   Future<void> _openStore() async {
     final Uri storeUrl;
 
-    if (GetPlatform.isAndroid) {
+    if (Platform.isAndroid) {
       storeUrl = Uri.parse('market://details?id=$_playStoreId');
     } else {
       storeUrl = Uri.parse('https://apps.apple.com/app/id$_appStoreId');
@@ -330,7 +308,7 @@ class AppUpdateService {
         await launchUrl(storeUrl, mode: LaunchMode.externalApplication);
       } else {
         // Fallback to web URL
-        final webUrl = GetPlatform.isAndroid
+        final webUrl = Platform.isAndroid
             ? Uri.parse(
                 'https://play.google.com/store/apps/details?id=$_playStoreId')
             : Uri.parse('https://apps.apple.com/app/id$_appStoreId');
