@@ -18,7 +18,7 @@ class PushNotificationService {
   factory PushNotificationService() => _instance;
   PushNotificationService._internal();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  late final FirebaseMessaging _firebaseMessaging;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   String? _fcmToken;
@@ -34,32 +34,39 @@ class PushNotificationService {
 
   /// Initialize Firebase and push notification services
   Future<void> initialize() async {
-    // Initialize Firebase
-    await Firebase.initializeApp();
+    try {
+      // Initialize Firebase
+      await Firebase.initializeApp();
 
-    // Set background message handler
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      // Initialize FirebaseMessaging after Firebase is initialized
+      _firebaseMessaging = FirebaseMessaging.instance;
 
-    // Request notification permissions
-    await _requestPermissions();
+      // Set background message handler
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // Initialize local notifications
-    await _initializeLocalNotifications();
+      // Request notification permissions
+      await _requestPermissions();
 
-    // Get FCM token
-    await _getFcmToken();
+      // Initialize local notifications
+      await _initializeLocalNotifications();
 
-    // Listen for token refresh
-    _firebaseMessaging.onTokenRefresh.listen(_onTokenRefresh);
+      // Get FCM token
+      await _getFcmToken();
 
-    // Handle foreground messages
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      // Listen for token refresh
+      _firebaseMessaging.onTokenRefresh.listen(_onTokenRefresh);
 
-    // Handle notification tap when app is in background/terminated
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      // Handle foreground messages
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
-    // Check if app was opened from a notification
-    await _checkInitialMessage();
+      // Handle notification tap when app is in background/terminated
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
+      // Check if app was opened from a notification
+      await _checkInitialMessage();
+    } catch (e) {
+      debugPrint('Error initializing push notifications: $e');
+    }
   }
 
   /// Request notification permissions
