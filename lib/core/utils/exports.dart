@@ -145,3 +145,6 @@ export 'package:gosharpsharp/core/services/websocket/websocket_service_manager.d
 
 export 'package:gosharpsharp/core/utils/widgets/location_display_widget.dart';
 export 'package:gosharpsharp/core/controllers/location_controller.dart';
+
+// Config
+export 'package:gosharpsharp/core/config/service_config.dart';

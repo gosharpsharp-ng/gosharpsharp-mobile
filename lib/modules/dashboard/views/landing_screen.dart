@@ -101,35 +101,61 @@ class _CircularMenuState extends State<CircularMenu>
       ));
     }
 
-    // Add static menu items
+    // Add static menu items with availability from ServiceType
     items.addAll([
       MenuItem(
         title: "Parcel\nDelivery",
         icon: PngAssets.rider,
         color: AppColors.primaryColor,
-        onTap: _handleParcelDeliveryTap,
+        serviceType: ServiceType.parcel,
+        isAvailable: ServiceType.parcel.isAvailable,
+        onTap: ServiceType.parcel.isAvailable ? _handleParcelDeliveryTap : null,
       ),
       MenuItem(
         title: "Pharmacy &\nBeauty",
         icon: PngAssets.pharmacy,
         color: AppColors.primaryColor,
-        isAvailable: false,
+        serviceType: ServiceType.pharmacy,
+        isAvailable: ServiceType.pharmacy.isAvailable,
+        onTap: ServiceType.pharmacy.isAvailable ? _handlePharmacyTap : null,
       ),
       MenuItem(
         title: "Groceries",
         icon: PngAssets.grocery,
         color: AppColors.primaryColor,
-        isAvailable: false,
+        serviceType: ServiceType.grocery,
+        isAvailable: ServiceType.grocery.isAvailable,
+        onTap: ServiceType.grocery.isAvailable ? _handleGroceryTap : null,
       ),
       MenuItem(
         title: "Shopping",
         icon: PngAssets.shopping,
         color: AppColors.secondaryColor,
-        isAvailable: false,
+        serviceType: ServiceType.shopping,
+        isAvailable: ServiceType.shopping.isAvailable,
+        onTap: ServiceType.shopping.isAvailable ? _handleShoppingTap : null,
       ),
     ]);
 
     return items;
+  }
+
+  void _handlePharmacyTap() {
+    serviceConfig.setServiceType(ServiceType.pharmacy);
+    // TODO: Navigate to pharmacy screen when available
+    showToast(message: ServiceConfigManager.getComingSoonMessage(ServiceType.pharmacy));
+  }
+
+  void _handleGroceryTap() {
+    serviceConfig.setServiceType(ServiceType.grocery);
+    // TODO: Navigate to grocery screen when available
+    showToast(message: ServiceConfigManager.getComingSoonMessage(ServiceType.grocery));
+  }
+
+  void _handleShoppingTap() {
+    serviceConfig.setServiceType(ServiceType.shopping);
+    // TODO: Navigate to shopping screen when available
+    showToast(message: ServiceConfigManager.getComingSoonMessage(ServiceType.shopping));
   }
 
   void _handleParcelDeliveryTap() {
@@ -265,6 +291,7 @@ class MenuItem {
   final bool isRecent;
   final int? restaurantId;
   final String? restaurantBanner;
+  final ServiceType? serviceType;
 
   MenuItem({
     required this.title,
@@ -275,6 +302,7 @@ class MenuItem {
     this.isRecent = false,
     this.restaurantId,
     this.restaurantBanner,
+    this.serviceType,
   });
 }
 
