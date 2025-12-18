@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer';
 import 'dart:io';
 
@@ -13,7 +14,7 @@ class CoreService extends GetConnect {
 
   CoreService() {
     // _dio.options.baseUrl = dotenv.env['BASE_URL']!;
-    _dio.options.baseUrl = "https://staging.gosharpsharp.com/api/v1";
+    _dio.options.baseUrl = dotenv.env['BASE_URL'] ?? "https://staging.gosharpsharp.com/api/v1";
     setConfig();
   }
   final getStorage = GetStorage();
