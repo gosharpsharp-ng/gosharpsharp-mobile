@@ -11,7 +11,12 @@ import FirebaseMessaging
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     FirebaseApp.configure()
-    GMSServices.provideAPIKey("***REMOVED***")
+
+    // Load Google Maps API key from Info.plist
+    if let apiKey = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_MAPS_API_KEY") as? String {
+      GMSServices.provideAPIKey(apiKey)
+    }
+
     GeneratedPluginRegistrant.register(with: self)
 
     // Register for push notifications
