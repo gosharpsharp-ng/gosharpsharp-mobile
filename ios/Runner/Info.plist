@@ -72,7 +72,7 @@
 		</array>
 		<key>FirebaseAppDelegateProxyEnabled</key>
 		<false/>
-	<	key>GOOGLE_MAPS_API_KEY</key>
-	<string>$(GOOGLE_MAPS_API_KEY)</string>
-</dict>
+		<key>GOOGLE_MAPS_API_KEY</key>
+		<string>$(GOOGLE_MAPS_API_KEY)</string>
+	</dict>
 </plist>
