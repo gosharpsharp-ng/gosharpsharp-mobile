@@ -10,7 +10,17 @@ import FirebaseMessaging
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
+    // Configure Firebase manually with options
+    let firebaseOptions = FirebaseOptions(
+      googleAppID: "1:105361803513:ios:bdce2661bf9671a1e73a28",
+      gcmSenderID: "105361803513"
+    )
+    firebaseOptions.apiKey = "AIzaSyAr8a9Gtm_2wQaTXZvE-oODUVumMIJBQyk"
+    firebaseOptions.projectID = "gosharpsharp-2b165"
+    firebaseOptions.storageBucket = "gosharpsharp-2b165.firebasestorage.app"
+    firebaseOptions.bundleID = "com.gosharpsharp.customer"
+    
+    FirebaseApp.configure(options: firebaseOptions)
 
     // Load Google Maps API key from Info.plist
     if let apiKey = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_MAPS_API_KEY") as? String {

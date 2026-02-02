@@ -120,35 +120,37 @@ class _CustomRoundedInputFieldState extends State<CustomRoundedInputField> {
               validator: !widget.isRequired
                   ? null
                   : widget.useCustomValidator
-                      ? widget.validator
-                      : (value) {
-                          if (widget.regex != null) {
-                            RegExp regExp = RegExp(
-                              widget.regex!,
-                              caseSensitive: false,
-                              multiLine: false,
-                            );
-                            if (!regExp.hasMatch(value!)) {
-                              return "Invalid ${widget.title}";
-                            }
-                          }
-                          if (value!.isEmpty) {
-                            return "${widget.title} field is required";
-                          }
-                          return null;
-                        },
+                  ? widget.validator
+                  : (value) {
+                      if (widget.regex != null) {
+                        RegExp regExp = RegExp(
+                          widget.regex!,
+                          caseSensitive: false,
+                          multiLine: false,
+                        );
+                        if (!regExp.hasMatch(value!)) {
+                          return "Invalid ${widget.title}";
+                        }
+                      }
+                      if (value!.isEmpty) {
+                        return "${widget.title} field is required";
+                      }
+                      return null;
+                    },
               focusNode: widget.focusNode,
               controller: widget.controller,
               style: widget.isNumber
                   ? TextStyle(
                       color: AppColors.blackColor,
-                      fontFamily: GoogleFonts.inter().fontFamily,
+                      fontFamily: "Satoshi",
                       fontSize: widget.fontSize.sp,
-                      fontWeight: FontWeight.bold)
+                      fontWeight: FontWeight.bold,
+                    )
                   : TextStyle(
                       color: widget.textColor,
-                      fontFamily: GoogleFonts.inter().fontFamily,
-                      fontSize: widget.fontSize.sp),
+                      fontFamily: "Satoshi",
+                      fontSize: widget.fontSize.sp,
+                    ),
               decoration: InputDecoration(
                 prefixIcon: widget.isPhone
                     ? IntrinsicHeight(
@@ -158,7 +160,10 @@ class _CustomRoundedInputFieldState extends State<CustomRoundedInputField> {
                           children: [
                             Padding(
                               padding: EdgeInsets.only(
-                                  left: 8.sp, bottom: 0.1.sp, top: 2.sp),
+                                left: 8.sp,
+                                bottom: 0.1.sp,
+                                top: 2.sp,
+                              ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -170,9 +175,7 @@ class _CustomRoundedInputFieldState extends State<CustomRoundedInputField> {
                                         SvgAssets.nigerianFlag,
                                         height: 15.sp,
                                       ),
-                                      SizedBox(
-                                        width: 3.sp,
-                                      ),
+                                      SizedBox(width: 3.sp),
                                       customText(
                                         '+234 ',
                                         color: widget.color,
@@ -193,23 +196,23 @@ class _CustomRoundedInputFieldState extends State<CustomRoundedInputField> {
                         ),
                       )
                     : widget.prefixAsset != null
-                        ? SizedBox(
-                            width: 40.sp,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  widget.prefixAsset!,
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  color: _hasFocus
-                                      ? AppColors.primaryColor
-                                      : Colors.grey,
-                                )
-                              ],
+                    ? SizedBox(
+                        width: 40.sp,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              widget.prefixAsset!,
+                              height: 20.sp,
+                              width: 20.sp,
+                              color: _hasFocus
+                                  ? AppColors.primaryColor
+                                  : Colors.grey,
                             ),
-                          )
-                        : widget.prefixWidget,
+                          ],
+                        ),
+                      )
+                    : widget.prefixWidget,
                 suffixIcon: widget.hasDropdown || widget.suffixWidget != null
                     ? IntrinsicHeight(
                         child: Row(
@@ -236,59 +239,66 @@ class _CustomRoundedInputFieldState extends State<CustomRoundedInputField> {
                 filled: widget.filled,
                 fillColor: widget.fillColor,
                 contentPadding: EdgeInsets.symmetric(
-                    vertical: widget.isSearch ? 10.sp : 15.sp,
-                    horizontal: widget.isSearch ? 10.sp : 12.sp),
+                  vertical: widget.isSearch ? 10.sp : 15.sp,
+                  horizontal: widget.isSearch ? 10.sp : 12.sp,
+                ),
                 floatingLabelStyle: TextStyle(
                   color: widget.labelColor,
                   fontSize: widget.labelFontSize.sp,
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: "Satoshi",
                 ),
                 labelStyle: TextStyle(
                   color: widget.labelColor,
                   fontSize: widget.labelFontSize.sp,
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: "Satoshi",
                 ),
                 // label:widget.isNumber?Align(
                 // alignment: Alignment.center,child: customText(widget.label) ): customText(widget.label),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
                   borderSide: const BorderSide(
-                      color: AppColors.primaryColor, width: 0.5),
+                    color: AppColors.primaryColor,
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
                   borderSide: BorderSide(
-                      color: widget.isSearch
-                          ? AppColors.transparent
-                          : AppColors.greyColor.withOpacity(0.3),
-                      width: widget.isSearch ? 0 : 0.5),
+                    color: widget.isSearch
+                        ? AppColors.transparent
+                        : AppColors.greyColor.withOpacity(0.3),
+                    width: widget.isSearch ? 0 : 0.5,
+                  ),
                 ),
 
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
                   borderSide: BorderSide(
-                      color: widget.isSearch
-                          ? widget.color
-                          : AppColors.greyColor.withOpacity(0.3),
-                      width: widget.isSearch ? 0.5 : 0.5),
+                    color: widget.isSearch
+                        ? widget.color
+                        : AppColors.greyColor.withOpacity(0.3),
+                    width: widget.isSearch ? 0.5 : 0.5,
+                  ),
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
                   borderSide: BorderSide(
-                      color:
-                          widget.isSearch ? widget.color : AppColors.redColor,
-                      width: widget.isSearch ? 0.5 : 0.5),
+                    color: widget.isSearch ? widget.color : AppColors.redColor,
+                    width: widget.isSearch ? 0.5 : 0.5,
+                  ),
                 ),
               ),
             ),
           ),
-          SizedBox(
-            height: 10.sp,
-          ),
+          SizedBox(height: 10.sp),
         ],
       ),
     );
@@ -416,35 +426,37 @@ class _ClickableCustomRoundedInputFieldState
               validator: !widget.isRequired
                   ? null
                   : widget.useCustomValidator
-                      ? widget.validator
-                      : (value) {
-                          if (widget.regex != null) {
-                            RegExp regExp = RegExp(
-                              widget.regex!,
-                              caseSensitive: false,
-                              multiLine: false,
-                            );
-                            if (!regExp.hasMatch(value!)) {
-                              return "Invalid ${widget.title}";
-                            }
-                          }
-                          if (value!.isEmpty) {
-                            return "${widget.title} field is required";
-                          }
-                          return null;
-                        },
+                  ? widget.validator
+                  : (value) {
+                      if (widget.regex != null) {
+                        RegExp regExp = RegExp(
+                          widget.regex!,
+                          caseSensitive: false,
+                          multiLine: false,
+                        );
+                        if (!regExp.hasMatch(value!)) {
+                          return "Invalid ${widget.title}";
+                        }
+                      }
+                      if (value!.isEmpty) {
+                        return "${widget.title} field is required";
+                      }
+                      return null;
+                    },
               focusNode: widget.focusNode,
               controller: widget.controller,
               style: widget.isNumber
                   ? TextStyle(
                       color: AppColors.blackColor,
-                      fontFamily: GoogleFonts.inter().fontFamily,
+                      fontFamily: "Satoshi",
                       fontSize: widget.fontSize.sp,
-                      fontWeight: FontWeight.bold)
+                      fontWeight: FontWeight.bold,
+                    )
                   : TextStyle(
                       color: widget.textColor,
-                      fontFamily: GoogleFonts.inter().fontFamily,
-                      fontSize: widget.fontSize.sp),
+                      fontFamily: "Satoshi",
+                      fontSize: widget.fontSize.sp,
+                    ),
               decoration: InputDecoration(
                 prefixIcon: widget.isPhone
                     ? IntrinsicHeight(
@@ -454,7 +466,10 @@ class _ClickableCustomRoundedInputFieldState
                           children: [
                             Padding(
                               padding: EdgeInsets.only(
-                                  left: 8.sp, bottom: 0.1.sp, top: 2.sp),
+                                left: 8.sp,
+                                bottom: 0.1.sp,
+                                top: 2.sp,
+                              ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -466,9 +481,7 @@ class _ClickableCustomRoundedInputFieldState
                                         SvgAssets.nigerianFlag,
                                         height: 15.sp,
                                       ),
-                                      SizedBox(
-                                        width: 3.sp,
-                                      ),
+                                      SizedBox(width: 3.sp),
                                       customText(
                                         '+234 ',
                                         color: widget.color,
@@ -489,23 +502,23 @@ class _ClickableCustomRoundedInputFieldState
                         ),
                       )
                     : widget.prefixAsset != null
-                        ? SizedBox(
-                            width: 40.sp,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  widget.prefixAsset!,
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  color: _hasFocus
-                                      ? AppColors.primaryColor
-                                      : Colors.grey,
-                                )
-                              ],
+                    ? SizedBox(
+                        width: 40.sp,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              widget.prefixAsset!,
+                              height: 20.sp,
+                              width: 20.sp,
+                              color: _hasFocus
+                                  ? AppColors.primaryColor
+                                  : Colors.grey,
                             ),
-                          )
-                        : widget.prefixWidget,
+                          ],
+                        ),
+                      )
+                    : widget.prefixWidget,
                 suffixIcon: widget.hasDropdown || widget.suffixWidget != null
                     ? IntrinsicHeight(
                         child: Row(
@@ -532,56 +545,65 @@ class _ClickableCustomRoundedInputFieldState
                 filled: true,
                 floatingLabelBehavior: FloatingLabelBehavior.never,
                 contentPadding: EdgeInsets.symmetric(
-                    vertical: widget.isSearch ? 10.sp : 15.sp,
-                    horizontal: widget.isSearch ? 10.sp : 12.sp),
+                  vertical: widget.isSearch ? 10.sp : 15.sp,
+                  horizontal: widget.isSearch ? 10.sp : 12.sp,
+                ),
                 floatingLabelStyle: TextStyle(
                   color: widget.labelColor,
                   fontSize: widget.labelFontSize.sp,
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: "Satoshi",
                 ),
                 labelStyle: TextStyle(
                   color: widget.labelColor,
                   fontSize: widget.labelFontSize.sp,
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: "Satoshi",
                 ),
                 // label:widget.isNumber?Align(
                 // alignment: Alignment.center,child: customText(widget.label) ): customText(widget.label),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
                   borderSide: const BorderSide(
-                      color: AppColors.primaryColor, width: 0.5),
+                    color: AppColors.primaryColor,
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
                   borderSide: BorderSide(
-                      color: widget.isSearch
-                          ? widget.color
-                          : AppColors.greyColor.withOpacity(0.3),
-                      width: widget.isSearch ? 0.5 : 0.5),
+                    color: widget.isSearch
+                        ? widget.color
+                        : AppColors.greyColor.withOpacity(0.3),
+                    width: widget.isSearch ? 0.5 : 0.5,
+                  ),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
                   borderSide: BorderSide(
-                      color: widget.isSearch
-                          ? widget.color
-                          : AppColors.greyColor.withOpacity(0.3),
-                      width: widget.isSearch ? 0.5 : 0.5),
+                    color: widget.isSearch
+                        ? widget.color
+                        : AppColors.greyColor.withOpacity(0.3),
+                    width: widget.isSearch ? 0.5 : 0.5,
+                  ),
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.isSearch ? 12.r : 8.r),
-                  borderSide:
-                      const BorderSide(color: AppColors.redColor, width: 0.5),
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 12.r : 8.r,
+                  ),
+                  borderSide: const BorderSide(
+                    color: AppColors.redColor,
+                    width: 0.5,
+                  ),
                 ),
               ),
             ),
           ),
-          SizedBox(
-            height: 10.sp,
-          ),
+          SizedBox(height: 10.sp),
         ],
       ),
     );
@@ -669,7 +691,7 @@ class _CustomOutlinedRoundedInputFieldState
 
   double get _effectiveBorderRadius {
     // If isSearch is true, use 22.r, otherwise use the custom borderRadius
-    return  widget.borderRadius.r;
+    return widget.borderRadius.r;
   }
 
   @override
@@ -680,11 +702,13 @@ class _CustomOutlinedRoundedInputFieldState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           widget.hasTitle
-              ? customText(widget.title,
-              textAlign: TextAlign.left,
-              fontWeight: FontWeight.w700,
-              fontSize: 14.sp,
-              color: widget.titleColor)
+              ? customText(
+                  widget.title,
+                  textAlign: TextAlign.left,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14.sp,
+                  color: widget.titleColor,
+                )
               : const SizedBox.shrink(),
           SizedBox(height: widget.hasTitle ? 5.sp : 0.sp),
           Focus(
@@ -700,7 +724,9 @@ class _CustomOutlinedRoundedInputFieldState
               maxLines: widget.maxLines,
               minLines: 1,
               keyboardType: widget.keyboardType,
-              textInputAction: widget.isSearch ? TextInputAction.search : TextInputAction.done,
+              textInputAction: widget.isSearch
+                  ? TextInputAction.search
+                  : TextInputAction.done,
               inputFormatters: widget.formatter,
               onChanged: widget.onChanged,
               onFieldSubmitted: widget.onFieldSubmitted,
@@ -709,151 +735,163 @@ class _CustomOutlinedRoundedInputFieldState
                   : widget.useCustomValidator
                   ? widget.validator
                   : (value) {
-                if (widget.regex != null) {
-                  RegExp regExp = RegExp(
-                    widget.regex!,
-                    caseSensitive: false,
-                    multiLine: false,
-                  );
-                  if (!regExp.hasMatch(value!)) {
-                    return "Invalid ${widget.title}";
-                  }
-                }
-                if (value!.isEmpty) {
-                  return "${widget.title} field is required";
-                }
-                return null;
-              },
+                      if (widget.regex != null) {
+                        RegExp regExp = RegExp(
+                          widget.regex!,
+                          caseSensitive: false,
+                          multiLine: false,
+                        );
+                        if (!regExp.hasMatch(value!)) {
+                          return "Invalid ${widget.title}";
+                        }
+                      }
+                      if (value!.isEmpty) {
+                        return "${widget.title} field is required";
+                      }
+                      return null;
+                    },
               focusNode: widget.focusNode,
               controller: widget.controller,
               autofocus: widget.autoFocus,
               style: widget.isCurrency
                   ? TextStyle(
-                  color: AppColors.primaryColor,
-                  fontFamily: GoogleFonts.inter().fontFamily,
-                  fontSize: widget.fontSize.sp,
-                  fontWeight: FontWeight.bold)
+                      color: AppColors.primaryColor,
+                      fontFamily: "Satoshi",
+                      fontSize: widget.fontSize.sp,
+                      fontWeight: FontWeight.bold,
+                    )
                   : TextStyle(
-                  color: widget.color,
-                  fontFamily: GoogleFonts.inter().fontFamily,
-                  fontSize: widget.fontSize.sp),
+                      color: widget.color,
+                      fontFamily: "Satoshi",
+                      fontSize: widget.fontSize.sp,
+                    ),
               decoration: InputDecoration(
-                  prefixIcon: widget.isPhone
-                      ? IntrinsicHeight(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                              left: 8.sp, bottom: 1.65.sp),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Row(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.center,
+                prefixIcon: widget.isPhone
+                    ? IntrinsicHeight(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          // crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(
+                                left: 8.sp,
+                                bottom: 1.65.sp,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  SvgPicture.asset(
-                                    SvgAssets.nigerianFlag,
-                                    height: 15.sp,
-                                  ),
-                                  SizedBox(
-                                    width: 3.sp,
-                                  ),
-                                  customText(
-                                    '+234 ',
-                                    color: widget.color,
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w500,
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      SvgPicture.asset(
+                                        SvgAssets.nigerianFlag,
+                                        height: 15.sp,
+                                      ),
+                                      SizedBox(width: 3.sp),
+                                      customText(
+                                        '+234 ',
+                                        color: widget.color,
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                            // VerticalDivider(
+                            //     color: _hasFocus
+                            //         ? AppColors.primary
+                            //         : Colors.grey,
+                            //     thickness: 1)
+                          ],
                         ),
-                        // VerticalDivider(
-                        //     color: _hasFocus
-                        //         ? AppColors.primary
-                        //         : Colors.grey,
-                        //     thickness: 1)
-                      ],
-                    ),
-                  )
-                      : widget.authPrefix != null
-                      ? Container(
-                    width: 40.sp,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          widget.authPrefix!,
-                          height: 20.sp,
-                          width: 20.sp,
-                          color: _hasFocus
-                              ? AppColors.primaryColor
-                              : Colors.grey,
-                        )
-                      ],
-                    ),
-                  )
-                      : widget.prefixWidget,
-                  suffixIcon: widget.hasDropdown || widget.suffixWidget != null
-                      ? IntrinsicHeight(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(right: 12.sp),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [widget.suffixWidget!],
-                          ),
+                      )
+                    : widget.authPrefix != null
+                    ? Container(
+                        width: 40.sp,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              widget.authPrefix!,
+                              height: 20.sp,
+                              width: 20.sp,
+                              color: _hasFocus
+                                  ? AppColors.primaryColor
+                                  : Colors.grey,
+                            ),
+                          ],
                         ),
-                        // VerticalDivider(
-                        //     color: _hasFocus
-                        //         ? AppColors.primary
-                        //         : Colors.grey,
-                        //     thickness: 1)
-                      ],
-                    ),
-                  )
-                      : widget.suffixWidget,
-                  labelText: widget.label,
-                  isDense: true,
-                  floatingLabelBehavior: FloatingLabelBehavior.never,
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: widget.isSearch ? 10.sp : 18.sp,
-                      horizontal: widget.isSearch ? 10.sp : 12.sp),
-                  floatingLabelStyle: TextStyle(
-                    color: widget.labelColor,
-                    fontSize: widget.labelFontSize.sp,
-                    fontFamily: GoogleFonts.inter().fontFamily,
+                      )
+                    : widget.prefixWidget,
+                suffixIcon: widget.hasDropdown || widget.suffixWidget != null
+                    ? IntrinsicHeight(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(right: 12.sp),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [widget.suffixWidget!],
+                              ),
+                            ),
+                            // VerticalDivider(
+                            //     color: _hasFocus
+                            //         ? AppColors.primary
+                            //         : Colors.grey,
+                            //     thickness: 1)
+                          ],
+                        ),
+                      )
+                    : widget.suffixWidget,
+                labelText: widget.label,
+                isDense: true,
+                floatingLabelBehavior: FloatingLabelBehavior.never,
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: widget.isSearch ? 10.sp : 18.sp,
+                  horizontal: widget.isSearch ? 10.sp : 12.sp,
+                ),
+                floatingLabelStyle: TextStyle(
+                  color: widget.labelColor,
+                  fontSize: widget.labelFontSize.sp,
+                  fontFamily: "Satoshi",
+                ),
+                labelStyle: TextStyle(
+                  color: widget.labelColor,
+                  fontSize: widget.labelFontSize.sp,
+                  fontFamily: "Satoshi",
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(_effectiveBorderRadius),
+                  borderSide: BorderSide(color: widget.color, width: 1.0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(_effectiveBorderRadius),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.5),
+                    width: 1.0,
                   ),
-                  labelStyle: TextStyle(
-                    color: widget.labelColor,
-                    fontSize: widget.labelFontSize.sp,
-                    fontFamily: GoogleFonts.inter().fontFamily,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(_effectiveBorderRadius),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.5),
+                    width: 1.0,
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
-                    borderSide: BorderSide(color: widget.color, width: 1.0),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(_effectiveBorderRadius),
+                  borderSide: const BorderSide(
+                    color: AppColors.redColor,
+                    width: 0.5,
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
-                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.5), width: 1.0),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
-                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.5), width: 1.0),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_effectiveBorderRadius),
-                    borderSide:
-                    const BorderSide(color: AppColors.redColor, width: 0.5),
-                  )),
+                ),
+              ),
             ),
           ),
         ],
@@ -938,11 +976,13 @@ class _CustomOutlinedRoundedPhoneInputFieldState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           widget.hasTitle
-              ? customText(widget.title,
+              ? customText(
+                  widget.title,
                   textAlign: TextAlign.left,
                   fontWeight: FontWeight.w700,
                   fontSize: 14.sp,
-                  color: widget.titleColor)
+                  color: widget.titleColor,
+                )
               : const SizedBox.shrink(),
           SizedBox(height: widget.hasTitle ? 5.sp : 0.sp),
           Focus(
@@ -962,8 +1002,9 @@ class _CustomOutlinedRoundedPhoneInputFieldState
               countries: [
                 countries.firstWhere((Country c) => c.name == "Nigeria"),
               ],
-              initialCountryCode:
-                  countries.firstWhere((Country c) => c.name == "Nigeria").code,
+              initialCountryCode: countries
+                  .firstWhere((Country c) => c.name == "Nigeria")
+                  .code,
               showCountryFlag: true,
               validator: !widget.isRequired ? null : widget.validator,
               focusNode: widget.focusNode,
@@ -971,134 +1012,150 @@ class _CustomOutlinedRoundedPhoneInputFieldState
               style: widget.isCurrency
                   ? TextStyle(
                       color: AppColors.primaryColor,
-                      fontFamily: GoogleFonts.inter().fontFamily,
+                      fontFamily: "Satoshi",
                       fontSize: widget.fontSize.sp,
-                      fontWeight: FontWeight.bold)
+                      fontWeight: FontWeight.bold,
+                    )
                   : TextStyle(
                       color: widget.color,
-                      fontFamily: GoogleFonts.inter().fontFamily,
-                      fontSize: widget.fontSize.sp),
+                      fontFamily: "Satoshi",
+                      fontSize: widget.fontSize.sp,
+                    ),
               decoration: InputDecoration(
-                  prefixIcon: widget.isPhone
-                      ? IntrinsicHeight(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            // crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    left: 8.sp, bottom: 1.65.sp),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        SvgPicture.asset(
-                                          SvgAssets.nigerianFlag,
-                                          height: 15.sp,
-                                        ),
-                                        SizedBox(
-                                          width: 3.sp,
-                                        ),
-                                        customText(
-                                          '+234 ',
-                                          color: widget.color,
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                prefixIcon: widget.isPhone
+                    ? IntrinsicHeight(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          // crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(
+                                left: 8.sp,
+                                bottom: 1.65.sp,
                               ),
-                              // VerticalDivider(
-                              //     color: _hasFocus
-                              //         ? AppColors.primary
-                              //         : Colors.grey,
-                              //     thickness: 1)
-                            ],
-                          ),
-                        )
-                      : widget.authPrefix != null
-                          ? Container(
-                              width: 40.sp,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                    widget.authPrefix!,
-                                    height: 20.sp,
-                                    width: 20.sp,
-                                    color: _hasFocus
-                                        ? AppColors.primaryColor
-                                        : Colors.grey,
-                                  )
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      SvgPicture.asset(
+                                        SvgAssets.nigerianFlag,
+                                        height: 15.sp,
+                                      ),
+                                      SizedBox(width: 3.sp),
+                                      customText(
+                                        '+234 ',
+                                        color: widget.color,
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
-                            )
-                          : widget.prefixWidget,
-                  suffixIcon: widget.hasDropdown || widget.suffixWidget != null
-                      ? IntrinsicHeight(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(right: 12.sp),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [widget.suffixWidget!],
-                                ),
+                            ),
+                            // VerticalDivider(
+                            //     color: _hasFocus
+                            //         ? AppColors.primary
+                            //         : Colors.grey,
+                            //     thickness: 1)
+                          ],
+                        ),
+                      )
+                    : widget.authPrefix != null
+                    ? Container(
+                        width: 40.sp,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              widget.authPrefix!,
+                              height: 20.sp,
+                              width: 20.sp,
+                              color: _hasFocus
+                                  ? AppColors.primaryColor
+                                  : Colors.grey,
+                            ),
+                          ],
+                        ),
+                      )
+                    : widget.prefixWidget,
+                suffixIcon: widget.hasDropdown || widget.suffixWidget != null
+                    ? IntrinsicHeight(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(right: 12.sp),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [widget.suffixWidget!],
                               ),
-                              // VerticalDivider(
-                              //     color: _hasFocus
-                              //         ? AppColors.primary
-                              //         : Colors.grey,
-                              //     thickness: 1)
-                            ],
-                          ),
-                        )
-                      : widget.suffixWidget,
-                  labelText: widget.label,
-                  isDense: true,
-                  floatingLabelBehavior: FloatingLabelBehavior.never,
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: widget.isSearch ? 10.sp : 18.sp,
-                      horizontal: widget.isSearch ? 10.sp : 12.sp),
-                  floatingLabelStyle: TextStyle(
-                    color: widget.labelColor,
-                    fontSize: widget.labelFontSize.sp,
-                    fontFamily: GoogleFonts.inter().fontFamily,
+                            ),
+                            // VerticalDivider(
+                            //     color: _hasFocus
+                            //         ? AppColors.primary
+                            //         : Colors.grey,
+                            //     thickness: 1)
+                          ],
+                        ),
+                      )
+                    : widget.suffixWidget,
+                labelText: widget.label,
+                isDense: true,
+                floatingLabelBehavior: FloatingLabelBehavior.never,
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: widget.isSearch ? 10.sp : 18.sp,
+                  horizontal: widget.isSearch ? 10.sp : 12.sp,
+                ),
+                floatingLabelStyle: TextStyle(
+                  color: widget.labelColor,
+                  fontSize: widget.labelFontSize.sp,
+                  fontFamily: "Satoshi",
+                ),
+                labelStyle: TextStyle(
+                  color: widget.labelColor,
+                  fontSize: widget.labelFontSize.sp,
+                  fontFamily: "Satoshi",
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 22.r : 8.r,
                   ),
-                  labelStyle: TextStyle(
-                    color: widget.labelColor,
-                    fontSize: widget.labelFontSize.sp,
-                    fontFamily: GoogleFonts.inter().fontFamily,
+                  borderSide: BorderSide(color: widget.color, width: 1.0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 22.r : 8.r,
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
-                    borderSide: BorderSide(color: widget.color, width: 1.0),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                    width: 0.5,
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
-                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.3), width: 0.5),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 22.r : 8.r,
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
-                    borderSide: BorderSide(color: AppColors.greyColor.withOpacity(0.3), width: 0.5),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                    width: 0.5,
                   ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(widget.isSearch ? 22.r : 8.r),
-                    borderSide:
-                        const BorderSide(color: AppColors.redColor, width: 0.5),
-                  )),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    widget.isSearch ? 22.r : 8.r,
+                  ),
+                  borderSide: const BorderSide(
+                    color: AppColors.redColor,
+                    width: 0.5,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -1209,8 +1266,8 @@ class _CustomRoundedPhoneInputFieldState
             },
             child: IntlPhoneField(
               readOnly: widget.readOnly,
-              showCountryFlag:true,
-              disableLengthCheck:widget.disableLengthCheck,
+              showCountryFlag: true,
+              disableLengthCheck: widget.disableLengthCheck,
               textAlign: TextAlign.left,
               cursorColor: widget.cursorColor,
               showDropdownIcon: false,
@@ -1222,40 +1279,43 @@ class _CustomRoundedPhoneInputFieldState
               countries: [
                 countries.firstWhere((Country c) => c.name == "Nigeria"),
               ],
-              initialCountryCode:
-                  countries.firstWhere((Country c) => c.name == "Nigeria").code,
-              validator:  widget.validator,
+              initialCountryCode: countries
+                  .firstWhere((Country c) => c.name == "Nigeria")
+                  .code,
+              validator: widget.validator,
               focusNode: widget.focusNode,
               controller: widget.controller,
               style: widget.isNumber
                   ? TextStyle(
                       color: AppColors.blackColor,
-                      fontFamily: GoogleFonts.inter().fontFamily,
+                      fontFamily: "Satoshi",
                       fontSize: widget.fontSize.sp,
-                      fontWeight: FontWeight.bold)
+                      fontWeight: FontWeight.bold,
+                    )
                   : TextStyle(
                       color: widget.textColor,
-                      fontFamily: GoogleFonts.inter().fontFamily,
-                      fontSize: widget.fontSize.sp),
+                      fontFamily: "Satoshi",
+                      fontSize: widget.fontSize.sp,
+                    ),
               decoration: InputDecoration(
                 prefixIcon: widget.prefixAsset != null
-                        ? SizedBox(
-                            width: 40.sp,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  widget.prefixAsset!,
-                                  height: 20.sp,
-                                  width: 20.sp,
-                                  color: _hasFocus
-                                      ? AppColors.primaryColor
-                                      : Colors.grey,
-                                )
-                              ],
+                    ? SizedBox(
+                        width: 40.sp,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              widget.prefixAsset!,
+                              height: 20.sp,
+                              width: 20.sp,
+                              color: _hasFocus
+                                  ? AppColors.primaryColor
+                                  : Colors.grey,
                             ),
-                          )
-                        : widget.prefixWidget,
+                          ],
+                        ),
+                      )
+                    : widget.prefixWidget,
                 suffixIcon: widget.hasDropdown || widget.suffixWidget != null
                     ? IntrinsicHeight(
                         child: Row(
@@ -1281,33 +1341,41 @@ class _CustomRoundedPhoneInputFieldState
                 isDense: true,
                 filled: widget.filled,
                 fillColor: widget.fillColor,
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 15.sp, horizontal: 12.sp),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 15.sp,
+                  horizontal: 12.sp,
+                ),
                 floatingLabelStyle: TextStyle(
                   color: widget.labelColor,
                   fontSize: widget.labelFontSize.sp,
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: "Satoshi",
                 ),
                 labelStyle: TextStyle(
                   color: widget.labelColor,
                   fontSize: widget.labelFontSize.sp,
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: "Satoshi",
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
                   borderSide: const BorderSide(
-                      color: AppColors.primaryColor, width: 0.5),
+                    color: AppColors.primaryColor,
+                    width: 0.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
-                  borderSide:
-                      BorderSide(color: AppColors.greyColor.withOpacity(0.3), width: 0.5),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                    width: 0.5,
+                  ),
                 ),
 
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
-                  borderSide:
-                      BorderSide(color: AppColors.greyColor.withOpacity(0.3), width: 0.5),
+                  borderSide: BorderSide(
+                    color: AppColors.greyColor.withOpacity(0.3),
+                    width: 0.5,
+                  ),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
@@ -1316,9 +1384,7 @@ class _CustomRoundedPhoneInputFieldState
               ),
             ),
           ),
-          SizedBox(
-            height: 10.sp,
-          ),
+          SizedBox(height: 10.sp),
         ],
       ),
     );

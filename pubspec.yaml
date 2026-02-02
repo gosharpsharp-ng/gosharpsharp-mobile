@@ -4,7 +4,7 @@ description: "GoSharpSharp App."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.8.1
@@ -81,3 +81,30 @@ flutter_native_splash:
   android_12:
     color: "#000000"
     image: "assets/icons/gosharp_icon.png"
+
+  fonts:
+    - family: Satoshi
+      fonts:
+        - asset: assets/fonts/Satoshi-Regular.ttf
+        - asset: assets/fonts/Satoshi-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Satoshi-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Satoshi-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Satoshi-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Satoshi-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/Satoshi-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Satoshi-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Satoshi-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Satoshi-BlackItalic.ttf
+          weight: 900
+          style: italic

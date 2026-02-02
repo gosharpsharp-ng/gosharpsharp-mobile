@@ -675,7 +675,7 @@ class _SelectLocationState extends State<SelectLocation> {
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: customText(
-                        location!.formattedAddress!,
+                        location!.formattedAddress ?? '${location!.latitude.toStringAsFixed(6)}, ${location!.longitude.toStringAsFixed(6)}',
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
                         color: AppColors.blackColor,
@@ -812,10 +812,14 @@ class _SelectLocationState extends State<SelectLocation> {
       final url =
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=${Secret.apiKey}';
 
+      debugPrint('Geocoding URL: $url');
       final res = await Dio().get(url);
+      debugPrint('Geocoding response status: ${res.statusCode}');
+      debugPrint('Geocoding response data: ${res.data}');
+
       final decodedData = json.decode(json.encode(res.data));
 
-      if (res.statusCode == 200 && decodedData['results'] != null && mounted) {
+      if (res.statusCode == 200 && decodedData['results'] != null && decodedData['results'].isNotEmpty && mounted) {
         setState(() {
           location = ItemLocation(
               formattedAddress: decodedData['results'][0]['formatted_address'],
@@ -824,9 +828,20 @@ class _SelectLocationState extends State<SelectLocation> {
           _isLoadingLocation = false;
         });
       } else {
-        setState(() {
-          _isLoadingLocation = false;
-        });
+        debugPrint('Geocoding failed: status=${res.statusCode}, results=${decodedData['results']?.length ?? 0}');
+        // Create location with coordinates even if geocoding fails
+        if (mounted) {
+          setState(() {
+            location = ItemLocation(
+                latitude: latLng.latitude,
+                longitude: latLng.longitude);
+            _isLoadingLocation = false;
+          });
+          showToast(
+            message: 'Location selected with coordinates. Address details unavailable.',
+            isError: false,
+          );
+        }
       }
     } catch (e) {
       debugPrint('Error getting location details: $e');

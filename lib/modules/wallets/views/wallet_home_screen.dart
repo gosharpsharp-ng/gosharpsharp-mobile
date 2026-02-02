@@ -110,7 +110,7 @@ class WalletHomeScreen extends StatelessWidget {
                                 "Bonus Balance",
                                 color: AppColors.whiteColor,
                                 fontWeight: FontWeight.w600,
-                               fontStyle: GoogleFonts.inter().fontStyle,
+                                fontStyle: GoogleFonts.inter().fontStyle,
                                 fontSize: 15.sp,
                                 overflow: TextOverflow.visible,
                               ),
@@ -164,7 +164,7 @@ class WalletHomeScreen extends StatelessWidget {
                     //                 color: AppColors.blackColor,
                     //                 fontWeight: FontWeight.normal,
                     //                 fontFamily:
-                    //                     GoogleFonts.inter().fontFamily!,
+                    //                     "Satoshi",
                     //                 fontSize: 14.sp,
                     //                 overflow: TextOverflow.visible),
                     //           ],

@@ -31,7 +31,8 @@ class CustomPinInput extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 10.h),
                 child: Text(
                   title!,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
+                    fontFamily: "Satoshi",
                     color: AppColors.obscureTextColor,
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w400,
@@ -44,7 +45,8 @@ class CustomPinInput extends StatelessWidget {
           defaultPinTheme: PinTheme(
             width: 48.h,
             height: 48.h,
-            textStyle: GoogleFonts.inter(
+            textStyle: TextStyle(
+              fontFamily: "Satoshi",
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,
@@ -61,9 +63,10 @@ class CustomPinInput extends StatelessWidget {
             ),
           ),
           followingPinTheme: PinTheme(
-            width: useBottomBorderOnly?60.w:48.h,
+            width: useBottomBorderOnly ? 60.w : 48.h,
             height: 48.h,
-            textStyle: GoogleFonts.inter(
+            textStyle: TextStyle(
+              fontFamily: "Satoshi",
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,
@@ -71,14 +74,20 @@ class CustomPinInput extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(0.r),
               border: useBottomBorderOnly
-                  ? Border(bottom: BorderSide(color: AppColors.disabledColor, width: 1.h))
+                  ? Border(
+                      bottom: BorderSide(
+                        color: AppColors.disabledColor,
+                        width: 1.h,
+                      ),
+                    )
                   : Border.all(color: AppColors.disabledColor, width: 1.w),
             ),
           ),
           submittedPinTheme: PinTheme(
-            width: useBottomBorderOnly?60.w:48.h,
+            width: useBottomBorderOnly ? 60.w : 48.h,
             height: 48.h,
-            textStyle: GoogleFonts.inter(
+            textStyle: TextStyle(
+              fontFamily: "Satoshi",
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,
@@ -96,9 +105,10 @@ class CustomPinInput extends StatelessWidget {
           ),
           validator: validator,
           focusedPinTheme: PinTheme(
-            width:useBottomBorderOnly?60.w:48.h,
+            width: useBottomBorderOnly ? 60.w : 48.h,
             height: 48.h,
-            textStyle: GoogleFonts.inter(
+            textStyle: TextStyle(
+              fontFamily: "Satoshi",
               color: AppColors.blackColor,
               fontSize: 20.sp,
               fontWeight: FontWeight.w400,

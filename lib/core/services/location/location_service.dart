@@ -39,6 +39,7 @@ class LocationService extends GetxService {
   final RxBool _isLocationLoading = false.obs;
   final RxBool _hasLocationPermission = false.obs;
   final RxString _locationError = ''.obs;
+  bool _isRequestingPermission = false;
 
   // Getters - with render-safe access
   ItemLocation? get currentLocation {
@@ -128,7 +129,9 @@ class LocationService extends GetxService {
         );
         _currentLocation.value = initialLocation;
         _hasLocationPermission.value = true;
-        debugPrint('📍 LocationService: Loaded initial location: $savedLocation');
+        debugPrint(
+          '📍 LocationService: Loaded initial location: $savedLocation',
+        );
       }
 
       // Listen to location changes from LocationController
@@ -151,7 +154,9 @@ class LocationService extends GetxService {
             _currentLocation.value = newLocation;
             _hasLocationPermission.value = true;
 
-            debugPrint('📍 LocationService updated: $location (${newLocation.latitude}, ${newLocation.longitude})');
+            debugPrint(
+              '📍 LocationService updated: $location (${newLocation.latitude}, ${newLocation.longitude})',
+            );
           }
         }
       });
@@ -177,44 +182,59 @@ class LocationService extends GetxService {
       _isLocationLoading.value = true;
       _locationError.value = '';
 
-      // Check if location services are enabled
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        _locationError.value = 'Location services are disabled';
-        if (showToasts) {
-          showToast(
-            message: 'Please enable location services in your device settings',
-            isError: true,
-          );
-        }
-        return _setDefaultLocation();
+      // Prevent concurrent permission requests
+      if (_isRequestingPermission) {
+        // If already requesting, wait a bit or return
+        // Ideally we should wait, but for now let's just return to avoid the crash
+        return _currentLocation.value;
       }
+      _isRequestingPermission = true;
 
-      // Check location permissions
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          _locationError.value = 'Location permissions denied';
+      try {
+        // Check if location services are enabled
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          _locationError.value = 'Location services are disabled';
           if (showToasts) {
             showToast(
-              message: 'Location permission is required to find nearby restaurants',
+              message:
+                  'Please enable location services in your device settings',
               isError: true,
             );
           }
           return _setDefaultLocation();
         }
-      }
 
-      if (permission == LocationPermission.deniedForever) {
-        _locationError.value = 'Location permissions permanently denied';
-        if (showToasts) {
-          showToast(
-            message: 'Please enable location permission from Settings > Apps > GoSharpSharp > Permissions',
-            isError: true,
-          );
+        // Check location permissions
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+          if (permission == LocationPermission.denied) {
+            _locationError.value = 'Location permissions denied';
+            if (showToasts) {
+              showToast(
+                message:
+                    'Location permission is required to find nearby restaurants',
+                isError: true,
+              );
+            }
+            return _setDefaultLocation();
+          }
         }
-        return _setDefaultLocation();
+
+        if (permission == LocationPermission.deniedForever) {
+          _locationError.value = 'Location permissions permanently denied';
+          if (showToasts) {
+            showToast(
+              message:
+                  'Please enable location permission from Settings > Apps > GoSharpSharp > Permissions',
+              isError: true,
+            );
+          }
+          return _setDefaultLocation();
+        }
+      } finally {
+        _isRequestingPermission = false;
       }
 
       _hasLocationPermission.value = true;
@@ -245,7 +265,6 @@ class LocationService extends GetxService {
       }
 
       return location;
-
     } catch (e) {
       _locationError.value = 'Failed to get location: $e';
       if (showToasts) {
@@ -264,7 +283,8 @@ class LocationService extends GetxService {
   Future<String> _getAddressFromCoordinates(double lat, double lng) async {
     try {
       // Use the same approach as in select_location.dart
-      final url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=${Secret.apiKey}';
+      final url =
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=${Secret.apiKey}';
 
       final res = await Dio().get(url);
       final decodedData = json.decode(json.encode(res.data));
@@ -272,12 +292,13 @@ class LocationService extends GetxService {
       if (res.statusCode == 200 &&
           decodedData['results'] != null &&
           decodedData['results'].isNotEmpty) {
-
         // Get the formatted address
-        String formattedAddress = decodedData['results'][0]['formatted_address'];
+        String formattedAddress =
+            decodedData['results'][0]['formatted_address'];
 
         // Try to extract a shorter, more readable address
-        final addressComponents = decodedData['results'][0]['address_components'] as List?;
+        final addressComponents =
+            decodedData['results'][0]['address_components'] as List?;
         if (addressComponents != null && addressComponents.isNotEmpty) {
           List<String> addressParts = [];
 
@@ -289,7 +310,8 @@ class LocationService extends GetxService {
                   types.contains('administrative_area_level_2') ||
                   types.contains('sublocality_level_1')) {
                 addressParts.add(component['long_name']);
-                if (addressParts.length >= 2) break; // Limit to 2 parts for readability
+                if (addressParts.length >= 2)
+                  break; // Limit to 2 parts for readability
               }
             }
           }
@@ -323,10 +345,7 @@ class LocationService extends GetxService {
   Map<String, double> getCoordinatesForAPI() {
     try {
       final location = _currentLocation.value ?? _defaultLocation;
-      return {
-        'latitude': location.latitude,
-        'longitude': location.longitude,
-      };
+      return {'latitude': location.latitude, 'longitude': location.longitude};
     } catch (e) {
       return {
         'latitude': _defaultLocation.latitude,
@@ -338,7 +357,8 @@ class LocationService extends GetxService {
   /// Get display address for UI
   String getDisplayAddress() {
     try {
-      return _currentLocation.value?.formattedAddress ?? _defaultLocation.formattedAddress!;
+      return _currentLocation.value?.formattedAddress ??
+          _defaultLocation.formattedAddress!;
     } catch (e) {
       return _defaultLocation.formattedAddress!;
     }
@@ -363,7 +383,7 @@ class LocationService extends GetxService {
 
       // Check if it's not the default location
       return current.latitude != _defaultLocation.latitude ||
-             current.longitude != _defaultLocation.longitude;
+          current.longitude != _defaultLocation.longitude;
     } catch (e) {
       return false;
     }
@@ -379,15 +399,23 @@ class LocationService extends GetxService {
   }
 
   /// Calculate distance between two points in kilometers
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  double _calculateDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const double earthRadiusKm = 6371.0;
 
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
 
-    double a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_degreesToRadians(lat1)) * cos(_degreesToRadians(lat2)) *
-        sin(dLon / 2) * sin(dLon / 2);
+    double a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
 
     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return earthRadiusKm * c;
@@ -404,7 +432,7 @@ class LocationService extends GetxService {
         latitude,
         longitude,
         area.centerLat,
-        area.centerLng
+        area.centerLng,
       );
       if (distance <= area.radiusKm) {
         return true;
@@ -452,10 +480,7 @@ class LocationService extends GetxService {
   Map<String, double> getCoordinatesForRestaurants() {
     try {
       final location = getLocationForRestaurants();
-      return {
-        'latitude': location.latitude,
-        'longitude': location.longitude,
-      };
+      return {'latitude': location.latitude, 'longitude': location.longitude};
     } catch (e) {
       return {
         'latitude': _defaultLocation.latitude,
@@ -487,7 +512,8 @@ class LocationService extends GetxService {
   String getDisplayAddressForRestaurants() {
     try {
       if (_selectedDeliveryLocation.value != null) {
-        return _selectedDeliveryLocation.value!.formattedAddress ?? 'Selected Location';
+        return _selectedDeliveryLocation.value!.formattedAddress ??
+            'Selected Location';
       }
       return getDisplayAddress();
     } catch (e) {

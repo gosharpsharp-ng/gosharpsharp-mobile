@@ -19,9 +19,14 @@ class SignInController extends GetxController {
     update();
   }
 
+  String? loginErrorMessage;
+
   TextEditingController loginController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   signIn() async {
+    loginErrorMessage = null;
+    update();
+
     if (signInFormKey.currentState!.validate()) {
       setLoadingState(true);
       try {
@@ -52,12 +57,14 @@ class SignInController extends GetxController {
           } else {
             Get.toNamed(Routes.LOCATION_PERMISSION_SCREEN);
           }
+        } else {
+          loginErrorMessage = response.message;
+          update();
         }
       } catch (e) {
         print("Error during sign in: $e");
-        showToast(
-            message: "An unexpected error occurred. Please try again.",
-            isError: true);
+        loginErrorMessage = "An unexpected error occurred. Please try again.";
+        update();
       } finally {
         // Always reset loading state, even if an error occurs
         setLoadingState(false);
@@ -93,4 +100,3 @@ class SignInController extends GetxController {
     return false;
   }
 }
-

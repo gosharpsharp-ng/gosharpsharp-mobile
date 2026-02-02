@@ -12,7 +12,6 @@ void main() async {
   await dotenv.load(fileName: buildMode == 'prod' ? '.env.prod' : '.env.dev');
 
   await GetStorage.init();
-  await ScreenUtil.ensureScreenSize();
   // await Get.putAsync(() => AuthProvider().init());
   // Get.put(DeliveryNotificationServiceManager());
   // await Get.find<DeliveryNotificationServiceManager>().initializeServices();
@@ -20,9 +19,7 @@ void main() async {
   // Initialize push notifications
   await PushNotificationService().initialize();
 
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   setupServiceLocator();
 
   /// 1.1.2: set navigator key to ZegoUIKitPrebuiltCallInvitationService
@@ -46,34 +43,31 @@ void main() async {
 
 class GoSharpSharp extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
-  const GoSharpSharp({
-    super.key,
-    required this.navigatorKey,
-  });
+  const GoSharpSharp({super.key, required this.navigatorKey});
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(
-      context,
-      designSize: const Size(375, 812),
-      splitScreenMode: true,
+    return ScreenUtilInit(
+      designSize: MediaQuery.of(context).size.width > 600
+        ? const Size(768, 1024)  // Tablet design size
+        : const Size(375, 812),  // Phone design size
       minTextAdapt: true,
-    );
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'GoSharpSharp',
-      theme: ThemeData(
-        fontFamily: GoogleFonts.inter().fontFamily,
-      ),
-      initialRoute: AppPages.INITIAL,
-      getPages: AppPages.routes,
-      // navigatorKey: navigatorKey,
+      splitScreenMode: true,
       builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(0.85),
-            boldText: false,
-          ),
-          child: child!,
+        return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'GoSharpSharp',
+          theme: ThemeData(fontFamily: "Satoshi"),
+          initialRoute: AppPages.INITIAL,
+          getPages: AppPages.routes,
+          // navigatorKey: navigatorKey,
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(0.85), boldText: false),
+              child: child!,
+            );
+          },
         );
       },
     );

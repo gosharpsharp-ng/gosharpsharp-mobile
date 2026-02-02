@@ -192,6 +192,37 @@ class _SignInScreenState extends State<SignInScreen>
                             ),
                           ),
                           SizedBox(height: 15.h),
+                          if (signInController.loginErrorMessage != null)
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(10.sp),
+                              margin: EdgeInsets.only(bottom: 15.h),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8.r),
+                                border: Border.all(
+                                  color: Colors.red.withOpacity(0.5),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    color: Colors.red,
+                                    size: 20.sp,
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  Expanded(
+                                    child: customText(
+                                      signInController.loginErrorMessage!,
+                                      color: Colors.red,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           CustomButton(
                             onPressed: () {
                               signInController.signIn();

@@ -64,7 +64,7 @@ class OrderDetailRow extends StatelessWidget {
           customText(
             label,
             fontSize: 16.sp,
-          fontStyle: GoogleFonts.inter().fontStyle,
+            // fontStyle: GoogleFonts.inter().fontStyle,
             fontWeight: FontWeight.bold,
           ),
           SizedBox(width: 10.sp),
@@ -73,7 +73,7 @@ class OrderDetailRow extends StatelessWidget {
               value,
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
-            fontStyle: GoogleFonts.inter().fontStyle,
+              // fontStyle: GoogleFonts.inter().fontStyle,
             ),
           ),
         ],

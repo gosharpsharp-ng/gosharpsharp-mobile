@@ -42,12 +42,14 @@ class InitiateDeliveryScreen extends StatelessWidget {
                     label: "Pick up location",
                     address: ordersController.senderAddressController.text,
                     onTap: () async {
-                      final ItemLocation result = await Get.toNamed(
+                      final result = await Get.toNamed(
                         Routes.SELECT_LOCATION_SCREEN,
                       );
-                      ordersController.setDeliverySenderLocation(result);
-                      if (ordersController.deliveryReceiverLocation != null) {
-                        await ordersController.getRideEstimatedDistance();
+                      if (result is ItemLocation) {
+                        ordersController.setDeliverySenderLocation(result);
+                        if (ordersController.deliveryReceiverLocation != null) {
+                          await ordersController.getRideEstimatedDistance();
+                        }
                       }
                     },
                   ),
@@ -64,12 +66,14 @@ class InitiateDeliveryScreen extends StatelessWidget {
                     label: "Drop off location",
                     address: ordersController.receiverAddressController.text,
                     onTap: () async {
-                      final ItemLocation result = await Get.toNamed(
+                      final result = await Get.toNamed(
                         Routes.SELECT_LOCATION_SCREEN,
                       );
-                      ordersController.setDeliveryReceiverLocation(result);
-                      if (ordersController.deliverySenderLocation != null) {
-                        await ordersController.getRideEstimatedDistance();
+                      if (result is ItemLocation) {
+                        ordersController.setDeliveryReceiverLocation(result);
+                        if (ordersController.deliverySenderLocation != null) {
+                          await ordersController.getRideEstimatedDistance();
+                        }
                       }
                     },
                   ),

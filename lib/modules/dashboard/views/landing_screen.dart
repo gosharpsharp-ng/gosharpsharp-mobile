@@ -197,7 +197,9 @@ class _CircularMenuState extends State<CircularMenu>
   }
 
   void _handlePanUpdate(DragUpdateDetails details) {
-    final center = Offset(225.w, 250.h);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final centerX = screenWidth < 600 ? 205.w : 235.w;
+    final center = Offset(centerX, 250.h);
     final angle = math.atan2(
       details.localPosition.dy - center.dy,
       details.localPosition.dx - center.dx,
@@ -223,7 +225,8 @@ class _CircularMenuState extends State<CircularMenu>
   @override
   Widget build(BuildContext context) {
     final angleStep = (2 * math.pi) / _menuItems.length;
-    const radius = 140.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final radius = screenWidth < 600 ? 130.0 : 160.0;
 
     return GestureDetector(
       onPanStart: _handlePanStart,
@@ -292,8 +295,8 @@ class MenuItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = isCenter ? 145.0 : 120.0;
-    final iconSize = isCenter ? 54.0 : 42.0;
+    final size = isCenter ? 130.0 : 110.0;
+    final iconSize = isCenter ? 50.0 : 32.0;
 
     return GestureDetector(
       onTap: item.onTap,

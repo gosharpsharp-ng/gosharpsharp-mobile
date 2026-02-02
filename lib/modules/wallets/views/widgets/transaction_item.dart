@@ -12,8 +12,9 @@ class TransactionItem extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 5.w),
       margin: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.w),
       decoration: BoxDecoration(
-          color: AppColors.whiteColor,
-          borderRadius: BorderRadius.circular(10.r)),
+        color: AppColors.whiteColor,
+        borderRadius: BorderRadius.circular(10.r),
+      ),
       child: InkWell(
         onTap: () {
           onTap();
@@ -32,11 +33,13 @@ class TransactionItem extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        customText(transaction.paymentReference,
-                            color: AppColors.blackColor,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15.sp,
-                            overflow: TextOverflow.visible),
+                        customText(
+                          transaction.paymentReference,
+                          color: AppColors.blackColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15.sp,
+                          overflow: TextOverflow.visible,
+                        ),
                         customText(
                           formatTime(transaction.createdAt),
                           color: AppColors.obscureTextColor,
@@ -45,9 +48,7 @@ class TransactionItem extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: 5.h,
-                    ),
+                    SizedBox(height: 5.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -58,12 +59,13 @@ class TransactionItem extends StatelessWidget {
                           fontSize: 12.sp,
                         ),
                         customText(
-                            formatToCurrency(double.parse(transaction.amount)),
-                            color: AppColors.blackColor,
-                            fontWeight: FontWeight.w600,
-                            fontStyle: GoogleFonts.inter().fontStyle,
-                            fontSize: 15.sp,
-                            overflow: TextOverflow.visible),
+                          formatToCurrency(double.parse(transaction.amount)),
+                          color: AppColors.blackColor,
+                          fontWeight: FontWeight.w600,
+                          // fontStyle: GoogleFonts.inter().fontStyle,
+                          fontSize: 15.sp,
+                          overflow: TextOverflow.visible,
+                        ),
                       ],
                     ),
                   ],

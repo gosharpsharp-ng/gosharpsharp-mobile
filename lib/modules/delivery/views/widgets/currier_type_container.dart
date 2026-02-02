@@ -64,7 +64,7 @@ class CurrierTypeContainer extends StatelessWidget {
                     color: !isSelectable
                         ? AppColors.blackColor.withValues(alpha: 0.5)
                         : AppColors.blackColor,
-                    fontStyle: GoogleFonts.inter().fontStyle,
+                    // fontStyle: GoogleFonts.inter().fontStyle,
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                   ),

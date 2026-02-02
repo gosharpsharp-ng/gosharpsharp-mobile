@@ -203,6 +203,8 @@ class OrdersHomeScreen extends GetView<OrdersController> {
 
   String _getStatusDisplayName(String status) {
     switch (status.toLowerCase()) {
+      case 'all':
+        return 'All';
       case 'paid':
         return 'Paid';
       case 'pending':
@@ -222,6 +224,8 @@ class OrdersHomeScreen extends GetView<OrdersController> {
 
   IconData _getStatusIcon(String status) {
     switch (status.toLowerCase()) {
+      case 'all':
+        return Icons.list;
       case 'paid':
         return Icons.payment;
       case 'pending':
@@ -241,6 +245,8 @@ class OrdersHomeScreen extends GetView<OrdersController> {
 
   String _getEmptyStateMessage(String status) {
     switch (status.toLowerCase()) {
+      case 'all':
+        return 'No orders available at the moment';
       case 'paid':
         return 'Paid orders will appear here when payment is confirmed';
       case 'pending':
@@ -363,7 +369,7 @@ class OrderCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12.r),
                       image: _hasRestaurantLogo()
                           ? DecorationImage(
-                              image: NetworkImage(order.orderable!.logo!),
+                              image: NetworkImage(order.orderable!.logoUrl!),
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -496,6 +502,8 @@ class OrderCard extends StatelessWidget {
 
   IconData _getStatusIcon(String status) {
     switch (status.toLowerCase()) {
+      case 'all':
+        return Icons.list;
       case 'paid':
         return Icons.payment;
       case 'pending':
@@ -517,6 +525,8 @@ class OrderCard extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'all':
+        return AppColors.primaryColor;  // All uses primary color
       case 'paid':
       case 'ready':
       case 'in_transit':
@@ -537,6 +547,8 @@ class OrderCard extends StatelessWidget {
 
   String _getStatusDisplayText(String status) {
     switch (status.toLowerCase()) {
+      case 'all':
+        return 'All';
       case 'paid':
         return 'Paid';
       case 'pending':
