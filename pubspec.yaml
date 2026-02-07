@@ -77,10 +77,11 @@ flutter_native_splash:
   image: "assets/icons/gosharp_icon.png"
   android: true
   ios: true
+  ios_content_mode: scaleAspectFit
   web: false
   android_12:
     color: "#000000"
-    image: "assets/icons/gosharp_icon.png"
+    image: "assets/icons/gosharp-icon-android.png"
 
   fonts:
     - family: Satoshi
