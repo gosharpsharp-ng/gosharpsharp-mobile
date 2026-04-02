@@ -14,7 +14,7 @@ class CoreService extends GetConnect {
 
   CoreService() {
     // _dio.options.baseUrl = dotenv.env['BASE_URL']!;
-    _dio.options.baseUrl = dotenv.env['BASE_URL'] ?? "https://staging.gosharpsharp.com/api/v1";
+    _dio.options.baseUrl = dotenv.env['BASE_URL'] ?? "https://app.gosharpsharp.com/api/v1";
     setConfig();
   }
   final getStorage = GetStorage();
@@ -154,23 +154,36 @@ class CoreService extends GetConnect {
             );
           }
           if (error.response?.statusCode == 401) {
-            // Set flag to cancel all subsequent requests
-            _hasUnauthorizedErrorOccurred = true;
+            // Only treat as session expiry if the request was authenticated (had a token).
+            // A 401 on a public endpoint (e.g. login with wrong credentials) should
+            // not block subsequent requests.
+            final hadToken =
+                error.requestOptions.headers['Authorization'] != null;
 
-            // Only handle unauthorized access once
-            if (!_isHandlingUnauthorized && Get.currentRoute != Routes.SIGN_IN) {
-              _isHandlingUnauthorized = true;
-              handleUnauthorizedAccess();
+            if (hadToken) {
+              // Set flag to cancel all subsequent requests
+              _hasUnauthorizedErrorOccurred = true;
+
+              // Only handle unauthorized access once
+              if (!_isHandlingUnauthorized &&
+                  Get.currentRoute != Routes.SIGN_IN) {
+                _isHandlingUnauthorized = true;
+                handleUnauthorizedAccess();
+              }
+
+              // Cancel this error to prevent it from propagating
+              return handler.reject(
+                dio_pack.DioException(
+                  requestOptions: error.requestOptions,
+                  type: dio_pack.DioExceptionType.cancel,
+                  error: 'Session expired',
+                ),
+              );
             }
 
-            // Cancel this error to prevent it from propagating
-            return handler.reject(
-              dio_pack.DioException(
-                requestOptions: error.requestOptions,
-                type: dio_pack.DioExceptionType.cancel,
-                error: 'Session expired',
-              ),
-            );
+            // For unauthenticated requests (no token), pass the 401 through as a
+            // normal error so callers can display the server's error message.
+            return handler.next(error);
           }
           return handler.next(error); // Continue handling other errors
         },
