@@ -1429,7 +1429,17 @@ class CartController extends GetxController {
   // Show add to cart success bottom sheet
   void _showAddToCartSuccessBottomSheet(String itemName, int quantity) {
     Get.bottomSheet(
-      AddToCartSuccessBottomSheet(itemName: itemName, quantity: quantity),
+      AddToCartSuccessBottomSheet(
+        itemName: itemName,
+        quantity: quantity,
+        onContinueShopping: () {
+          if (Get.currentRoute != Routes.RESTAURANT_DETAILS_SCREEN) {
+            Get.until(
+              (route) => route.settings.name == Routes.RESTAURANT_DETAILS_SCREEN,
+            );
+          }
+        },
+      ),
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,

@@ -3,11 +3,13 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 class AddToCartSuccessBottomSheet extends StatefulWidget {
   final String itemName;
   final int quantity;
+  final VoidCallback? onContinueShopping;
 
   const AddToCartSuccessBottomSheet({
     super.key,
     required this.itemName,
     required this.quantity,
+    this.onContinueShopping,
   });
 
   @override
@@ -89,7 +91,10 @@ class _AddToCartSuccessBottomSheetState
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () {
+                    Get.back();
+                    widget.onContinueShopping?.call();
+                  },
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: AppColors.primaryColor),
                     padding: EdgeInsets.symmetric(vertical: 12.h),

@@ -44,7 +44,6 @@ class OrdersController extends GetxController {
   List<String> orderStatuses = [
     'all',
     'paid',
-    'pending',
     'preparing',
     'ready',
     'in_transit',
@@ -91,6 +90,7 @@ class OrdersController extends GetxController {
 
         allOrders = ordersData
             .map((json) => OrderModel.fromJson(json))
+            .where((order) => order.status.toLowerCase() != 'pending')
             .toList();
         filterOrdersByStatus();
       } else {

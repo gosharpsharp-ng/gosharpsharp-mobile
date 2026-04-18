@@ -1828,6 +1828,55 @@ class DeliveriesController extends GetxController {
     await fetchParcelDeliveries();
   }
 
+  // Pay for a pending parcel delivery: fetch full details (with courier types),
+  // populate selectedDeliveryResponseModel, then show the payment bottomsheet.
+  bool isLoadingPendingPayment = false;
+  Future<void> payPendingParcelDelivery(BuildContext context) async {
+    final delivery = selectedParcelDelivery;
+    if (delivery == null) return;
+
+    final id = delivery['id'] as int?;
+    if (id == null) return;
+
+    isLoadingPendingPayment = true;
+    update();
+
+    try {
+      final response = await deliveryService.getParcelDelivery(id);
+
+      if (response.status == "success" && response.data != null) {
+        final data = response.data is Map<String, dynamic>
+            ? response.data as Map<String, dynamic>
+            : (response.data['delivery'] ?? response.data) as Map<String, dynamic>;
+
+        selectedDeliveryResponseModel = DeliveryResponseModel.fromJson(data);
+        selectedParcelDelivery = data;
+        selectedCourierType = null;
+        selectedPaymentType = null;
+        update();
+
+        if (context.mounted) {
+          Get.bottomSheet(
+            BikeAndPaymentSelectionBottomsheet(
+              onProceed: () => confirmParcelDelivery(context),
+            ),
+            isScrollControlled: true,
+            isDismissible: true,
+            enableDrag: true,
+            backgroundColor: Colors.transparent,
+          );
+        }
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      showToast(message: "Error loading delivery details: ${e.toString()}", isError: true);
+    } finally {
+      isLoadingPendingPayment = false;
+      update();
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();

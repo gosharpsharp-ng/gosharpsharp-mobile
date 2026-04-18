@@ -43,7 +43,9 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
             onPop: () => Get.back(),
           ),
           backgroundColor: AppColors.backgroundColor,
-          body: Container(
+          body: Stack(
+            children: [
+              Container(
             padding: EdgeInsets.symmetric(horizontal: 22.sp, vertical: 12.sp),
             height: 1.sh,
             width: 1.sw,
@@ -589,6 +591,39 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                 ],
               ),
             ),
+          ),
+          // Show Pay Now button for pending deliveries with unpaid payment status
+          if (status == 'pending' &&
+              (parcelDelivery['payment_status']?.toString().toLowerCase() ?? '') != 'paid')
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.fromLTRB(22.sp, 12.sp, 22.sp, 24.sp),
+                decoration: BoxDecoration(
+                  color: AppColors.backgroundColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.blackColor.withValues(alpha: 0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: GetBuilder<DeliveriesController>(
+                  builder: (dc) => CustomButton(
+                    onPressed: () => dc.payPendingParcelDelivery(context),
+                    isBusy: dc.isLoadingPendingPayment,
+                    title: "Pay Now",
+                    width: double.infinity,
+                    backgroundColor: AppColors.primaryColor,
+                    fontColor: AppColors.whiteColor,
+                  ),
+                ),
+              ),
+            ),
+        ],
           ),
         );
       },
