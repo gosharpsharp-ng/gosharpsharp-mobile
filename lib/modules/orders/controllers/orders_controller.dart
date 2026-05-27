@@ -43,6 +43,7 @@ class OrdersController extends GetxController {
   String selectedOrderStatus = 'all';
   List<String> orderStatuses = [
     'all',
+    'pending',
     'paid',
     'preparing',
     'ready',
@@ -90,7 +91,16 @@ class OrdersController extends GetxController {
 
         allOrders = ordersData
             .map((json) => OrderModel.fromJson(json))
-            .where((order) => order.status.toLowerCase() != 'pending')
+            .where((order) {
+              // Hide orders that are pending status but already paid
+              // (awaiting restaurant confirmation — no action needed).
+              // Show everything else, including unpaid/failed-payment orders.
+              if (order.status.toLowerCase() == 'pending') {
+                final ps = order.paymentStatus.toLowerCase();
+                return ps == 'pending' || ps == 'failed';
+              }
+              return true;
+            })
             .toList();
         filterOrdersByStatus();
       } else {
@@ -410,6 +420,72 @@ class OrdersController extends GetxController {
   // Refresh orders
   refreshOrders() async {
     await getOrders();
+  }
+
+  // Retry payment for an order with pending or failed payment_status
+  bool isRetryingPayment = false;
+  Future<void> retryOrderPayment(BuildContext context) async {
+    final order = selectedOrder;
+    if (order == null) return;
+
+    isRetryingPayment = true;
+    update();
+
+    try {
+      final response = await _ordersService.retryPayment(
+        orderId: order.id,
+        paymentMethodCode: 'paystack',
+      );
+
+      isRetryingPayment = false;
+      update();
+
+      if (response.status == 'success') {
+        final paymentData = response.data is Map ? response.data['payment'] : null;
+        final authUrl = paymentData?['authorization_url'] as String?;
+
+        if (authUrl != null && authUrl.isNotEmpty && context.mounted) {
+          showPaymentWebViewDialog(
+            context,
+            url: authUrl,
+            title: 'Complete Payment',
+            onSuccess: () async {
+              showToast(message: 'Payment successful!', isError: false);
+              await refreshOrders();
+              // Sync selectedOrder so the details screen reflects the new
+              // payment status immediately (removes the Pay Now button).
+              if (selectedOrder != null) {
+                final updated = allOrders.firstWhereOrNull(
+                  (o) => o.id == selectedOrder!.id,
+                );
+                if (updated != null) setSelectedOrder(updated);
+              }
+            },
+            onFailure: (reason) {
+              showToast(
+                message: reason.isNotEmpty ? reason : 'Payment was cancelled',
+                isError: true,
+              );
+            },
+          );
+        } else {
+          showToast(message: response.message, isError: false);
+          await refreshOrders();
+          if (selectedOrder != null) {
+            final updated = allOrders.firstWhereOrNull(
+              (o) => o.id == selectedOrder!.id,
+            );
+            if (updated != null) setSelectedOrder(updated);
+          }
+        }
+      } else {
+        showToast(message: response.message, isError: true);
+      }
+    } catch (e) {
+      isRetryingPayment = false;
+      update();
+      showToast(message: 'Error retrying payment: $e', isError: true);
+    }
   }
 
   // Rating state

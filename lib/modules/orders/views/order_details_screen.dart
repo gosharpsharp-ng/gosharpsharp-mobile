@@ -54,6 +54,11 @@ class OrderDetailsScreen extends GetView<OrdersController> {
                         value: _getStatusDisplayText(order.status),
                         status: order.status,
                       ),
+                      OrderDetailSummaryStatusItem(
+                        title: "Payment",
+                        value: _getPaymentStatusDisplayText(order.paymentStatus),
+                        status: order.paymentStatus,
+                      ),
                       OrderDetailSummaryItem(
                         title: "Total",
                         value: formatToCurrency(order.total),
@@ -497,6 +502,31 @@ class OrderDetailsScreen extends GetView<OrdersController> {
 
                   SizedBox(height: 12.h),
 
+                  // Pay Now button for unpaid/failed-payment orders
+                  if (['pending', 'failed'].contains(
+                    order.paymentStatus.toLowerCase(),
+                  ))
+                    Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: CustomButton(
+                        onPressed: () =>
+                            ordersController.retryOrderPayment(context),
+                        isBusy: ordersController.isRetryingPayment,
+                        title: order.paymentStatus.toLowerCase() == 'failed'
+                            ? 'Retry Payment'
+                            : 'Pay Now',
+                        width: double.infinity,
+                        backgroundColor: AppColors.primaryColor,
+                        fontColor: AppColors.whiteColor,
+                      ),
+                    ),
+
+                  if (['pending', 'failed'].contains(
+                    order.paymentStatus.toLowerCase(),
+                  ))
+                    SizedBox(height: 12.h),
+
                   // Action Buttons based on order status
                   Container(
                     width: double.infinity,
@@ -571,6 +601,19 @@ class OrderDetailsScreen extends GetView<OrdersController> {
       );
     } finally {
       ordersController.setLoadingOrderDetails(false);
+    }
+  }
+
+  String _getPaymentStatusDisplayText(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return 'Paid';
+      case 'pending':
+        return 'Unpaid';
+      case 'failed':
+        return 'Failed';
+      default:
+        return status.toUpperCase();
     }
   }
 

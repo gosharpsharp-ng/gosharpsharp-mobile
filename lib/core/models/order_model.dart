@@ -61,6 +61,7 @@ class OrderModel {
   final int userId;
   final String orderNumber;
   final String status;
+  final String paymentStatus;
   final double subtotal;
   final double tax;
   final double deliveryFee;
@@ -102,6 +103,7 @@ class OrderModel {
     required this.userId,
     required this.orderNumber,
     required this.status,
+    required this.paymentStatus,
     required this.subtotal,
     required this.tax,
     required this.deliveryFee,
@@ -145,6 +147,7 @@ class OrderModel {
       userId: json['user_id'] ?? 0,
       orderNumber: json['order_number'] ?? '',
       status: json['status'] ?? 'pending',
+      paymentStatus: json['payment_status'] ?? 'pending',
       subtotal: double.tryParse(json['subtotal']?.toString() ?? '0') ?? 0.0,
       tax: double.tryParse(json['tax']?.toString() ?? '0') ?? 0.0,
       deliveryFee: double.tryParse(json['delivery_fee']?.toString() ?? '0') ?? 0.0,
@@ -211,6 +214,7 @@ class OrderModel {
       'user_id': userId,
       'order_number': orderNumber,
       'status': status,
+      'payment_status': paymentStatus,
       'subtotal': subtotal.toString(),
       'tax': tax.toString(),
       'delivery_fee': deliveryFee.toString(),
@@ -253,6 +257,7 @@ class OrderModel {
     int? userId,
     String? orderNumber,
     String? status,
+    String? paymentStatus,
     double? subtotal,
     double? tax,
     double? deliveryFee,
@@ -294,6 +299,7 @@ class OrderModel {
       userId: userId ?? this.userId,
       orderNumber: orderNumber ?? this.orderNumber,
       status: status ?? this.status,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       subtotal: subtotal ?? this.subtotal,
       tax: tax ?? this.tax,
       deliveryFee: deliveryFee ?? this.deliveryFee,

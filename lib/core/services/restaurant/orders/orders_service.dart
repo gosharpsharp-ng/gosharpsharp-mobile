@@ -25,4 +25,14 @@ class OrdersService extends CoreService {
   }) async {
     return await send("/customers/orders/menu/$orderId/rating", data);
   }
+
+  Future<APIResponse> retryPayment({
+    required int orderId,
+    required String paymentMethodCode,
+  }) async {
+    return await send(
+      "/customers/orders/menu/$orderId/retry-payment",
+      {'payment_method_code': paymentMethodCode},
+    );
+  }
 }

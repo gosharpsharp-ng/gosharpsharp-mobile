@@ -154,7 +154,7 @@ class DashboardController extends GetxController {
   }
 
   // Fetch all restaurants using current location (with geofencing)
-  Future<void> fetchRestaurants() async {
+  Future<void> fetchRestaurants({int pageNumber = 1}) async {
     try {
       setRestaurantsLoadingState(true);
 
@@ -189,7 +189,13 @@ class DashboardController extends GetxController {
       Map<String, dynamic> filter = {
         "longitude": coordinates['longitude'],
         "latitude": coordinates['latitude'],
+        "page": pageNumber,
       };
+
+      // For leg walk requests, backend expects distance=1.
+      if (isWalkingDistanceFilter.value) {
+        filter['distance'] = 1;
+      }
 
       // Add promotion filter if enabled
       if (hasDiscountFilter.value) {
@@ -655,9 +661,7 @@ class DashboardController extends GetxController {
   // Toggle walking distance filter
   void toggleWalkingDistanceFilter() {
     isWalkingDistanceFilter.value = !isWalkingDistanceFilter.value;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      update();
-    });
+    fetchRestaurants();
   }
 
   // Toggle discount filter

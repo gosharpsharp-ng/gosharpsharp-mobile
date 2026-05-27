@@ -11,9 +11,10 @@ class AppUpdateService {
 
   bool _isDialogShowing = false;
 
-  // Store IDs - Update these with your actual store IDs
+  // Store IDs
   static const String _playStoreId = 'com.gosharpsharp.customer';
-  static const String _appStoreId = 'com.gosharpsharp.customer';
+  /// Numeric App Store listing id (App Store Connect → General → Apple ID).
+  static const String _appStoreListingId = '6758308881';
 
   /// Initialize and check for updates
   Future<void> initialize() async {
@@ -109,17 +110,17 @@ class AppUpdateService {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryColor.withValues(alpha: 0.3),
+                        color: AppColors.whiteColor,
                         blurRadius: 20.r,
                         offset: Offset(0, 10.h),
                       ),
                     ],
                   ),
                   child: Center(
-                    child: Icon(
-                      Icons.system_update_rounded,
-                      size: 50.sp,
-                      color: AppColors.whiteColor,
+                    child: Image.asset(
+                      PngAssets.goSharpSharpIcon,
+                      width: 52.sp,
+                      height: 52.sp,
                     ),
                   ),
                 ),
@@ -160,6 +161,7 @@ class AppUpdateService {
                   fontWeight: FontWeight.w400,
                   color: AppColors.greyColor,
                   textAlign: TextAlign.center,
+                  TextOverflow:TextOverflow.visible,
                 ),
 
                 // Release notes if available
@@ -300,7 +302,7 @@ class AppUpdateService {
     if (Platform.isAndroid) {
       storeUrl = Uri.parse('market://details?id=$_playStoreId');
     } else {
-      storeUrl = Uri.parse('https://apps.apple.com/app/id$_appStoreId');
+      storeUrl = Uri.parse('https://apps.apple.com/app/id$_appStoreListingId');
     }
 
     try {
@@ -311,7 +313,7 @@ class AppUpdateService {
         final webUrl = Platform.isAndroid
             ? Uri.parse(
                 'https://play.google.com/store/apps/details?id=$_playStoreId')
-            : Uri.parse('https://apps.apple.com/app/id$_appStoreId');
+            : Uri.parse('https://apps.apple.com/app/id$_appStoreListingId');
         await launchUrl(webUrl, mode: LaunchMode.externalApplication);
       }
     } catch (e) {

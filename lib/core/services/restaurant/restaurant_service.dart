@@ -15,6 +15,14 @@ class RestaurantService extends CoreService {
     String queryParams =
         "longitude=${data['longitude']}&latitude=${data['latitude']}";
 
+    // Paginated restaurant listing always expects page.
+    queryParams += "&page=${data['page'] ?? 1}";
+
+    // Leg walk requests should use distance=1.
+    if (data.containsKey('distance') && data['distance'] == 1) {
+      queryParams += "&distance=1";
+    }
+
     // Add optional on_promo parameter
     if (data.containsKey('on_promo') && data['on_promo'] == true) {
       queryParams += "&on_promo=true";
