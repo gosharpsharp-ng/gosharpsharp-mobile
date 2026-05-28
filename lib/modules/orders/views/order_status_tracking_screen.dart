@@ -194,7 +194,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                 borderRadius: BorderRadius.circular(12.r),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.blackColor.withOpacity(0.05),
+                    color: AppColors.blackColor.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: Offset(0, 2),
                   ),
@@ -244,7 +244,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                     ],
                   ),
                   SizedBox(height: 16.h),
-                  Divider(color: AppColors.greyColor.withOpacity(0.2)),
+                  Divider(color: AppColors.greyColor.withValues(alpha: 0.2)),
                   SizedBox(height: 16.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -401,7 +401,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.05),
+                      color: AppColors.blackColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: Offset(0, 2),
                     ),
@@ -429,7 +429,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                         isCurrent: isCurrent,
                         isLast: isLast,
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
@@ -443,7 +443,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.05),
+                      color: AppColors.blackColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: Offset(0, 2),
                     ),
@@ -487,7 +487,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                 borderRadius: BorderRadius.circular(12.r),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.blackColor.withOpacity(0.05),
+                    color: AppColors.blackColor.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: Offset(0, 2),
                   ),
@@ -512,7 +512,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                             width: 48.w,
                             height: 48.h,
                             decoration: BoxDecoration(
-                              color: AppColors.greyColor.withOpacity(0.2),
+                              color: AppColors.greyColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8.r),
                             ),
                             child: item.image.isNotEmpty
@@ -566,7 +566,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -596,7 +596,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
               decoration: BoxDecoration(
                 color: isCompleted || isCurrent
                     ? AppColors.primaryColor
-                    : AppColors.greyColor.withOpacity(0.2),
+                    : AppColors.greyColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -615,7 +615,7 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
                 height: 40.h,
                 color: isCompleted
                     ? AppColors.primaryColor
-                    : AppColors.greyColor.withOpacity(0.2),
+                    : AppColors.greyColor.withValues(alpha: 0.2),
               ),
           ],
         ),

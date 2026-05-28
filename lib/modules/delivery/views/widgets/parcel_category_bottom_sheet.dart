@@ -19,7 +19,7 @@ class ParcelCategoryBottomSheet extends StatelessWidget {
                 fontSize: 20.sp,
                 color: AppColors.primaryColor,
               ),
-              Container(
+              SizedBox(
                 height: 1.sh * 0.46,
                 child: SingleChildScrollView(
                   child: Column(

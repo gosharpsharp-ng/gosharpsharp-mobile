@@ -27,7 +27,7 @@ class DeliverySuccessScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
+                  SizedBox(
                     width: 1.sw,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

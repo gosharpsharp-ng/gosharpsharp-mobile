@@ -1,6 +1,8 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 class AppNavigationScreen extends StatelessWidget {
+  const AppNavigationScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     setSystemOverlayStyle(navigationColor: AppColors.whiteColor);

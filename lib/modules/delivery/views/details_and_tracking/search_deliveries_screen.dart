@@ -50,7 +50,7 @@ class SearchDeliveriesScreen extends StatelessWidget {
                   height: 10.h,
                 ),
                 ordersController.deliverySearchResults.isEmpty
-                    ? Container(
+                    ? SizedBox(
                         width: 1.sw,
                         height: 1.sh * 0.85,
                         child: Column(
@@ -64,7 +64,7 @@ class SearchDeliveriesScreen extends StatelessWidget {
                           ],
                         ),
                       )
-                    : Container(
+                    : SizedBox(
                         width: 1.sw,
                         height: 1.sh * 0.85,
                         child: SingleChildScrollView(

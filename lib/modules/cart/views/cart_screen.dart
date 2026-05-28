@@ -112,7 +112,7 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildEmptyCart() {
     return SingleChildScrollView(
       physics: AlwaysScrollableScrollPhysics(),
-      child: Container(
+      child: SizedBox(
         width: 1.sw,
         height: 0.7.sh,
         child: Column(

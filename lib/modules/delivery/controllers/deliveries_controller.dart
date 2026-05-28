@@ -28,7 +28,7 @@ class DeliveriesController extends GetxController {
 
   TextEditingController trackingIdController = TextEditingController();
   DeliveryModel? selectedDelivery;
-  setSelectedDelivery(DeliveryModel sh) {
+  void setSelectedDelivery(DeliveryModel sh) {
     statusDialogIsOpened = false;
     selectedDelivery = sh;
     shownStatusToasts.clear();
@@ -37,13 +37,13 @@ class DeliveriesController extends GetxController {
 
   TextEditingController ratingReviewController = TextEditingController();
   double rating = 0.0;
-  setDeliveryRating(double value) {
+  void setDeliveryRating(double value) {
     rating = value;
     update();
   }
 
   bool ratingDelivery = false;
-  resetRatingFields() {
+  void resetRatingFields() {
     rating = 0.0;
     ratingReviewController.clear();
     update();
@@ -151,7 +151,7 @@ class DeliveriesController extends GetxController {
   String? distanceToDestination;
   String? durationToDestination;
   bool trackingDelivery = false;
-  trackShipment(BuildContext context) async {
+  Future<void> trackShipment(BuildContext context) async {
     if (deliveryTrackingFormKey.currentState!.validate()) {
       trackingDelivery = true;
       update();
@@ -189,7 +189,7 @@ class DeliveriesController extends GetxController {
   }
 
   BitmapDescriptor? bikeMarkerIcon;
-  getBikeIcon() async {
+  Future<void> getBikeIcon() async {
     var icon = await BitmapDescriptor.asset(
       const ImageConfiguration(),
       PngAssets.motorCycleIcon,
@@ -200,7 +200,7 @@ class DeliveriesController extends GetxController {
     update();
   }
 
-  resetDeliveriesSearchFields() {
+  void resetDeliveriesSearchFields() {
     searchQueryController.clear();
     deliverySearchResults.clear();
     searchDeliveriesPageSize = 15;
@@ -226,15 +226,16 @@ class DeliveriesController extends GetxController {
 
   TextEditingController searchQueryController = TextEditingController();
 
-  setTotalSearchDeliveries(int val) {
+  void setTotalSearchDeliveries(int val) {
     totalSearchDeliveries = val;
     update();
   }
 
-  searchDeliveries({bool isLoadMore = false}) async {
+  Future<void> searchDeliveries({bool isLoadMore = false}) async {
     if (searchingDeliveries ||
-        (isLoadMore && deliverySearchResults.length >= totalSearchDeliveries))
+        (isLoadMore && deliverySearchResults.length >= totalSearchDeliveries)) {
       return;
+    }
 
     if (!deliveriesSearchFormKey.currentState!.validate()) return;
 
@@ -293,15 +294,16 @@ class DeliveriesController extends GetxController {
   int currentDeliveriesPage = 1;
   List<DeliveryModel> allDeliveries = [];
 
-  setTotalDeliveries(int val) {
+  void setTotalDeliveries(int val) {
     totalDeliveries = val;
     update();
   }
 
-  fetchDeliveries({bool isLoadMore = false}) async {
+  Future<void> fetchDeliveries({bool isLoadMore = false}) async {
     if (fetchingDeliveries ||
-        (isLoadMore && allDeliveries.length >= totalDeliveries))
+        (isLoadMore && allDeliveries.length >= totalDeliveries)) {
       return;
+    }
 
     fetchingDeliveries = true;
     update();
@@ -362,14 +364,14 @@ class DeliveriesController extends GetxController {
   }
 
   PaymentMethodModel? selectedPaymentMethod;
-  setSelectedPaymentMethod(PaymentMethodModel pm) {
+  void setSelectedPaymentMethod(PaymentMethodModel pm) {
     selectedPaymentMethod = pm;
     paymentMethodController.text = pm.name;
     update();
   }
 
   CourierTypePrice? selectedCourierTypePrice;
-  setSelectedCourierTypePrice(CourierTypePrice ct) {
+  void setSelectedCourierTypePrice(CourierTypePrice ct) {
     selectedCourierTypePrice = ct;
     update();
   }
@@ -382,17 +384,17 @@ class DeliveriesController extends GetxController {
   // Paystack payment data
   PayStackAuthorizationModel? payStackAuthorizationData;
 
-  setSelectedBikeType(String bikeType) {
+  void setSelectedBikeType(String bikeType) {
     selectedBikeType = bikeType;
     update();
   }
 
-  setSelectedCourierType(DeliveryCourierType courierType) {
+  void setSelectedCourierType(DeliveryCourierType courierType) {
     selectedCourierType = courierType;
     update();
   }
 
-  setSelectedPaymentType(String paymentType) {
+  void setSelectedPaymentType(String paymentType) {
     selectedPaymentType = paymentType;
     update();
   }
@@ -567,11 +569,11 @@ class DeliveriesController extends GetxController {
         PolylinePoints.decodePolyline(directionDetailsInfo.e_points!);
     pLineCoordinatedList.clear();
     if (decodePolyLinePointsResultList.isNotEmpty) {
-      decodePolyLinePointsResultList.forEach((PointLatLng pointLatLng) {
+      for (var pointLatLng in decodePolyLinePointsResultList) {
         pLineCoordinatedList.add(
           LatLng(pointLatLng.latitude, pointLatLng.longitude),
         );
-      });
+      }
       update();
     }
     polyLineSet.clear();
@@ -669,11 +671,11 @@ class DeliveriesController extends GetxController {
 
     pLineCoordinatedList.clear();
     if (decodedPolylinePoints.isNotEmpty) {
-      decodedPolylinePoints.forEach((PointLatLng pointLatLng) {
+      for (var pointLatLng in decodedPolylinePoints) {
         pLineCoordinatedList.add(
           LatLng(pointLatLng.latitude, pointLatLng.longitude),
         );
-      });
+      }
       update();
     }
 
@@ -771,13 +773,13 @@ class DeliveriesController extends GetxController {
     update();
   }
 
-  setDeliverySenderLocation(ItemLocation point) {
+  void setDeliverySenderLocation(ItemLocation point) {
     deliverySenderLocation = point;
     senderAddressController.setText(point.formattedAddress!);
     update();
   }
 
-  setDeliveryReceiverLocation(ItemLocation point) {
+  void setDeliveryReceiverLocation(ItemLocation point) {
     deliveryReceiverLocation = point;
     receiverAddressController.setText(point.formattedAddress!);
     // Unfocus any active text field to prevent unwanted focus shifts
@@ -803,19 +805,19 @@ class DeliveriesController extends GetxController {
   TextEditingController paymentMethodController = TextEditingController();
   TextEditingController deliveryItemQuantityController =
       TextEditingController();
-  setReceiverPhoneNumber(PhoneNumber num) {
+  void setReceiverPhoneNumber(PhoneNumber num) {
     receiverPhoneController.text = num.number;
     update();
   }
 
   PhoneNumber? filledPhoneNumber;
-  setFilledPhoneNumber(PhoneNumber num) {
+  void setFilledPhoneNumber(PhoneNumber num) {
     filledPhoneNumber = num;
     update();
   }
 
   List<File> deliveryItemImages = [];
-  setDeliveryItemCategory(String cat) {
+  void setDeliveryItemCategory(String cat) {
     deliveryItemCategoryController.setText(cat);
     update();
   }
@@ -846,7 +848,7 @@ class DeliveriesController extends GetxController {
 
   bool? imageUploaded;
   DeliveryItemData? deliveryData;
-  addDeliveryItem({bool skipValidation = false}) {
+  void addDeliveryItem({bool skipValidation = false}) {
     // If called directly without form (from InitiateDeliveryScreen), skip validation
     if (skipValidation) {
       deliveryItems.clear();
@@ -916,7 +918,7 @@ class DeliveriesController extends GetxController {
   //   update();
   // }
 
-  continueDelivery() {
+  void continueDelivery() {
     // Case 1: delivery items exist, but fields are empty
     if (deliveryItems.isNotEmpty && !_hasAnyFieldValue()) {
       Get.toNamed(Routes.DELIVERY_SUMMARY_SCREEN);
@@ -947,7 +949,7 @@ class DeliveriesController extends GetxController {
     }
   }
 
-  prefillDeliverySenderDetails() {
+  void prefillDeliverySenderDetails() {
     senderNameController.setText(
       "${settingController.userProfile?.fname ?? ''} ${settingController.userProfile?.lname ?? ''}",
     );
@@ -958,7 +960,7 @@ class DeliveriesController extends GetxController {
   }
 
   int? selectedDeliveryItemIndex;
-  editDeliveryItem() {
+  void editDeliveryItem() {
     deliveryItemNameController.setText(selectedDeliveryItemForItem?.name ?? "");
     deliveryItemDescriptionController.setText(
       selectedDeliveryItemForItem?.description ?? "",
@@ -974,7 +976,7 @@ class DeliveriesController extends GetxController {
   }
 
   bool submittingDelivery = false;
-  submitDelivery(BuildContext context) async {
+  Future<void> submitDelivery(BuildContext context) async {
     // removeFocus();
     submittingDelivery = true;
     update();
@@ -1011,7 +1013,7 @@ class DeliveriesController extends GetxController {
 
   bool gettingDistance = false;
   DirectionDetailsInfo? distanceDetails;
-  getRideEstimatedDistance() async {
+  Future<void> getRideEstimatedDistance() async {
     gettingDistance = true;
     update();
     distanceDetails = await obtainOriginToDestinationDirectionDetails(
@@ -1252,7 +1254,7 @@ class DeliveriesController extends GetxController {
   }
 
   List<String> parcelCategories = ["non-fragile", "fragile"];
-  validateSendingInformation() {
+  void validateSendingInformation() {
     if (sendingInfoFormKey.currentState!.validate() &&
         receiverPhoneController.text.isNotEmpty) {
       Get.find<SocketService>().listenForAvailableRiders(
@@ -1278,7 +1280,7 @@ class DeliveriesController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
   String? parcelImage;
-  selectParcelImage({required bool pickFromCamera}) async {
+  Future<void> selectParcelImage({required bool pickFromCamera}) async {
     XFile? photo;
     if (pickFromCamera) {
       photo = await _picker.pickImage(source: ImageSource.camera);
@@ -1321,7 +1323,7 @@ class DeliveriesController extends GetxController {
     ).then((value) => value ?? false); // Return false if dialog is dismissed
   }
 
-  checkOrderConfirmationDialog(BuildContext context) {
+  Future<bool?> checkOrderConfirmationDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -1419,7 +1421,7 @@ class DeliveriesController extends GetxController {
     }
   }
 
-  startLocationTracking({
+  Future<void> startLocationTracking({
     required String trackingId,
     required BuildContext context,
   }) async {

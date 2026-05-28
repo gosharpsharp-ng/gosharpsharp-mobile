@@ -55,7 +55,7 @@ class DeliveriesHomeScreen extends StatelessWidget {
                   SizedBox(height: 10.h),
                   Visibility(
                     visible: ordersController.allDeliveries.isNotEmpty,
-                    replacement: Container(
+                    replacement: SizedBox(
                       width: 1.sw,
                       height: 1.sh * 0.674,
                       child: Column(

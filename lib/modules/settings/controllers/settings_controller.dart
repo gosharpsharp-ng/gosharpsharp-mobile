@@ -11,15 +11,15 @@ class SettingsController extends GetxController {
   String? initialEmail;
   String? initialPhone;
   bool _isLoading = false;
-  get isLoading => _isLoading;
-  setLoadingState(bool val) {
+  bool get isLoading => _isLoading;
+  void setLoadingState(bool val) {
     _isLoading = val;
     update();
   }
 
   final getStorage = GetStorage();
   UserProfile? userProfile;
-  getProfile() async {
+  Future<void> getProfile() async {
     setLoadingState(true);
     APIResponse response = await profileService.getProfile();
 
@@ -53,12 +53,12 @@ class SettingsController extends GetxController {
   }
 
   bool isProfileEditable = false;
-  toggleProfileEditState(bool value) {
+  void toggleProfileEditState(bool value) {
     isProfileEditable = value;
     update();
   }
 
-  setProfileFields() {
+  void setProfileFields() {
     // Store initial values
     initialFName = userProfile?.fname ?? "";
     initialLName = userProfile?.lname ?? "";
@@ -77,7 +77,7 @@ class SettingsController extends GetxController {
   TextEditingController lNameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  updateUserProfile() async {
+  Future<void> updateUserProfile() async {
     if (profileUpdateFormKey.currentState!.validate()) {
       setLoadingState(true);
       Map<String, dynamic> updatedData = {};
@@ -109,7 +109,7 @@ class SettingsController extends GetxController {
   }
 
   bool isUpdatingAvatar = false;
-  setLoadingProfileAvatarState(bool val) {
+  void setLoadingProfileAvatarState(bool val) {
     isUpdatingAvatar = val;
     update();
   }
@@ -117,7 +117,7 @@ class SettingsController extends GetxController {
   final ImagePicker _picker = ImagePicker();
   File? userProfilePicture;
 
-  pickUserProfilePicture({required bool pickFromCamera}) async {
+  Future<void> pickUserProfilePicture({required bool pickFromCamera}) async {
     XFile? photo;
     if (pickFromCamera) {
       photo = await _picker.pickImage(source: ImageSource.camera);
@@ -176,26 +176,26 @@ class SettingsController extends GetxController {
   TextEditingController confirmNewPasswordController = TextEditingController();
   bool oldPasswordVisibility = false;
 
-  toggleOldPasswordVisibility() {
+  void toggleOldPasswordVisibility() {
     oldPasswordVisibility = !oldPasswordVisibility;
     update();
   }
 
   bool newPasswordVisibility = false;
 
-  toggleNewPasswordVisibility() {
+  void toggleNewPasswordVisibility() {
     newPasswordVisibility = !newPasswordVisibility;
     update();
   }
 
   bool confirmNewPasswordVisibility = false;
 
-  toggleConfirmNewPasswordVisibility() {
+  void toggleConfirmNewPasswordVisibility() {
     confirmNewPasswordVisibility = !confirmNewPasswordVisibility;
     update();
   }
 
-  changePassword() async {
+  Future<void> changePassword() async {
     if (changePasswordFormKey.currentState!.validate()) {
       setLoadingState(true);
       dynamic data = {
@@ -221,20 +221,20 @@ class SettingsController extends GetxController {
   }
 
   bool _isLoadingNotification = false;
-  get isLoadingNotification => _isLoadingNotification;
-  setLoadingNotificationState(bool val) {
+  bool get isLoadingNotification => _isLoadingNotification;
+  void setLoadingNotificationState(bool val) {
     _isLoadingNotification = val;
     update();
   }
 
   List<NotificationModel> notifications = [];
   NotificationModel? selectedNotification;
-  setSelectedNotification(NotificationModel nt) {
+  void setSelectedNotification(NotificationModel nt) {
     selectedNotification = nt;
     update();
   }
 
-  getSingleNotification() async {
+  Future<void> getSingleNotification() async {
     dynamic data = {"id": selectedNotification!.id};
     APIResponse response = await profileService.getNotificationById(data);
     selectedNotification = NotificationModel.fromJson(response.data[data]);
@@ -244,7 +244,7 @@ class SettingsController extends GetxController {
   }
 
   // Fetch unread notifications count for badge
-  getUnreadNotifications() async {
+  Future<void> getUnreadNotifications() async {
     setLoadingNotificationState(true);
     dynamic data = {
       "page": 1,
@@ -264,7 +264,7 @@ class SettingsController extends GetxController {
     }
   }
 
-  logout() async {
+  Future<void> logout() async {
     GetStorage getStorage = GetStorage();
     getStorage.remove('token');
     Get.offAllNamed(Routes.SIGN_IN);
@@ -276,7 +276,7 @@ class SettingsController extends GetxController {
 
   bool deletePasswordVisibility = false;
 
-  toggleDeletePasswordVisibility() {
+  void toggleDeletePasswordVisibility() {
     deletePasswordVisibility = !deletePasswordVisibility;
     update();
   }
@@ -284,7 +284,7 @@ class SettingsController extends GetxController {
   bool deletingAccount = false;
   final deleteAccountFormKey = GlobalKey<FormState>();
   TextEditingController deletePasswordController = TextEditingController();
-  deleteAccount() async {
+  Future<void> deleteAccount() async {
     if (deleteAccountFormKey.currentState!.validate()) {
       dynamic data = {"password": deletePasswordController.text};
       APIResponse res = await profileService.deleteAccount(data);
@@ -302,7 +302,7 @@ class SettingsController extends GetxController {
     }
   }
 
-  showAccountDeletionDialog() async {
+  Future<void> showAccountDeletionDialog() async {
     await Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

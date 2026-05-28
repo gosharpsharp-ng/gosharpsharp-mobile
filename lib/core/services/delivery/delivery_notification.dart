@@ -51,8 +51,7 @@ class OrderDetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const OrderDetailRow({Key? key, required this.label, required this.value})
-    : super(key: key);
+  const OrderDetailRow({super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

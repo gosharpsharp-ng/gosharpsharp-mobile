@@ -79,7 +79,7 @@ class DeliveryItemWidget extends StatelessWidget {
             onTap: () {
               onSelected();
             },
-            child: Container(
+            child: SizedBox(
               width: 1.sw,
               height: 0.15 * 1.sh,
               child: Row(

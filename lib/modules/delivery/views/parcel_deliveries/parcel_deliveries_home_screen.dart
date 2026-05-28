@@ -30,7 +30,7 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
                 SizedBox(height: 20.h),
 
                 // Status Filter Tabs
-                Container(
+                SizedBox(
                   height: 45.h,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,

@@ -6,7 +6,7 @@ class OnboardingWidget extends GetView<OnboardingController> {
   final String title;
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 1.sh,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,

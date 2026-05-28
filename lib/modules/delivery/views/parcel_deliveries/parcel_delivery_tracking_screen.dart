@@ -675,7 +675,7 @@ class _ParcelDeliveryTrackingScreenState
                         isCurrent: isCurrent,
                         isLast: isLast,
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
@@ -796,7 +796,7 @@ class _ParcelDeliveryTrackingScreenState
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),

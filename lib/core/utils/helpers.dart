@@ -9,13 +9,13 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:cloudinary/cloudinary.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-customDebugPrint(dynamic message){
+void customDebugPrint(dynamic message){
   print("*****************************************************************************************************************");
   log(message.toString());
   print("*****************************************************************************************************************");
 
 }
-showAnyBottomSheet({required Widget child, bool isControlled = true}) {
+void showAnyBottomSheet({required Widget child, bool isControlled = true}) {
   Get.bottomSheet(
     Wrap(children: [child]),
     isScrollControlled: isControlled,
@@ -84,19 +84,19 @@ class DottedDivider extends StatelessWidget {
   final double length;
 
   const DottedDivider({
-    Key? key,
+    super.key,
     this.dotSize = 8.0,
     this.spacing = 2.0,
     this.color = AppColors.primaryColor,
     this.axis = Axis.vertical, // Default to horizontal
     required this.length,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final int dotCount = (length / (dotSize + spacing)).floor();
 
-    return Container(
+    return SizedBox(
       height: axis == Axis.horizontal ? 2 : length + 2,
       width: axis == Axis.horizontal ? length : 2.sp,
       child: axis == Axis.horizontal
@@ -148,7 +148,7 @@ class DottedDivider extends StatelessWidget {
   }
 }
 
-detailHorizontalItem({required String title, required String detail}) {
+Container detailHorizontalItem({required String title, required String detail}) {
   return Container(
     margin: EdgeInsets.symmetric(vertical: 5.sp),
     child: Row(
@@ -168,7 +168,7 @@ detailHorizontalItem({required String title, required String detail}) {
   );
 }
 
-detailVerticalItem({required String title, required String detail}) {
+Container detailVerticalItem({required String title, required String detail}) {
   return Container(
     margin: EdgeInsets.symmetric(vertical: 5.sp),
     child: Column(
@@ -194,7 +194,7 @@ detailVerticalItem({required String title, required String detail}) {
   );
 }
 
-detailHeader({required String header}) {
+Container detailHeader({required String header}) {
   return Container(
     margin: EdgeInsets.only(top: 12.sp, bottom: 8.sp),
     child: customText(header, fontSize: 14.sp, fontWeight: FontWeight.w500),
@@ -250,7 +250,7 @@ class EditIcon extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-            color: AppColors.primaryColor.withOpacity(0.2),
+            color: AppColors.primaryColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(20.r)),
         padding: EdgeInsets.symmetric(horizontal: 8.sp, vertical: 4.sp),
         margin: EdgeInsets.symmetric(vertical: 5.sp),
@@ -305,7 +305,7 @@ class SaveIcon extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-            color: AppColors.primaryColor.withOpacity(0.2),
+            color: AppColors.primaryColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(20.r)),
         padding: EdgeInsets.symmetric(horizontal: 8.sp, vertical: 4.sp),
         margin: EdgeInsets.symmetric(vertical: 5.sp),
@@ -341,7 +341,7 @@ class SaveIcon extends StatelessWidget {
   }
 }
 
-showToast({String message = "", bool isError = false}) {
+void showToast({String message = "", bool isError = false}) {
   Get.snackbar(
     "",
     "",
@@ -492,7 +492,7 @@ String formatToCurrency(num number) {
   return formatted;
 }
 
-formatNumber(dynamic value, {String locale = 'en_NG'}) {
+String formatNumber(dynamic value, {String locale = 'en_NG'}) {
   final cFormat = NumberFormat("#,##0", locale);
   if (value == null) return '₦${cFormat.format('0')}';
   return cFormat.format(value);
@@ -541,7 +541,7 @@ class PartialViewHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 1.sw,
       child: Row(
         children: [
@@ -583,7 +583,7 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 1.sw,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -1917,7 +1917,7 @@ Color getRestaurantStatusColor(String status) {
 class NavigationHelper {
   // Method 1: Check if current route is the last one in stack
   static bool isCurrentRouteLastInStack() {
-    final navigator = Get.key.currentState as NavigatorState?;
+    final navigator = Get.key.currentState;
     if (navigator == null) return true;
 
     // Check if we can pop (if we can't pop, we're at the root/last screen)

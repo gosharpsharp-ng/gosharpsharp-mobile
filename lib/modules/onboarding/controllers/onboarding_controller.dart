@@ -4,19 +4,19 @@ class OnboardingController extends GetxController {
   var pageController = PageController();
   // int ImageSliderIndex = 0;
   int currentPageIndex = 0;
-  nextIndex(int index) {
+  void nextIndex(int index) {
     currentPageIndex = index;
     update();
   }
 
-  autoNextIndex() {
+  void autoNextIndex() {
     pageController.nextPage(
         duration: const Duration(milliseconds: 1), curve: Curves.easeInOut);
     currentPageIndex = pageController.page!.toInt();
     update();
   }
 
-  moveToLastIndex() {
+  void moveToLastIndex() {
     int lastIndex = (pageController.positions.isNotEmpty)
         ? pageController.positions.first.maxScrollExtent ~/
         pageController.position.viewportDimension

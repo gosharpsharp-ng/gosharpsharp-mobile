@@ -422,36 +422,35 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                             SizedBox(width: 8.w),
                                           ],
                                           // Prep Time
-                                          if (menuItem.prepTimeMinutes != null)
-                                            Container(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 10.w,
-                                                vertical: 6.h,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.secondaryColor
-                                                    .withValues(alpha: 0.3),
-                                                borderRadius:
-                                                    BorderRadius.circular(8.r),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.access_time,
-                                                    color: AppColors.blackColor,
-                                                    size: 16.sp,
-                                                  ),
-                                                  SizedBox(width: 4.w),
-                                                  customText(
-                                                    "${menuItem.prepTimeMinutes} mins",
-                                                    fontSize: 13.sp,
-                                                    color: AppColors.blackColor,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ],
-                                              ),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10.w,
+                                              vertical: 6.h,
                                             ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.secondaryColor
+                                                  .withValues(alpha: 0.3),
+                                              borderRadius:
+                                                  BorderRadius.circular(8.r),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.access_time,
+                                                  color: AppColors.blackColor,
+                                                  size: 16.sp,
+                                                ),
+                                                SizedBox(width: 4.w),
+                                                customText(
+                                                  "${menuItem.prepTimeMinutes} mins",
+                                                  fontSize: 13.sp,
+                                                  color: AppColors.blackColor,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ],
                                       ),
                                       SizedBox(height: 4.h),

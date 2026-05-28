@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart' as dio_pack;
 import 'package:dio/dio.dart';
-import 'package:gosharpsharp/core/routing/app_pages.dart' show Routes;
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 class CoreService extends GetConnect {

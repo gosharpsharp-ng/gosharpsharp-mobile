@@ -222,7 +222,7 @@ class DeliveryInvoiceDetailsScreen extends StatelessWidget {
                               ordersController
                                   .selectedDelivery
                                   ?.pickUpLocation
-                                  ?.name ??
+                                  .name ??
                               '',
                         ),
                       ],

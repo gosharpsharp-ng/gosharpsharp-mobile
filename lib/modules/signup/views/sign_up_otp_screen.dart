@@ -1,7 +1,7 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 class SignUpOtpScreen extends StatelessWidget {
-  SignUpOtpScreen({super.key});
+  const SignUpOtpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class SignUpOtpScreen extends StatelessWidget {
                 title: "",
                 backgroundColor: AppColors.whiteColor,
                 children: [
-                  Container(
+                  SizedBox(
                     width: 1.sw,
                     child: Row(
                       children: [

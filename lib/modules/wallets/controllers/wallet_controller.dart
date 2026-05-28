@@ -3,8 +3,8 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 class WalletController extends GetxController {
   final walletService = serviceLocator<WalletsService>();
   bool _isLoading = false;
-  get isLoading => _isLoading;
-  setLoadingState(bool val) {
+  bool get isLoading => _isLoading;
+  void setLoadingState(bool val) {
     _isLoading = val;
     update();
   }
@@ -24,14 +24,16 @@ class WalletController extends GetxController {
   int currentTransactionsPage = 1;
   List<Transaction> transactions = [];
 
-  setTotalTransactions(int val) {
+  void setTotalTransactions(int val) {
     totalTransactions = val;
     update();
   }
 
-  getTransactions({bool isLoadMore = false}) async {
+  Future<void> getTransactions({bool isLoadMore = false}) async {
     if (fetchingTransactions ||
-        (isLoadMore && transactions.length >= totalTransactions)) return;
+        (isLoadMore && transactions.length >= totalTransactions)) {
+      return;
+    }
 
     fetchingTransactions = true;
     update();
@@ -72,12 +74,12 @@ class WalletController extends GetxController {
   }
 
   Transaction? selectedTransaction;
-  setSelectedTransaction(Transaction tr) {
+  void setSelectedTransaction(Transaction tr) {
     selectedTransaction = tr;
     update();
   }
 
-  getTransactionById() async {
+  Future<void> getTransactionById() async {
     setLoadingState(true);
     dynamic data = {
       'id': selectedTransaction!.id,
@@ -96,14 +98,14 @@ class WalletController extends GetxController {
 
   bool walletBalanceVisibility = false;
   GetStorage getStorage = GetStorage();
-  toggleWalletBalanceVisibility() {
+  void toggleWalletBalanceVisibility() {
     walletBalanceVisibility = !walletBalanceVisibility;
     getStorage.write("walletBalanceVisibility", walletBalanceVisibility);
     update();
   }
 
   WalletBalanceDataModel? walletBalanceData;
-  getWalletBalance() async {
+  Future<void> getWalletBalance() async {
     APIResponse response = await walletService.getWalletBalance();
     setLoadingState(false);
 
@@ -123,7 +125,7 @@ class WalletController extends GetxController {
   final fundWalletFormKey = GlobalKey<FormState>();
   bool fundingWallet = false;
   TextEditingController amountEntryController = TextEditingController();
-  fundWallet() async {
+  Future<void> fundWallet() async {
     if (fundWalletFormKey.currentState!.validate()) {
       fundingWallet = true;
       update();
@@ -147,7 +149,7 @@ class WalletController extends GetxController {
   }
 
   List<BankModel> banks = [];
-  getBankList() async {
+  Future<void> getBankList() async {
     setLoadingState(true);
     APIResponse response = await walletService.getBankList();
     showToast(message: response.message, isError: response.status != "success");
@@ -158,7 +160,7 @@ class WalletController extends GetxController {
     }
   }
 
-  clearFundingFields() {
+  void clearFundingFields() {
     amountEntryController.clear();
     payStackAuthorizationData = null;
     update();
@@ -167,7 +169,7 @@ class WalletController extends GetxController {
   final payoutAccountFormKey = GlobalKey<FormState>();
   TextEditingController accountNumberController = TextEditingController();
   TextEditingController bankCodeController = TextEditingController();
-  verifyPayoutBank() async {
+  Future<void> verifyPayoutBank() async {
     if (payoutAccountFormKey.currentState!.validate()) {
       setLoadingState(true);
       dynamic data = {
@@ -183,7 +185,7 @@ class WalletController extends GetxController {
   }
 
   TextEditingController otpController = TextEditingController();
-  updatePayoutAccount() async {
+  Future<void> updatePayoutAccount() async {
     if (payoutAccountFormKey.currentState!.validate()) {
       setLoadingState(true);
       dynamic data = {

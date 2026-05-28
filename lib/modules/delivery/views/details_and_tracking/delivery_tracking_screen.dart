@@ -44,7 +44,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     super.dispose();
   }
 
-  startLocationTracking({required String trackingId}) async {
+  Future<void> startLocationTracking({required String trackingId}) async {
     if (Get.isRegistered<SocketService>()) {
       _socketService = Get.find<SocketService>();
 
@@ -206,7 +206,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   }
 
   LocationPermission? _locationPermission;
-  checkIfLocationPermissionIsAllowed() async {
+  Future<void> checkIfLocationPermissionIsAllowed() async {
     _locationPermission = await Geolocator.requestPermission();
     if (_locationPermission == LocationPermission.denied) {
       _locationPermission = await Geolocator.requestPermission();
@@ -219,7 +219,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     zoom: 14.4746,
   );
   Position? userCurrentPosition;
-  locateUserPosition() async {
+  Future<void> locateUserPosition() async {
     final ordersController = Get.find<DeliveriesController>();
 
     LocationSettings locationSettings = const LocationSettings(

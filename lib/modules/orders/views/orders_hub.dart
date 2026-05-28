@@ -108,12 +108,12 @@ class OrdersHub extends StatelessWidget {
           color: AppColors.whiteColor,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-            color: AppColors.greyColor.withOpacity(0.3),
+            color: AppColors.greyColor.withValues(alpha: 0.3),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.blackColor.withOpacity(0.05),
+              color: AppColors.blackColor.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),

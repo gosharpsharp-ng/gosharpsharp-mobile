@@ -30,33 +30,33 @@ class SignUpController extends GetxController {
   final signOTPFormKey = GlobalKey<FormState>();
 
   bool isLoading = false;
-  setLoadingState(bool val) {
+  void setLoadingState(bool val) {
     isLoading = val;
     update();
   }
 
   bool isResendingOtp = false;
-  setIsResendingOTPState(bool val) {
+  void setIsResendingOTPState(bool val) {
     isResendingOtp = val;
     update();
   }
 
   bool signUpPasswordVisibility = false;
 
-  togglePasswordVisibility() {
+  void togglePasswordVisibility() {
     signUpPasswordVisibility = !signUpPasswordVisibility;
     update();
   }
 
   bool signUpConfirmPasswordVisibility = false;
 
-  toggleConfirmPasswordVisibility() {
+  void toggleConfirmPasswordVisibility() {
     signUpConfirmPasswordVisibility = !signUpConfirmPasswordVisibility;
     update();
   }
 
   TextEditingController otpController = TextEditingController();
-  verifyOtp() async {
+  Future<void> verifyOtp() async {
     if (signOTPFormKey.currentState!.validate()) {
       setLoadingState(true);
       dynamic data = {
@@ -75,7 +75,7 @@ class SignUpController extends GetxController {
     }
   }
 
-  sendOtp() async {
+  Future<void> sendOtp() async {
     setIsResendingOTPState(true);
     dynamic data = {
       'identifier': emailController.text,
@@ -88,13 +88,13 @@ class SignUpController extends GetxController {
     }
   }
 
-  setPhoneNumber(val) {
+  void setPhoneNumber(val) {
     phoneNumberController.text = val;
     update();
   }
 
   PhoneNumber? filledPhoneNumber;
-  setFilledPhoneNumber(PhoneNumber num) {
+  void setFilledPhoneNumber(PhoneNumber num) {
     filledPhoneNumber = num;
     update();
   }
@@ -106,7 +106,7 @@ class SignUpController extends GetxController {
   TextEditingController phoneNumberController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController cPasswordController = TextEditingController();
-  signUp() async {
+  Future<void> signUp() async {
     if (signUpFormKey.currentState!.validate() &&
         phoneNumberController.text.isNotEmpty) {
       setLoadingState(true);

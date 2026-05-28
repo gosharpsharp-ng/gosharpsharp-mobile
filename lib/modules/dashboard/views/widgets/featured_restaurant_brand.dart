@@ -30,7 +30,7 @@ class FeaturedRestaurantBrand extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: AppColors.backgroundColor,
                 border: Border.all(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),

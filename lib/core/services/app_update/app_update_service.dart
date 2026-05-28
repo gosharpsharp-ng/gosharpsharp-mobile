@@ -161,7 +161,6 @@ class AppUpdateService {
                   fontWeight: FontWeight.w400,
                   color: AppColors.greyColor,
                   textAlign: TextAlign.center,
-                  TextOverflow:TextOverflow.visible,
                 ),
 
                 // Release notes if available

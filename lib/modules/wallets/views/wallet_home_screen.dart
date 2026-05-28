@@ -199,7 +199,7 @@ class WalletHomeScreen extends StatelessWidget {
                         visible:
                             walletController.isLoading &&
                             walletController.transactions.isEmpty,
-                        replacement: Container(
+                        replacement: SizedBox(
                           height: 150.sp,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -208,7 +208,7 @@ class WalletHomeScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        child: Container(
+                        child: SizedBox(
                           height: 150.sp,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,

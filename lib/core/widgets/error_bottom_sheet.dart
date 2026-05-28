@@ -90,7 +90,7 @@ class _ErrorBottomSheetState extends State<ErrorBottomSheet> {
             SizedBox(height: 20.h),
 
             // Title
-            Container(
+            SizedBox(
               width: 1.sw,
               child: customText(
                 widget.title,

@@ -32,26 +32,26 @@ class PasswordResetController extends GetxController {
 
   bool passwordVisibility = false;
 
-  togglePasswordVisibility() {
+  void togglePasswordVisibility() {
     passwordVisibility = !passwordVisibility;
     update();
   }
 
   bool confirmPasswordVisibility = false;
 
-  toggleConfirmPasswordVisibility() {
+  void toggleConfirmPasswordVisibility() {
     confirmPasswordVisibility = !confirmPasswordVisibility;
     update();
   }
 
   bool _isLoading = false;
-  get isLoading => _isLoading;
-  setLoadingState(bool val) {
+  bool get isLoading => _isLoading;
+  void setLoadingState(bool val) {
     _isLoading = val;
     update();
   }
 
-  sendPasswordResetOTP() async {
+  Future<void> sendPasswordResetOTP() async {
     if (resetPasswordRequestFormKey.currentState!.validate()) {
       setLoadingState(true);
       dynamic data = {
@@ -69,12 +69,12 @@ class PasswordResetController extends GetxController {
   }
 
   bool isResendingOtp = false;
-  setIsResendingOTPState(bool val) {
+  void setIsResendingOTPState(bool val) {
     isResendingOtp = val;
     update();
   }
 
-  resendPasswordResetOTP() async {
+  Future<void> resendPasswordResetOTP() async {
     setIsResendingOTPState(true);
     dynamic data = {
       'identifier': loginController.text,
@@ -87,7 +87,7 @@ class PasswordResetController extends GetxController {
     }
   }
 
-  validDateOtpField() {
+  void validDateOtpField() {
     if (restPasswordOtpFormKey.currentState!.validate()) {
       Get.toNamed(Routes.RESET_PASSWORD_NEW_PASSWORD_SCREEN);
     }
@@ -95,7 +95,7 @@ class PasswordResetController extends GetxController {
 
   bool useEmail = true;
 
-  toggleSignInWithEmail() {
+  void toggleSignInWithEmail() {
     useEmail = !useEmail;
     loginController.clear();
     update();
@@ -103,12 +103,12 @@ class PasswordResetController extends GetxController {
 
   TextEditingController loginController = TextEditingController();
   PhoneNumber? filledPhoneNumber;
-  setPhoneNumber(PhoneNumber num) {
+  void setPhoneNumber(PhoneNumber num) {
     loginController.text = filledPhoneNumber!.completeNumber;
     update();
   }
 
-  resetPassword() async {
+  Future<void> resetPassword() async {
     if (resetPasswordFormKey.currentState!.validate()) {
       setLoadingState(true);
       dynamic data = {

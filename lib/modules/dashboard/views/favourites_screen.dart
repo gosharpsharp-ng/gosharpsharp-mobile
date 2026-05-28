@@ -48,7 +48,7 @@ class FavouritesScreen extends StatelessWidget {
                               }
                             },
                           ))
-                      .toList(),
+                      ,
                 ],
               ),
             ),
@@ -61,7 +61,7 @@ class FavouritesScreen extends StatelessWidget {
   Widget _buildEmptyState() {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      child: Container(
+      child: SizedBox(
         width: 1.sw,
         height: 0.7.sh,
         child: Column(

@@ -133,7 +133,7 @@ class SignUpScreen extends GetView<SignUpController> {
                             if (!regex.hasMatch(phone.completeNumber)) {
                               return "Phone number must start with +234 and be 10 digits long";
                             }
-                            if(signUpController.phoneNumberController.text.isEmpty || signUpController.phoneNumberController.text==null){
+                            if(signUpController.phoneNumberController.text.isEmpty){
                               return "Phone number is required";
                             }
                             return null;

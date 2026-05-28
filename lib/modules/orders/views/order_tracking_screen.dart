@@ -78,7 +78,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 width: double.infinity,
                 height: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.greyColor.withOpacity(0.2),
+                  color: AppColors.greyColor.withValues(alpha: 0.2),
                 ),
                 child: Center(
                   child: Column(
@@ -87,7 +87,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       Icon(
                         Icons.map,
                         size: 100.sp,
-                        color: AppColors.greyColor.withOpacity(0.5),
+                        color: AppColors.greyColor.withValues(alpha: 0.5),
                       ),
                       SizedBox(height: 16.h),
                       customText(
@@ -116,7 +116,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.blackColor.withOpacity(0.1),
+                        color: AppColors.blackColor.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: Offset(0, 4),
                       ),
@@ -194,7 +194,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           Expanded(
                             child: Container(
                               height: 2.h,
-                              color: AppColors.greyColor.withOpacity(0.3),
+                              color: AppColors.greyColor.withValues(alpha: 0.3),
                             ),
                           ),
 
@@ -202,7 +202,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           Container(
                             padding: EdgeInsets.all(8.sp),
                             decoration: BoxDecoration(
-                              color: AppColors.greyColor.withOpacity(0.3),
+                              color: AppColors.greyColor.withValues(alpha: 0.3),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -252,7 +252,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             // Delivery person avatar
                             CircleAvatar(
                               radius: 25.r,
-                              backgroundColor: AppColors.greyColor.withOpacity(0.3),
+                              backgroundColor: AppColors.greyColor.withValues(alpha: 0.3),
                               child: Icon(
                                 Icons.person,
                                 size: 25.sp,

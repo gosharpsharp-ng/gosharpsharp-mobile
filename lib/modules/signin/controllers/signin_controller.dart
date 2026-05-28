@@ -6,15 +6,15 @@ class SignInController extends GetxController {
   final signInFormKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
-  get isLoading => _isLoading;
-  setLoadingState(bool val) {
+  bool get isLoading => _isLoading;
+  void setLoadingState(bool val) {
     _isLoading = val;
     update();
   }
 
   bool signInPasswordVisibility = false;
 
-  togglePasswordVisibility() {
+  void togglePasswordVisibility() {
     signInPasswordVisibility = !signInPasswordVisibility;
     update();
   }
@@ -23,7 +23,7 @@ class SignInController extends GetxController {
 
   TextEditingController loginController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  signIn() async {
+  Future<void> signIn() async {
     loginErrorMessage = null;
     update();
 

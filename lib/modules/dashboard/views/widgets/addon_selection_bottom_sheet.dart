@@ -40,7 +40,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
             width: 40.w,
             height: 4.h,
             decoration: BoxDecoration(
-              color: AppColors.obscureTextColor.withOpacity(0.3),
+              color: AppColors.obscureTextColor.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
@@ -81,7 +81,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
             ),
           ),
 
-          Divider(height: 1.h, color: AppColors.obscureTextColor.withOpacity(0.2)),
+          Divider(height: 1.h, color: AppColors.obscureTextColor.withValues(alpha: 0.2)),
 
           // Add-ons list
           Flexible(
@@ -91,7 +91,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
               itemCount: addons.length,
               separatorBuilder: (context, index) => Divider(
                 height: 1.h,
-                color: AppColors.obscureTextColor.withOpacity(0.1),
+                color: AppColors.obscureTextColor.withValues(alpha: 0.1),
               ),
               itemBuilder: (context, index) {
                 final addon = addons[index];
@@ -106,7 +106,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                     color: isSelected
-                        ? AppColors.primaryColor.withOpacity(0.05)
+                        ? AppColors.primaryColor.withValues(alpha: 0.05)
                         : AppColors.whiteColor,
                     child: Row(
                       children: [
@@ -201,7 +201,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                             border: Border.all(
                               color: isSelected
                                   ? AppColors.primaryColor
-                                  : AppColors.obscureTextColor.withOpacity(0.3),
+                                  : AppColors.obscureTextColor.withValues(alpha: 0.3),
                               width: 2,
                             ),
                             color: isSelected
@@ -231,7 +231,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
               color: AppColors.whiteColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: Offset(0, -2),
                 ),
@@ -273,7 +273,7 @@ class _AddonSelectionBottomSheetState extends State<AddonSelectionBottomSheet> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: selectedAddonId != null
                             ? AppColors.primaryColor
-                            : AppColors.obscureTextColor.withOpacity(0.3),
+                            : AppColors.obscureTextColor.withValues(alpha: 0.3),
                         padding: EdgeInsets.symmetric(vertical: 12.h),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.r),

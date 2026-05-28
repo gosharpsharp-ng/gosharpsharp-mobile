@@ -3,7 +3,7 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 class NotificationsController extends GetxController {
   List<NotificationModel> notifications = [];
   NotificationModel? selectedNotification;
-  setSelectedNotification(NotificationModel nt) {
+  void setSelectedNotification(NotificationModel nt) {
     selectedNotification = nt;
     getNotifications();
     update();
@@ -11,7 +11,7 @@ class NotificationsController extends GetxController {
 
   final profileService = serviceLocator<ProfileService>();
 
-  getSingleNotification() async {
+  Future<void> getSingleNotification() async {
     dynamic data = {
       "id": selectedNotification!.id,
     };
@@ -36,15 +36,17 @@ class NotificationsController extends GetxController {
   int totalNotifications = 0;
   int currentNotificationsPage = 1;
 
-  setTotalNotifications(int val) {
+  void setTotalNotifications(int val) {
     totalNotifications = val;
     update();
   }
 
   final getStorage = GetStorage();
-  getNotifications({bool isLoadMore = false}) async {
+  Future<void> getNotifications({bool isLoadMore = false}) async {
     if (fetchingNotifications ||
-        (isLoadMore && notifications.length >= totalNotifications)) return;
+        (isLoadMore && notifications.length >= totalNotifications)) {
+      return;
+    }
 
     fetchingNotifications = true;
     update();

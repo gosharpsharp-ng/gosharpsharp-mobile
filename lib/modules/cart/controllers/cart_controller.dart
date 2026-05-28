@@ -412,7 +412,7 @@ class CartController extends GetxController {
           for (var package in _packages) {
             for (var item in package.items) {
               if (item.purchasableId == menuId) {
-                itemName = item.purchasable?.name ?? "Item";
+                itemName = item.purchasable.name ?? "Item";
                 break;
               }
             }

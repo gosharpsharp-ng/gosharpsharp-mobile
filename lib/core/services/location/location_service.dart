@@ -310,8 +310,9 @@ class LocationService extends GetxService {
                   types.contains('administrative_area_level_2') ||
                   types.contains('sublocality_level_1')) {
                 addressParts.add(component['long_name']);
-                if (addressParts.length >= 2)
+                if (addressParts.length >= 2) {
                   break; // Limit to 2 parts for readability
+                }
               }
             }
           }

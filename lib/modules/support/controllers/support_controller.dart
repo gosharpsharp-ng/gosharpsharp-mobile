@@ -7,7 +7,7 @@ class SupportController extends GetxController {
   final supportService = serviceLocator<SupportService>();
   final GetStorage getStorage = GetStorage();
 
-  setSelectedFaq({required FaqDataModel faq}) {
+  void setSelectedFaq({required FaqDataModel faq}) {
     selectedFaq = faq;
     update();
   }
@@ -16,7 +16,7 @@ class SupportController extends GetxController {
   FaqDataModel? selectedFaq;
   List<FaqDataModel> faqs = [];
   String selectedFaqCategory = "";
-  getFaqs() async {
+  Future<void> getFaqs() async {
     fetchingFaqs = true;
     update();
     APIResponse response = await supportService.getFaq();

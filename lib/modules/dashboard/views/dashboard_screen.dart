@@ -353,7 +353,7 @@ class DashboardScreen extends StatelessWidget {
                                       }
                                       return Column(
                                         children: [
-                                          Container(
+                                          SizedBox(
                                             width: 1.sw,
                                             child: SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
@@ -391,7 +391,7 @@ class DashboardScreen extends StatelessWidget {
                                   ),
 
                                   // Filter Chips Row
-                                  Container(
+                                  SizedBox(
                                     width: 1.sw,
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
@@ -480,7 +480,7 @@ class DashboardScreen extends StatelessWidget {
 
                                   SizedBox(height: 10.h),
                                   dashboardController.isLoadingRestaurants
-                                      ? Container(
+                                      ? SizedBox(
                                           height: 0.h,
                                           child: SingleChildScrollView(
                                             scrollDirection: Axis.horizontal,
@@ -524,7 +524,7 @@ class DashboardScreen extends StatelessWidget {
                                             ),
                                           ),
                                         )
-                                      : Container(
+                                      : SizedBox(
                                           width: 1.sw,
                                           child: SingleChildScrollView(
                                             scrollDirection: Axis.horizontal,
@@ -566,7 +566,7 @@ class DashboardScreen extends StatelessWidget {
                                     SizedBox(height: 10.h),
                                     // Loading state for top restaurants
                                     dashboardController.isLoadingRestaurants
-                                        ? Container(
+                                        ? SizedBox(
                                             height: 280.h,
                                             child: SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
@@ -590,7 +590,7 @@ class DashboardScreen extends StatelessWidget {
                                               ),
                                             ),
                                           )
-                                        : Container(
+                                        : SizedBox(
                                             width: 1.sw,
                                             child: SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
@@ -638,7 +638,7 @@ class DashboardScreen extends StatelessWidget {
                                     SizedBox(height: 10.h),
 
                                     // Favourite restaurants list
-                                    Container(
+                                    SizedBox(
                                       width: 1.sw,
                                       child: SingleChildScrollView(
                                         scrollDirection: Axis.horizontal,
@@ -683,7 +683,7 @@ class DashboardScreen extends StatelessWidget {
 
                                     // Loading state or top restaurants list
                                     dashboardController.isLoadingRestaurants
-                                        ? Container(
+                                        ? SizedBox(
                                             height: 280.h,
                                             child: SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
@@ -708,7 +708,7 @@ class DashboardScreen extends StatelessWidget {
                                               ),
                                             ),
                                           )
-                                        : Container(
+                                        : SizedBox(
                                             height: 280.h,
                                             child: SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,

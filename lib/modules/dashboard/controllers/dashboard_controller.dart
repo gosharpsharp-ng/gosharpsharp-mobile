@@ -25,9 +25,9 @@ class DashboardController extends GetxController {
   bool _isLoadingFavorites = false;
   bool _isLoadingMenus = false;
 
-  get isLoadingRestaurants => _isLoadingRestaurants;
-  get isLoadingFavorites => _isLoadingFavorites;
-  get isLoadingMenus => _isLoadingMenus;
+  bool get isLoadingRestaurants => _isLoadingRestaurants;
+  bool get isLoadingFavorites => _isLoadingFavorites;
+  bool get isLoadingMenus => _isLoadingMenus;
 
   void setRestaurantsLoadingState(bool val) {
     _isLoadingRestaurants = val;
@@ -130,7 +130,7 @@ class DashboardController extends GetxController {
   }
 
   // Set selected restaurant
-  setSelectedRestaurant(RestaurantModel restaurant) {
+  void setSelectedRestaurant(RestaurantModel restaurant) {
     selectedRestaurant = restaurant;
     // Track this restaurant as recently visited
     recentRestaurantsService.addRecentRestaurant(
@@ -146,7 +146,7 @@ class DashboardController extends GetxController {
   }
 
   // Set selected menu item
-  setSelectedMenuItem(MenuItemModel menuItem) {
+  void setSelectedMenuItem(MenuItemModel menuItem) {
     selectedMenuItem = menuItem;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       update();

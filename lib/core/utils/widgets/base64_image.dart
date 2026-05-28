@@ -3,7 +3,7 @@ import 'package:gosharpsharp/core/utils/exports.dart';
 class Base64Image extends StatelessWidget {
   final String base64String;
 
-  Base64Image({required this.base64String});
+  const Base64Image({super.key, required this.base64String});
 
   @override
   Widget build(BuildContext context) {

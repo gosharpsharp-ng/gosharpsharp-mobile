@@ -121,7 +121,7 @@ class OrderCheckoutScreen extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: AppColors.greyColor.withOpacity(0.2),
+          color: AppColors.greyColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -130,7 +130,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         children: [
           GoogleMap(
             key: ValueKey(
-              '${lat}_${lng}',
+              '${lat}_$lng',
             ), // Force rebuild when location changes
             initialCameraPosition: CameraPosition(
               target: LatLng(lat, lng),
@@ -166,7 +166,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                   color: AppColors.whiteColor,
                   borderRadius: BorderRadius.circular(8.r),
                   border: Border.all(
-                    color: AppColors.greyColor.withOpacity(0.2),
+                    color: AppColors.greyColor.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -202,7 +202,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         color: AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: AppColors.greyColor.withOpacity(0.2),
+          color: AppColors.greyColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -241,7 +241,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                       customText(
                         'Deliver to',
                         fontSize: 13.sp,
-                        color: AppColors.blackColor.withOpacity(0.6),
+                        color: AppColors.blackColor.withValues(alpha: 0.6),
                       ),
                       SizedBox(height: 2.h),
                       customText(
@@ -273,7 +273,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         color: AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: AppColors.greyColor.withOpacity(0.2),
+          color: AppColors.greyColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -318,7 +318,7 @@ class OrderCheckoutScreen extends StatelessWidget {
               'Recipient Details',
               fontSize: 15.sp,
               fontWeight: FontWeight.w500,
-              color: AppColors.blackColor.withOpacity(0.7),
+              color: AppColors.blackColor.withValues(alpha: 0.7),
             ),
 
             SizedBox(height: 12.h),
@@ -373,7 +373,7 @@ class OrderCheckoutScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.primaryColor.withOpacity(0.1),
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
@@ -411,7 +411,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -466,7 +466,7 @@ class OrderCheckoutScreen extends StatelessWidget {
           customText(
             '${cartController.itemCount} item${cartController.itemCount != 1 ? 's' : ''} in your order',
             fontSize: 14.sp,
-            color: AppColors.blackColor.withOpacity(0.6),
+            color: AppColors.blackColor.withValues(alpha: 0.6),
           ),
         ],
       ),
@@ -480,7 +480,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         customText(
           label,
           fontSize: 15.sp,
-          color: AppColors.blackColor.withOpacity(0.7),
+          color: AppColors.blackColor.withValues(alpha: 0.7),
         ),
         customText(
           formatToCurrency(amount),
@@ -507,7 +507,7 @@ class OrderCheckoutScreen extends StatelessWidget {
             color: AppColors.whiteColor,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: AppColors.greyColor.withOpacity(0.2),
+              color: AppColors.greyColor.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -596,15 +596,15 @@ class OrderCheckoutScreen extends StatelessWidget {
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: isSelected
-              ? iconColor.withOpacity(0.08)
+              ? iconColor.withValues(alpha: 0.08)
               : AppColors.backgroundColor,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isSelected
                 ? iconColor
                 : hasWarning
-                ? Colors.red.withOpacity(0.3)
-                : AppColors.greyColor.withOpacity(0.2),
+                ? Colors.red.withValues(alpha: 0.3)
+                : AppColors.greyColor.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -614,7 +614,7 @@ class OrderCheckoutScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(10.w),
               decoration: BoxDecoration(
-                color: isSelected ? iconColor : iconColor.withOpacity(0.1),
+                color: isSelected ? iconColor : iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10.r),
               ),
               child: icon != null
@@ -653,7 +653,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                     fontSize: 14.sp,
                     color: hasWarning
                         ? Colors.red
-                        : AppColors.blackColor.withOpacity(0.6),
+                        : AppColors.blackColor.withValues(alpha: 0.6),
                     maxLines: 1,
                   ),
                 ],
@@ -681,7 +681,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.greyColor.withOpacity(0.3),
+                    color: AppColors.greyColor.withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),
@@ -699,7 +699,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         color: AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: AppColors.greyColor.withOpacity(0.2),
+          color: AppColors.greyColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -716,7 +716,7 @@ class OrderCheckoutScreen extends StatelessWidget {
           customText(
             'Add any special instructions for your order (optional)',
             fontSize: 14.sp,
-            color: AppColors.blackColor.withOpacity(0.6),
+            color: AppColors.blackColor.withValues(alpha: 0.6),
           ),
           SizedBox(height: 12.h),
 
@@ -731,7 +731,7 @@ class OrderCheckoutScreen extends StatelessWidget {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
                 borderSide: BorderSide(
-                  color: AppColors.greyColor.withOpacity(0.3),
+                  color: AppColors.greyColor.withValues(alpha: 0.3),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -756,7 +756,7 @@ class OrderCheckoutScreen extends StatelessWidget {
         color: AppColors.whiteColor,
         border: Border(
           top: BorderSide(
-            color: AppColors.greyColor.withOpacity(0.2),
+            color: AppColors.greyColor.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -808,14 +808,14 @@ class OrderCheckoutScreen extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.blackColor
-                : AppColors.greyColor.withOpacity(0.3),
+                : AppColors.greyColor.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12.r),
           color: isLoading
-              ? AppColors.greyColor.withOpacity(0.1)
+              ? AppColors.greyColor.withValues(alpha: 0.1)
               : isSelected
-              ? AppColors.blackColor.withOpacity(0.05)
+              ? AppColors.blackColor.withValues(alpha: 0.05)
               : AppColors.whiteColor,
         ),
         child: Column(
@@ -867,19 +867,19 @@ class OrderCheckoutScreen extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(
             color: hasInsufficientFunds
-                ? Colors.red.withOpacity(0.5)
+                ? Colors.red.withValues(alpha: 0.5)
                 : isSelected
                 ? AppColors.blackColor
-                : AppColors.greyColor.withOpacity(0.3),
+                : AppColors.greyColor.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12.r),
           color: isLoading
-              ? AppColors.greyColor.withOpacity(0.1)
+              ? AppColors.greyColor.withValues(alpha: 0.1)
               : hasInsufficientFunds
-              ? Colors.red.withOpacity(0.05)
+              ? Colors.red.withValues(alpha: 0.05)
               : isSelected
-              ? AppColors.blackColor.withOpacity(0.05)
+              ? AppColors.blackColor.withValues(alpha: 0.05)
               : AppColors.whiteColor,
         ),
         child: Column(
@@ -1052,7 +1052,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
                   borderSide: BorderSide(
-                    color: AppColors.greyColor.withOpacity(0.3),
+                    color: AppColors.greyColor.withValues(alpha: 0.3),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(

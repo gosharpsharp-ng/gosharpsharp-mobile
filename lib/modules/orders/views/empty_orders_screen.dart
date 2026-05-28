@@ -32,7 +32,7 @@ class EmptyCartScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(30.sp),
               decoration: BoxDecoration(
-                color: AppColors.secondaryColor.withOpacity(0.1),
+                color: AppColors.secondaryColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(

@@ -1,10 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:gosharpsharp/core/controllers/location_controller.dart';
 import 'package:dio/dio.dart';
-import 'dart:convert';
 
 class LocationPermissionController extends GetxController {
   final RxBool isLoading = false.obs;

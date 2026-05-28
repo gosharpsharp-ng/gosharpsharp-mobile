@@ -1,4 +1,3 @@
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 class RatingBottomSheet extends StatelessWidget {

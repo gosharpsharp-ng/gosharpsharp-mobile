@@ -31,7 +31,7 @@ class LocationDisplayWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -60,7 +60,7 @@ class LocationDisplayWidget extends StatelessWidget {
             SizedBox(width: 4.w),
             Icon(
               Icons.keyboard_arrow_down,
-              color: iconColor.withOpacity(0.6),
+              color: iconColor.withValues(alpha: 0.6),
               size: (fontSize + 2).sp,
             ),
           ],
@@ -174,7 +174,7 @@ class LocationDisplayWidget extends StatelessWidget {
               width: 48.w,
               height: 48.w,
               decoration: BoxDecoration(
-                color: AppColors.primaryColor.withOpacity(0.1),
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(

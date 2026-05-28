@@ -25,7 +25,7 @@ void main() {
     });
 
     test('quantity parameter handles null', () {
-      dynamic quantity = null;
+      dynamic quantity;
 
       // Simulate what happens in the method
       int? result;
@@ -103,7 +103,7 @@ void main() {
     });
 
     test('data map construction with only package name (no quantity)', () {
-      dynamic quantity = null;
+      dynamic quantity;
       String packageName = "Test Package";
       List<int> addonIds = [5];
 

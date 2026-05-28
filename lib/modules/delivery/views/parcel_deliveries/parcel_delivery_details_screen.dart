@@ -488,7 +488,7 @@ class ParcelDeliveryDetailsScreen extends GetView<DeliveriesController> {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),

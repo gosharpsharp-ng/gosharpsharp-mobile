@@ -182,7 +182,7 @@ class CartItemWidget extends StatelessWidget {
                                     SizedBox(width: 8.w),
                                     Expanded(
                                       child: customText(
-                                        '$addonName',
+                                        addonName,
                                         fontSize: 14.sp,
                                         color: AppColors.blackColor,
                                         fontWeight: FontWeight.w500,
@@ -207,7 +207,7 @@ class CartItemWidget extends StatelessWidget {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                           ],
                         ),
                       ),

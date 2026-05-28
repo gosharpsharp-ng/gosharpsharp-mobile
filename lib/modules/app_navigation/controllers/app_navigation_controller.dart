@@ -16,7 +16,7 @@ class AppNavigationController extends GetxController {
   }
 
   int currentScreenIndex = 0;
-  changeScreenIndex(selectedIndex) {
+  void changeScreenIndex(selectedIndex) {
     currentScreenIndex = selectedIndex;
     update();
   }
@@ -84,8 +84,4 @@ class AppNavigationController extends GetxController {
     return true;
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

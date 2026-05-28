@@ -1,7 +1,7 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 
 class ResetPasswordOtpScreen extends StatelessWidget {
-  ResetPasswordOtpScreen({super.key});
+  const ResetPasswordOtpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

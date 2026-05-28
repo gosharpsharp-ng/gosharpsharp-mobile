@@ -15,14 +15,14 @@ class OrdersController extends GetxController {
   bool isLoadingOrderDetails = false;
 
   // Track if we're listening to order updates
-  bool _isListeningToOrderUpdates = false;
+  final bool _isListeningToOrderUpdates = false;
 
   void setLoadingState(bool val) {
     isLoading = val;
     update();
   }
 
-  setOrdersLoadingState(bool val) {
+  void setOrdersLoadingState(bool val) {
     isLoadingOrders = val;
     update();
   }
@@ -51,14 +51,14 @@ class OrdersController extends GetxController {
     'completed',
   ];
 
-  setSelectedOrderStatus(String status) {
+  void setSelectedOrderStatus(String status) {
     selectedOrderStatus = status;
     filterOrdersByStatus();
     update();
   }
 
   // Set selected order for details screen
-  setSelectedOrder(OrderModel order) {
+  void setSelectedOrder(OrderModel order) {
     selectedOrder = order;
     update();
   }
@@ -78,7 +78,7 @@ class OrdersController extends GetxController {
   }
 
   // Get orders from API - UPDATED WITH API INTEGRATION
-  getOrders() async {
+  Future<void> getOrders() async {
     setOrdersLoadingState(true);
 
     try {
@@ -128,7 +128,7 @@ class OrdersController extends GetxController {
   }
 
   // Update order status - UPDATED WITH API INTEGRATION
-  updateOrderStatus(int orderId, String newStatus) async {
+  Future<void> updateOrderStatus(int orderId, String newStatus) async {
     setLoadingState(true);
 
     try {
@@ -196,7 +196,7 @@ class OrdersController extends GetxController {
   }
 
   // Alternative method if you prefer to update by order reference
-  updateOrderStatusByRef(String orderRef, String newStatus) async {
+  Future<void> updateOrderStatusByRef(String orderRef, String newStatus) async {
     // Find order by reference first
     final order = allOrders.firstWhereOrNull((order) => order.ref == orderRef);
     if (order != null) {
@@ -229,7 +229,7 @@ class OrdersController extends GetxController {
   }
 
   // Enhanced method with status transition validation
-  updateOrderStatusWithValidation(int orderId, String newStatus) async {
+  Future<void> updateOrderStatusWithValidation(int orderId, String newStatus) async {
     setLoadingState(true);
 
     try {
@@ -282,43 +282,43 @@ class OrdersController extends GetxController {
   }
 
   // Specific order action methods - UPDATED WITH NEW STATUSES
-  acceptOrder(int orderId) async {
+  Future<void> acceptOrder(int orderId) async {
     await updateOrderStatus(orderId, "preparing");
   }
 
   // Start processing order (renamed from startProcessingOrder for clarity)
-  startPreparingOrder(int orderId) async {
+  Future<void> startPreparingOrder(int orderId) async {
     await updateOrderStatus(orderId, "preparing");
   }
 
   // Mark order as ready
-  markOrderReady(int orderId) async {
+  Future<void> markOrderReady(int orderId) async {
     await updateOrderStatus(orderId, "ready");
   }
 
   // Mark order as in transit
-  markOrderInTransit(int orderId) async {
+  Future<void> markOrderInTransit(int orderId) async {
     await updateOrderStatus(orderId, "in_transit");
   }
 
   // Complete order
-  completeOrder(int orderId) async {
+  Future<void> completeOrder(int orderId) async {
     await updateOrderStatus(orderId, "completed");
   }
 
   // Cancel order
-  cancelOrder(int orderId) async {
+  Future<void> cancelOrder(int orderId) async {
     await updateOrderStatus(orderId, "cancelled");
   }
 
   // Reject order (for pending orders)
-  rejectOrder(int orderId) async {
+  Future<void> rejectOrder(int orderId) async {
     await cancelOrder(orderId);
     Get.back(); // Go back if on order details screen
   }
 
   // Get single order by ID - NEW METHOD
-  getOrderById(int orderId) async {
+  Future<OrderModel?>? getOrderById(int orderId) async {
     setLoadingState(true);
 
     try {
@@ -418,7 +418,7 @@ class OrdersController extends GetxController {
   }
 
   // Refresh orders
-  refreshOrders() async {
+  Future<void> refreshOrders() async {
     await getOrders();
   }
 
@@ -493,17 +493,17 @@ class OrdersController extends GetxController {
   double restaurantRating = 0.0;
   bool ratingOrder = false;
 
-  setRiderRating(double value) {
+  void setRiderRating(double value) {
     riderRating = value;
     update();
   }
 
-  setRestaurantRating(double value) {
+  void setRestaurantRating(double value) {
     restaurantRating = value;
     update();
   }
 
-  resetRatingFields() {
+  void resetRatingFields() {
     riderRating = 0.0;
     restaurantRating = 0.0;
     update();
@@ -589,8 +589,4 @@ class OrdersController extends GetxController {
     getOrders();
   }
 
-  @override
-  void onClose() {
-    super.onClose();
-  }
 }
