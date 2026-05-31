@@ -1,5 +1,6 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/services/recently_visited_restaurants_service.dart';
+import 'package:gosharpsharp/core/services/push_notification_service.dart';
 
 class SplashController extends GetxController {
   @override
@@ -18,6 +19,9 @@ class SplashController extends GetxController {
     if (token != null && token.isNotEmpty) {
       // Clear recently visited restaurants on app start
       await RecentlyVisitedRestaurantsService().clearRecentRestaurants();
+
+      // Register device token for push notifications
+      await PushNotificationService().registerTokenIfAvailable();
 
       // Load data
       await _loadData();

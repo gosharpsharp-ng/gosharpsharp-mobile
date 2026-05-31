@@ -1,5 +1,6 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/services/recently_visited_restaurants_service.dart';
+import 'package:gosharpsharp/core/services/push_notification_service.dart';
 
 class SignInController extends GetxController {
   final authService = serviceLocator<AuthenticationService>();
@@ -45,6 +46,9 @@ class SignInController extends GetxController {
 
           // Clear recently visited restaurants on fresh login
           await RecentlyVisitedRestaurantsService().clearRecentRestaurants();
+
+          // Register device token for push notifications
+          await PushNotificationService().registerTokenIfAvailable();
 
           Get.put(WalletController());
           Get.put(SettingsController());

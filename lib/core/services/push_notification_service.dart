@@ -5,6 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:gosharpsharp/core/services/auth/auth_service.dart';
 
 /// Background message handler - must be a top-level function
 @pragma('vm:entry-point')
@@ -20,6 +22,8 @@ class PushNotificationService {
 
   late final FirebaseMessaging _firebaseMessaging;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final GetStorage _storage = GetStorage();
+  final AuthenticationService _authService = AuthenticationService();
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
@@ -144,8 +148,32 @@ class PushNotificationService {
 
   /// Send FCM token to your backend server
   Future<void> _sendTokenToServer(String token) async {
-    // TODO: Implement API call to send token to your server
-    debugPrint('Sending FCM token to server: $token');
+    try {
+      // Only send if user is authenticated
+      final authToken = _storage.read('token');
+      if (authToken == null) {
+        debugPrint('User not authenticated, skipping device token registration');
+        return;
+      }
+
+      debugPrint('Sending FCM token to server: $token');
+      final response = await _authService.registerDeviceToken(token);
+
+      if (response.status == 'success') {
+        debugPrint('Device token registered successfully');
+      } else {
+        debugPrint('Failed to register device token: ${response.message}');
+      }
+    } catch (e) {
+      debugPrint('Error sending FCM token to server: $e');
+    }
+  }
+
+  /// Call this method after user login to register the device token
+  Future<void> registerTokenIfAvailable() async {
+    if (_fcmToken != null) {
+      await _sendTokenToServer(_fcmToken!);
+    }
   }
 
   /// Handle foreground messages

@@ -42,4 +42,8 @@ class AuthenticationService extends CoreService {
   Future<APIResponse> updateUserProfile(dynamic data) async {
     return await update("/me", data);
   }
+
+  Future<APIResponse> registerDeviceToken(String deviceToken) async {
+    return await send("/me/device-token", {"device_token": deviceToken});
+  }
 }
