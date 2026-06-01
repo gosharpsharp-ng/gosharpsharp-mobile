@@ -1,0 +1,11 @@
+# Appfile for GoSharpSharp Customer App
+
+# Apple App Store Connect
+app_identifier("com.gosharpsharp.customer") # The bundle identifier of your app
+apple_id(ENV["APPLE_ID"]) # Your Apple Developer Portal email (set via ENV or enter here)
+
+itc_team_id(ENV["ITC_TEAM_ID"]) # App Store Connect Team ID
+team_id("3539DC9DX3") # Developer Portal Team ID
+
+# For more information about the Appfile, see:
+# https://docs.fastlane.tools/advanced/#appfile

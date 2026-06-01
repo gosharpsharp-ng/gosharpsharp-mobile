@@ -1,0 +1,28 @@
+# Fastlane specific
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.cer
+*.certSigningRequest
+*.p12
+
+# Fastlane reports
+report.xml
+test_output/
+
+# Deliver temporary files
+Preview.html
+
+# Snapshot generated screenshots
+screenshots/
+
+# Scan temporary files
+fastlane/test_output
+
+# Code signing
+*.mobileprovision
+*.cert
+
+# Other
+Deliverfile
+Snapfile

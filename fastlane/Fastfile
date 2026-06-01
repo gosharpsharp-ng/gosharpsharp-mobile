@@ -1,0 +1,116 @@
+# Fastfile for GoSharpSharp Customer App
+
+default_platform(:ios)
+
+# iOS Lanes
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    # Increment build number
+    increment_build_number(xcodeproj: "ios/Runner.xcodeproj")
+
+    # Build the app
+    build_app(
+      workspace: "ios/Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "com.gosharpsharp.customer" => "match AppStore com.gosharpsharp.customer"
+        }
+      }
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      api_key_path: "#{ENV['HOME']}/.fastlane_credentials/AuthKey_6W7X23SVKC.p8",
+      api_key: {
+        key_id: "6W7X23SVKC",
+        issuer_id: "9be99afc-2687-437a-8793-2987b4575fbf",
+        is_key_content_base64: false
+      },
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Deploy a new version to the App Store"
+  lane :release do
+    # Increment build number
+    increment_build_number(xcodeproj: "ios/Runner.xcodeproj")
+
+    # Build the app
+    build_app(
+      workspace: "ios/Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store"
+    )
+
+    # Upload to App Store
+    upload_to_app_store(
+      api_key_path: "#{ENV['HOME']}/.fastlane_credentials/AuthKey_6W7X23SVKC.p8",
+      api_key: {
+        key_id: "6W7X23SVKC",
+        issuer_id: "9be99afc-2687-437a-8793-2987b4575fbf",
+        is_key_content_base64: false
+      },
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false
+    )
+  end
+end
+
+# Android Lanes
+platform :android do
+  desc "Submit a new Beta Build to Google Play Internal Testing"
+  lane :beta do
+    # Build the Android app
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "android",
+      properties: {
+        "android.injected.signing.store.file" => ENV['KEYSTORE_PATH'] || "/Users/mac/Documents/GoSharpSharp_App_Resources/Signing_Keys/GoSharpSharp/upload-keystore.jks",
+        "android.injected.signing.store.password" => ENV['KEYSTORE_PASSWORD'] || "App@GoSharpSharp",
+        "android.injected.signing.key.alias" => ENV['KEY_ALIAS'] || "upload",
+        "android.injected.signing.key.password" => ENV['KEY_PASSWORD'] || "App@GoSharpSharp",
+      }
+    )
+
+    # Upload to Google Play Internal Testing
+    upload_to_play_store(
+      track: 'internal',
+      aab: 'android/app/build/outputs/bundle/release/app-release.aab',
+      json_key: "#{ENV['HOME']}/.fastlane_credentials/gosharpsharp_play_store_api_key.json",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Deploy a new version to Google Play Production"
+  lane :release do
+    # Build the Android app
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "android",
+      properties: {
+        "android.injected.signing.store.file" => ENV['KEYSTORE_PATH'] || "/Users/mac/Documents/GoSharpSharp_App_Resources/Signing_Keys/GoSharpSharp/upload-keystore.jks",
+        "android.injected.signing.store.password" => ENV['KEYSTORE_PASSWORD'] || "App@GoSharpSharp",
+        "android.injected.signing.key.alias" => ENV['KEY_ALIAS'] || "upload",
+        "android.injected.signing.key.password" => ENV['KEY_PASSWORD'] || "App@GoSharpSharp",
+      }
+    )
+
+    # Upload to Google Play Production
+    upload_to_play_store(
+      track: 'production',
+      aab: 'android/app/build/outputs/bundle/release/app-release.aab',
+      json_key: "#{ENV['HOME']}/.fastlane_credentials/gosharpsharp_play_store_api_key.json",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
