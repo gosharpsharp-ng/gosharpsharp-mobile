@@ -96,6 +96,13 @@ jobs:
           mkdir -p ~/keystore
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > ~/keystore/upload-keystore.jks
 
+      - name: Clean Flutter build cache
+        run: |
+          flutter clean
+          rm -rf build/
+          rm -rf android/.gradle/
+          rm -rf android/app/build/
+
       - name: Deploy to Internal Testing (Beta)
         if: github.ref == 'refs/heads/develop'
         run: bundle exec fastlane android beta
