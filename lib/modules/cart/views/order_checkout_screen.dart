@@ -4,8 +4,15 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/utils/exports.dart';
 
-class OrderCheckoutScreen extends StatelessWidget {
+class OrderCheckoutScreen extends StatefulWidget {
   const OrderCheckoutScreen({super.key});
+
+  @override
+  State<OrderCheckoutScreen> createState() => _OrderCheckoutScreenState();
+}
+
+class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
+  bool _showLocationError = false;
 
   @override
   Widget build(BuildContext context) {
@@ -196,14 +203,20 @@ class OrderCheckoutScreen extends StatelessWidget {
   }
 
   Widget _buildDeliveryLocationSection(CartController cartController) {
+    final bool hasLocationError = _showLocationError && cartController.currentLocation.value.isEmpty;
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: hasLocationError
+            ? Colors.red.withValues(alpha: 0.05)
+            : AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: AppColors.greyColor.withValues(alpha: 0.2),
-          width: 1,
+          color: hasLocationError
+              ? Colors.red
+              : AppColors.greyColor.withValues(alpha: 0.2),
+          width: hasLocationError ? 2 : 1,
         ),
       ),
       child: Column(
@@ -261,6 +274,27 @@ class OrderCheckoutScreen extends StatelessWidget {
               ],
             ),
           ),
+
+          // Error message
+          if (hasLocationError) ...[
+            SizedBox(height: 8.h),
+            Row(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 16.sp,
+                  color: Colors.red,
+                ),
+                SizedBox(width: 6.w),
+                customText(
+                  'Please select a delivery location',
+                  fontSize: 13.sp,
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -768,17 +802,33 @@ class OrderCheckoutScreen extends StatelessWidget {
           backgroundColor: AppColors.primaryColor,
           title: 'Place Order - ${formatToCurrency(cartController.total)}',
           onPressed: () {
-            if (!cartController.isLoading &&
-                cartController.selectedPaymentMethod.value.isNotEmpty) {
+            // Validate delivery location first
+            if (cartController.currentLocation.value.isEmpty) {
+              setState(() {
+                _showLocationError = true;
+              });
+              showToast(
+                message: "Please select a delivery location",
+                isError: true,
+              );
+              return;
+            }
+
+            // Validate payment method
+            if (cartController.selectedPaymentMethod.value.isEmpty) {
+              showToast(
+                message: "Please select a payment method",
+                isError: true,
+              );
+              return;
+            }
+
+            // Process payment if all validations pass
+            if (!cartController.isLoading) {
               _processPayment(
                 cartController,
                 cartController.selectedPaymentMethod.value.toLowerCase(),
                 context,
-              );
-            } else if (cartController.selectedPaymentMethod.value.isEmpty) {
-              showToast(
-                message: "Please select a payment method",
-                isError: true,
               );
             }
           },
@@ -1005,6 +1055,13 @@ class OrderCheckoutScreen extends StatelessWidget {
   }
 
   Future<void> _selectDeliveryLocation(CartController cartController) async {
+    // Clear location error when user attempts to select location
+    if (_showLocationError) {
+      setState(() {
+        _showLocationError = false;
+      });
+    }
+
     try {
       final result = await Get.to(() => SelectLocation());
 

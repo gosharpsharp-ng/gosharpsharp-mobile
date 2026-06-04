@@ -98,6 +98,14 @@ class WalletController extends GetxController {
 
   bool walletBalanceVisibility = false;
   GetStorage getStorage = GetStorage();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Load visibility preference from storage (default to true if not set)
+    walletBalanceVisibility = getStorage.read("walletBalanceVisibility") ?? true;
+  }
+
   void toggleWalletBalanceVisibility() {
     walletBalanceVisibility = !walletBalanceVisibility;
     getStorage.write("walletBalanceVisibility", walletBalanceVisibility);
@@ -106,6 +114,7 @@ class WalletController extends GetxController {
 
   WalletBalanceDataModel? walletBalanceData;
   Future<void> getWalletBalance() async {
+    setLoadingState(true);
     APIResponse response = await walletService.getWalletBalance();
     setLoadingState(false);
 

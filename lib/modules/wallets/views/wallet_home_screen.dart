@@ -204,7 +204,27 @@ class WalletHomeScreen extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Center(child: customText("No transactions yet")),
+                              Icon(
+                                Icons.receipt_long_outlined,
+                                size: 48.sp,
+                                color: AppColors.greyColor.withValues(alpha: 0.5),
+                              ),
+                              SizedBox(height: 12.h),
+                              Center(
+                                child: customText(
+                                  "No transactions yet",
+                                  color: AppColors.greyColor,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                              SizedBox(height: 6.h),
+                              Center(
+                                child: customText(
+                                  "Your transaction history will appear here",
+                                  color: AppColors.greyColor.withValues(alpha: 0.7),
+                                  fontSize: 12.sp,
+                                ),
+                              ),
                             ],
                           ),
                         ),

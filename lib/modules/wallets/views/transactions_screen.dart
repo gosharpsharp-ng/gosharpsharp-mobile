@@ -57,8 +57,27 @@ class TransactionsScreen extends StatelessWidget {
                 replacement: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 64.sp,
+                      color: AppColors.greyColor.withValues(alpha: 0.5),
+                    ),
+                    SizedBox(height: 16.h),
                     Center(
-                      child: customText("No transactions yet"),
+                      child: customText(
+                        "No transactions yet",
+                        color: AppColors.greyColor,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Center(
+                      child: customText(
+                        "Your transaction history will appear here",
+                        color: AppColors.greyColor.withValues(alpha: 0.7),
+                        fontSize: 13.sp,
+                      ),
                     ),
                   ],
                 ),

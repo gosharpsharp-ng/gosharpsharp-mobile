@@ -349,10 +349,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
                                       Container(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 8.w,
@@ -502,8 +503,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen>
                                         fontSize: 14.sp,
                                         color: AppColors.blackColor,
                                         height: 1.6,
+                                        maxLines: 4,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
+                                    ),
                                   ),
                                 ],
                               ),

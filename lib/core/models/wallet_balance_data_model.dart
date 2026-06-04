@@ -9,10 +9,19 @@ class WalletBalanceDataModel {
     required this.currencyId,
   });
 
+  /// Helper method to safely convert any value to String
+  static String _toStringValue(dynamic value) {
+    if (value == null) return '0.0';
+    if (value is int) return value.toString();
+    if (value is double) return value.toString();
+    if (value is String) return value;
+    return value.toString();
+  }
+
   factory WalletBalanceDataModel.fromJson(Map<String, dynamic> json) {
     return WalletBalanceDataModel(
-      balance: json['balance'] as String,
-      bonusBalance: json['bonus_balance'] as String,
+      balance: _toStringValue(json['balance']),
+      bonusBalance: _toStringValue(json['bonus_balance']),
       currencyId: json['currency_id'] as int,
     );
   }
