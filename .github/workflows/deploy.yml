@@ -102,6 +102,7 @@ jobs:
           rm -rf build/
           rm -rf android/.gradle/
           rm -rf android/app/build/
+          flutter pub get
 
       - name: Deploy to Internal Testing (Beta)
         if: github.ref == 'refs/heads/develop'
