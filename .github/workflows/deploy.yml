@@ -40,6 +40,12 @@ jobs:
           echo "${{ secrets.APP_STORE_CONNECT_API_KEY }}" | base64 --decode > ~/.fastlane_credentials/AuthKey_6W7X23SVKC.p8
           chmod 600 ~/.fastlane_credentials/AuthKey_6W7X23SVKC.p8
 
+      - name: Clean SPM cache and derived data
+        run: |
+          rm -rf ~/Library/Caches/org.swift.swiftpm
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          flutter clean
+
       - name: Deploy to TestFlight (Beta)
         if: github.ref == 'refs/heads/develop'
         run: bundle exec fastlane ios beta
