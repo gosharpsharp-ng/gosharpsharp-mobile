@@ -1846,13 +1846,48 @@ class DeliveriesController extends GetxController {
     try {
       final response = await deliveryService.getParcelDelivery(id);
 
-      if (response.status == "success" && response.data != null) {
-        final data = response.data is Map<String, dynamic>
-            ? response.data as Map<String, dynamic>
-            : (response.data['delivery'] ?? response.data) as Map<String, dynamic>;
+      debugPrint("====== PAY PENDING DELIVERY DEBUG ======");
+      debugPrint("Response status: ${response.status}");
+      debugPrint("Response data: ${response.data}");
+      debugPrint("========================================");
 
-        selectedDeliveryResponseModel = DeliveryResponseModel.fromJson(data);
-        selectedParcelDelivery = data;
+      if (response.status == "success" && response.data != null) {
+        // Check if response has delivery object or is the delivery itself
+        final deliveryData = response.data is Map<String, dynamic>
+            ? (response.data.containsKey('delivery')
+                ? response.data['delivery'] as Map<String, dynamic>
+                : response.data as Map<String, dynamic>)
+            : response.data as Map<String, dynamic>;
+
+        // Extract courier_types if available
+        final courierTypes = response.data is Map<String, dynamic> &&
+                response.data.containsKey('courier_types')
+            ? response.data['courier_types']
+            : (deliveryData.containsKey('courier_types')
+                ? deliveryData['courier_types']
+                : []);
+
+        final courierTypesAvailable = response.data is Map<String, dynamic> &&
+                response.data.containsKey('courier_types_available')
+            ? response.data['courier_types_available']
+            : (deliveryData.containsKey('courier_types_available')
+                ? deliveryData['courier_types_available']
+                : false);
+
+        debugPrint("====== COURIER TYPES DEBUG ======");
+        debugPrint("Courier types: $courierTypes");
+        debugPrint("Courier types available: $courierTypesAvailable");
+        debugPrint("==================================");
+
+        // Combine delivery data with courier types
+        final combinedData = <String, dynamic>{
+          ...deliveryData,
+          'courier_types': courierTypes ?? [],
+          'courier_types_available': courierTypesAvailable ?? false,
+        };
+
+        selectedDeliveryResponseModel = DeliveryResponseModel.fromJson(combinedData);
+        selectedParcelDelivery = deliveryData;
         selectedCourierType = null;
         selectedPaymentType = null;
         update();
