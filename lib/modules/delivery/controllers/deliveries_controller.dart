@@ -1892,6 +1892,17 @@ class DeliveriesController extends GetxController {
         selectedPaymentType = null;
         update();
 
+        // Show info about courier types loaded
+        final courierTypesCount = selectedDeliveryResponseModel?.courierTypes.length ?? 0;
+        if (courierTypesCount == 0) {
+          showToast(
+            message: "⚠️ No courier types available from API. Check backend response.",
+            isError: true,
+          );
+        } else {
+          debugPrint("✅ Loaded $courierTypesCount courier types");
+        }
+
         if (context.mounted) {
           Get.bottomSheet(
             BikeAndPaymentSelectionBottomsheet(
