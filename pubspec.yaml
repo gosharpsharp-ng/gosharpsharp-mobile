@@ -4,13 +4,13 @@ description: "GoSharpSharp App."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.6+8
+version: 1.0.8+10
 
 environment:
   sdk: ^3.8.1 
 
 
-dependencies:
+dependencies: 
   flutter:
     sdk: flutter
   google_fonts: ^6.2.1
@@ -46,6 +46,7 @@ dependencies:
   url_launcher: ^6.3.1
   firebase_core: ^3.8.1
   firebase_messaging: ^15.1.6
+  firebase_analytics: ^11.3.3
   flutter_local_notifications: ^18.0.1
   package_info_plus: ^8.0.0
 

@@ -1,6 +1,7 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
 import 'package:gosharpsharp/core/services/recently_visited_restaurants_service.dart';
 import 'package:gosharpsharp/core/services/push_notification_service.dart';
+import 'package:gosharpsharp/core/services/analytics_service.dart';
 
 class SignInController extends GetxController {
   final authService = serviceLocator<AuthenticationService>();
@@ -49,6 +50,13 @@ class SignInController extends GetxController {
 
           // Register device token for push notifications
           await PushNotificationService().registerTokenIfAvailable();
+
+          // Track user login in Firebase Analytics
+          final userProfile = response.data['user'];
+          if (userProfile != null && userProfile['id'] != null) {
+            await AnalyticsService().setUserId(userProfile['id'].toString());
+            await AnalyticsService().setUserProperty('user_type', 'customer');
+          }
 
           Get.put(WalletController());
           Get.put(SettingsController());

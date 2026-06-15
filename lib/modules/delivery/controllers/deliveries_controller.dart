@@ -1778,13 +1778,19 @@ class DeliveriesController extends GetxController {
       if (response.status == "success" && response.data != null) {
         final List<dynamic> deliveriesData = response.data['data'] ?? [];
 
+        // Filter to only include parcel deliveries (where order_id is null)
+        // Exclude food orders (where order_id is not null)
+        final List<dynamic> parcelOnly = deliveriesData
+            .where((delivery) => delivery['order_id'] == null)
+            .toList();
+
         if (isLoadMore) {
-          allParcelDeliveries.addAll(deliveriesData);
+          allParcelDeliveries.addAll(parcelOnly);
         } else {
-          allParcelDeliveries = deliveriesData;
+          allParcelDeliveries = parcelOnly;
         }
 
-        totalParcelDeliveries = response.data['total'] ?? 0;
+        totalParcelDeliveries = parcelOnly.length;
         parcelDeliveriesPage++;
 
         // Filter deliveries after fetching
