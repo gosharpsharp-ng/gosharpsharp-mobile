@@ -39,7 +39,7 @@ class OrdersHub extends StatelessWidget {
                           accentColor: AppColors.primaryColor,
                           title: 'My Cart',
                           subtitle: cartController.itemCount > 0
-                              ? '${cartController.itemCount} ${cartController.itemCount == 1 ? 'item' : 'items'} in cart'
+                              ? '${cartController.itemCount > 5 ? '5+' : cartController.itemCount} ${cartController.itemCount == 1 ? 'item' : 'items'} in cart'
                               : 'Your cart is empty',
                           count: cartController.itemCount,
                           onTap: () {
@@ -55,7 +55,7 @@ class OrdersHub extends StatelessWidget {
                           accentColor: AppColors.secondaryColor,
                           title: 'Order History',
                           subtitle: ordersController.allOrders.isNotEmpty
-                              ? '${ordersController.allOrders.length} ${ordersController.allOrders.length == 1 ? 'order' : 'orders'}'
+                              ? '${ordersController.allOrders.length > 5 ? '5+' : ordersController.allOrders.length} ${ordersController.allOrders.length == 1 ? 'order' : 'orders'}'
                               : 'No orders yet',
                           count: ordersController.allOrders.length,
                           onTap: () {
@@ -71,7 +71,7 @@ class OrdersHub extends StatelessWidget {
                           accentColor: Color(0xFF7C4DFF),
                           title: 'Parcel Deliveries',
                           subtitle: deliveriesController.allParcelDeliveries.isNotEmpty
-                              ? '${deliveriesController.allParcelDeliveries.length} ${deliveriesController.allParcelDeliveries.length == 1 ? 'delivery' : 'deliveries'}'
+                              ? '${deliveriesController.allParcelDeliveries.length > 5 ? '5+' : deliveriesController.allParcelDeliveries.length} ${deliveriesController.allParcelDeliveries.length == 1 ? 'delivery' : 'deliveries'}'
                               : 'No parcel deliveries yet',
                           count: deliveriesController.allParcelDeliveries.length,
                           onTap: () {
@@ -176,7 +176,7 @@ class OrdersHub extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: customText(
-                      count.toString(),
+                      count > 5 ? '5+' : count.toString(),
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.whiteColor,
