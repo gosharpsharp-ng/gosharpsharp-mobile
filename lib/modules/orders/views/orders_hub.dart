@@ -162,33 +162,11 @@ class OrdersHub extends StatelessWidget {
               ),
             ),
 
-            // Count Badge and Arrow with accent color
-            Column(
-              children: [
-                if (count > 0)
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
-                      vertical: 6.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: accentColor,
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: customText(
-                      count > 5 ? '5+' : count.toString(),
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.whiteColor,
-                    ),
-                  ),
-                SizedBox(height: 8.h),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 18.sp,
-                  color: AppColors.blackColor,
-                ),
-              ],
+            // Arrow icon
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 18.sp,
+              color: AppColors.blackColor,
             ),
           ],
         ),
