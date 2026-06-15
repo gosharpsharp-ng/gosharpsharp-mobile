@@ -1,5 +1,4 @@
 import 'package:gosharpsharp/core/utils/exports.dart';
-import 'package:gosharpsharp/modules/orders/controllers/orders_controller.dart';
 
 class AppNavigationScreen extends StatelessWidget {
   const AppNavigationScreen({super.key});
@@ -84,7 +83,6 @@ class AppNavigationScreen extends StatelessWidget {
                       index: 2,
                       title: "Orders",
                       activeIcon: SvgAssets.ordersIcon,
-                      showBadge: true,
                     ),
                   ),
                   Expanded(
@@ -109,13 +107,11 @@ class BottomNavItem extends StatelessWidget {
   final String activeIcon;
   final int index;
   final int iconSize;
-  final bool showBadge;
   const BottomNavItem(
       {super.key,
       required this.title,
       required this.activeIcon,
       this.iconSize = 25,
-      this.showBadge = false,
       required this.index});
 
   @override
@@ -130,54 +126,13 @@ class BottomNavItem extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        SvgPicture.asset(
-                          activeIcon,
-                          height: iconSize.sp,
-                          color: index == homeController.currentScreenIndex
-                              ? AppColors.primaryColor
-                              : AppColors.blackColor,
-                          width: iconSize.sp,
-                        ),
-                        if (showBadge && Get.isRegistered<OrdersController>())
-                          GetBuilder<OrdersController>(
-                            builder: (ordersController) {
-                              final pendingCount = ordersController.allOrders
-                                  .where((order) =>
-                                      order.status == 'pending' ||
-                                      order.status == 'confirmed')
-                                  .length;
-
-                              if (pendingCount == 0) return const SizedBox.shrink();
-
-                              return Positioned(
-                                right: -6,
-                                top: -6,
-                                child: Container(
-                                  padding: EdgeInsets.all(4.sp),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: BoxConstraints(
-                                    minWidth: 16.sp,
-                                    minHeight: 16.sp,
-                                  ),
-                                  child: Center(
-                                    child: customText(
-                                      pendingCount > 9 ? '9+' : pendingCount.toString(),
-                                      fontSize: 9.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.whiteColor,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                      ],
+                    SvgPicture.asset(
+                      activeIcon,
+                      height: iconSize.sp,
+                      color: index == homeController.currentScreenIndex
+                          ? AppColors.primaryColor
+                          : AppColors.blackColor,
+                      width: iconSize.sp,
                     ),
                     SizedBox(
                       height: 5.sp,

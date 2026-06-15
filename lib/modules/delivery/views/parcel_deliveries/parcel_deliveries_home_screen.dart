@@ -41,6 +41,8 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
                           deliveriesController.deliveryStatuses[index];
                       final isSelected =
                           deliveriesController.selectedDeliveryStatus == status;
+                      final deliveryCount = deliveriesController
+                          .getDeliveryCountByStatus(status);
                       final displayName = _getStatusDisplayName(status);
 
                       return InkWell(
@@ -67,13 +69,41 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
                                   : AppColors.greyColor.withValues(alpha: 0.3),
                             ),
                           ),
-                          child: customText(
-                            displayName,
-                            color: isSelected
-                                ? AppColors.whiteColor
-                                : AppColors.blackColor,
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w500,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              customText(
+                                displayName,
+                                color: isSelected
+                                    ? AppColors.whiteColor
+                                    : AppColors.blackColor,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              if (deliveryCount > 0) ...[
+                                SizedBox(width: 8.w),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.w,
+                                    vertical: 2.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.whiteColor
+                                        : AppColors.primaryColor,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                  ),
+                                  child: customText(
+                                    deliveryCount.toString(),
+                                    color: isSelected
+                                        ? AppColors.primaryColor
+                                        : AppColors.whiteColor,
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       );
