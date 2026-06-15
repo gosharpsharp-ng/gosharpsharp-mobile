@@ -91,7 +91,7 @@ class OrdersHomeScreen extends GetView<OrdersController> {
                                     borderRadius: BorderRadius.circular(12.r),
                                   ),
                                   child: customText(
-                                    orderCount.toString(),
+                                    orderCount > 5 ? '5+' : orderCount.toString(),
                                     color: isSelected
                                         ? AppColors.primaryColor
                                         : AppColors.whiteColor,

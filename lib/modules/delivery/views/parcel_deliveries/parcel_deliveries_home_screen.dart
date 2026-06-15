@@ -94,7 +94,7 @@ class ParcelDeliveriesHomeScreen extends GetView<DeliveriesController> {
                                     borderRadius: BorderRadius.circular(12.r),
                                   ),
                                   child: customText(
-                                    deliveryCount.toString(),
+                                    deliveryCount > 5 ? '5+' : deliveryCount.toString(),
                                     color: isSelected
                                         ? AppColors.primaryColor
                                         : AppColors.whiteColor,
